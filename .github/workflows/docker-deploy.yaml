@@ -26,7 +26,7 @@ jobs:
       run: |
         cd GuildWarsPartySearch
         $content = Get-Content Config.json
-        $updatedContent = $content -replace "[API_KEY_PLACEHOLDER]", "${{ secrets.APIKEY }}"
+        $updatedContent = $content.Replace("[API_KEY_PLACEHOLDER]", "${{ secrets.APIKEY }}")
         Set-Content -Path Config.json -Value $updatedContent
         Write-Host "Placeholder replaced successfully in Config.json"
 
