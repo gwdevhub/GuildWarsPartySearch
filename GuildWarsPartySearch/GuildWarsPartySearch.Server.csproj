@@ -21,4 +21,10 @@
     <ProjectReference Include="..\GuildWarsPartySearch.Common\GuildWarsPartySearch.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

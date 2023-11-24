@@ -6,6 +6,8 @@ namespace GuildWarsPartySearch.Server.Services.PartySearch;
 
 public interface IPartySearchService
 {
+    Task<List<PartySearchUpdate>> GetAllPartySearches();
+
     Task<Result<PostPartySearchRequest, PostPartySearchFailure>> PostPartySearch(PostPartySearchRequest? request);
 
     Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Campaign? campaign, Continent? continent, Region? region, Map? map, string? district);

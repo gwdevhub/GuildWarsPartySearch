@@ -16,10 +16,9 @@ public class Program
         server.ServiceManager.SetupServiceManager();
         server
             .AddHandler(
-                new HttpRoutingHandler()
+                new WebsocketRoutingHandler()
                     .SetupRoutes()
-                    .WithReturn404OnNotFound(true)
-                    .WithReturn500OnUnhandledException(true))
+                    .WithHeartbeatEnabled(true))
             .AddServerUsageMonitor(new TickrateEnforcer() { TicksPerSecond = 240, Silent = true })
             .SetScheduler(new TaskAwaiterScheduler())
             .WithLoggingMessageContents(false);

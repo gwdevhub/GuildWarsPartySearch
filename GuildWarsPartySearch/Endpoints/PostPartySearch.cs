@@ -1,123 +1,150 @@
-﻿using GuildWarsPartySearch.Server.Filters;
-using GuildWarsPartySearch.Server.Models.Endpoints;
+﻿using GuildWarsPartySearch.Server.Models.Endpoints;
+using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
 using Microsoft.Extensions.Logging;
-using MTSC.Common.Http;
-using MTSC.Common.Http.Attributes;
-using MTSC.Common.Http.RoutingModules;
+using MTSC.Common.WebSockets.RoutingModules;
 using System.Core.Extensions;
+using System.Extensions;
 
 namespace GuildWarsPartySearch.Server.Endpoints;
 
-[SimpleStringTokenFilter]
-[ReturnBadRequestOnDataBindingFailure]
-public sealed class PostPartySearch : HttpRouteBase<None>
+public sealed class PostPartySearch : WebsocketRouteBase<PostPartySearchRequest, PostPartySearchResponse>
 {
-    [FromBody]
-    public PostPartySearchRequest? Payload { get; init; }
-
+    private readonly ILiveFeedService liveFeedService;
     private readonly IPartySearchService partySearchService;
     private readonly ILogger<PostPartySearch> logger;
 
     public PostPartySearch(
+        ILiveFeedService liveFeedService,
         IPartySearchService partySearchService,
         ILogger<PostPartySearch> logger)
     {
+        this.liveFeedService = liveFeedService.ThrowIfNull();
         this.partySearchService = partySearchService.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
     }
 
-    public override async Task<HttpResponse> HandleRequest(None request)
+    public override void ConnectionClosed()
     {
-        var result = await this.partySearchService.PostPartySearch(this.Payload);
-        return result.Switch<HttpResponse>(
-            onSuccess: _ => Success200,
-            onFailure: failure => failure switch
-            {
-                PostPartySearchFailure.InvalidPayload => NoPayload400,
-                PostPartySearchFailure.InvalidCampaign => InvalidCampaign400,
-                PostPartySearchFailure.InvalidContinent => InvalidContinent400,
-                PostPartySearchFailure.InvalidRegion => InvalidRegion400,
-                PostPartySearchFailure.InvalidMap => InvalidMap400,
-                PostPartySearchFailure.InvalidDistrict => InvalidDistrict400,
-                PostPartySearchFailure.InvalidEntries => InvalidPartySearchEntries400,
-                PostPartySearchFailure.InvalidPartySize => InvalidPartySize400,
-                PostPartySearchFailure.InvalidPartyMaxSize => InvalidPartyMaxSize400,
-                PostPartySearchFailure.InvalidNpcs => InvalidNpcs400,
-                PostPartySearchFailure.UnspecifiedFailure => UnspecifiedFailure500,
-                _ => UnspecifiedFailure500
-            });
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ConnectionInitialized), this.ClientData.Socket.RemoteEndPoint?.ToString() ?? string.Empty);
+        scopedLogger.LogInformation("Client disconnected");
     }
 
-    private static HttpResponse Success200 => new()
+    public override void ConnectionInitialized()
     {
-        StatusCode = HttpMessage.StatusCodes.OK,
-        BodyString = "Party search posted"
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ConnectionInitialized), this.ClientData.Socket.RemoteEndPoint?.ToString() ?? string.Empty);
+        scopedLogger.LogInformation("Client connected");
+    }
+
+    public override async void HandleReceivedMessage(PostPartySearchRequest message)
+    {
+        var result = await this.partySearchService.PostPartySearch(message);
+        var response = result.Switch<PostPartySearchResponse>(
+            onSuccess: _ =>
+            {
+                this.liveFeedService.PushUpdate(this.Server, new PartySearchUpdate
+                {
+                    Campaign = message.Campaign,
+                    Continent = message.Continent,
+                    District = message.District,
+                    Map = message.Map,
+                    PartySearchEntries = message.PartySearchEntries,
+                    Region = message.Region
+                });
+                return Success;
+            },
+            onFailure: failure => failure switch
+            {
+                PostPartySearchFailure.InvalidPayload => InvalidPayload,
+                PostPartySearchFailure.InvalidCampaign => InvalidCampaign,
+                PostPartySearchFailure.InvalidContinent => InvalidContinent,
+                PostPartySearchFailure.InvalidRegion => InvalidRegion,
+                PostPartySearchFailure.InvalidMap => InvalidMap,
+                PostPartySearchFailure.InvalidDistrict => InvalidDistrict,
+                PostPartySearchFailure.InvalidEntries => InvalidEntries,
+                PostPartySearchFailure.InvalidPartySize => InvalidPartySize,
+                PostPartySearchFailure.InvalidPartyMaxSize => InvalidPartyMaxSize,
+                PostPartySearchFailure.InvalidNpcs => InvalidNpcs,
+                PostPartySearchFailure.UnspecifiedFailure => UnspecifiedFailure,
+                _ => UnspecifiedFailure
+            });
+
+        this.SendMessage(response);
+    }
+
+    public override void Tick()
+    {
+    }
+
+    private static PostPartySearchResponse Success => new()
+    {
+        Result = 0,
+        Description = "Posted entries"
     };
 
-    private static HttpResponse NoPayload400 => new()
+    private static PostPartySearchResponse InvalidPayload => new()
     {
-        StatusCode = HttpMessage.StatusCodes.BadRequest,
-        BodyString = "No payload"
+        Result = 0,
+        Description = "Invalid payload"
     };
 
-    private static HttpResponse InvalidCampaign400 => new()
+    private static PostPartySearchResponse InvalidCampaign => new()
     {
-        StatusCode = HttpMessage.StatusCodes.BadRequest,
-        BodyString = "Invalid Campaign"
+        Result = 0,
+        Description = "Invalid campaign"
     };
 
-    private static HttpResponse InvalidContinent400 => new()
+    private static PostPartySearchResponse InvalidContinent => new()
     {
-        StatusCode = HttpMessage.StatusCodes.BadRequest,
-        BodyString = "Invalid Continent"
+        Result = 0,
+        Description = "Invalid continent"
     };
 
-    private static HttpResponse InvalidRegion400 => new()
+    private static PostPartySearchResponse InvalidRegion => new()
     {
-        StatusCode = HttpMessage.StatusCodes.BadRequest,
-        BodyString = "Invalid Region"
+        Result = 0,
+        Description = "Invalid region"
     };
 
-    private static HttpResponse InvalidMap400 => new()
+    private static PostPartySearchResponse InvalidMap => new()
     {
-        StatusCode = HttpMessage.StatusCodes.BadRequest,
-        BodyString = "Invalid Map"
+        Result = 0,
+        Description = "Invalid map"
     };
 
-    private static HttpResponse InvalidDistrict400 => new()
+    private static PostPartySearchResponse InvalidDistrict => new()
     {
-        StatusCode = HttpMessage.StatusCodes.BadRequest,
-        BodyString = "Invalid District"
+        Result = 0,
+        Description = "Invalid district"
     };
 
-    private static HttpResponse InvalidPartySearchEntries400 => new()
+    private static PostPartySearchResponse InvalidEntries => new()
     {
-        StatusCode = HttpMessage.StatusCodes.BadRequest,
-        BodyString = "Invalid PartySearchEntries"
+        Result = 0,
+        Description = "Invalid entries"
     };
 
-    private static HttpResponse InvalidPartySize400 => new()
+    private static PostPartySearchResponse InvalidPartySize => new()
     {
-        StatusCode = HttpMessage.StatusCodes.BadRequest,
-        BodyString = "Invalid PartySize"
+        Result = 0,
+        Description = "Invalid party size"
     };
 
-    private static HttpResponse InvalidPartyMaxSize400 => new()
+    private static PostPartySearchResponse InvalidPartyMaxSize => new()
     {
-        StatusCode = HttpMessage.StatusCodes.BadRequest,
-        BodyString = "Invalid PartyMaxSize"
+        Result = 0,
+        Description = "Invalid max party size"
     };
 
-    private static HttpResponse InvalidNpcs400 => new()
+    private static PostPartySearchResponse InvalidNpcs => new()
     {
-        StatusCode = HttpMessage.StatusCodes.BadRequest,
-        BodyString = "Invalid Npcs"
+        Result = 0,
+        Description = "Invalid npcs"
     };
 
-    private static HttpResponse UnspecifiedFailure500 => new()
+    private static PostPartySearchResponse UnspecifiedFailure => new()
     {
-        StatusCode = HttpMessage.StatusCodes.InternalServerError,
-        BodyString = "Encountered an error while processing request"
+        Result = 0,
+        Description = "Unspecified failure"
     };
 }

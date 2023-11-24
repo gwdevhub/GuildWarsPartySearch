@@ -20,6 +20,11 @@ public sealed class PartySearchService : IPartySearchService
         this.logger = logger.ThrowIfNull();
     }
 
+    public Task<List<PartySearchUpdate>> GetAllPartySearches()
+    {
+        return this.partySearchDatabase.GetAllPartySearches();
+    }
+
     public async Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Campaign? campaign, Continent? continent, Region? region, Map? map, string? district)
     {
         if (campaign is null)
