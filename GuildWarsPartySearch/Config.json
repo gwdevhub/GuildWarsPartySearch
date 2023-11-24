@@ -1,5 +1,7 @@
 {
   "ServerOptions": {
-    "ApiKey": "[API_KEY_PLACEHOLDER]"
+    "ApiKey": "[API_KEY_PLACEHOLDER]",
+    "InactivityTimeout": "0:0:5",
+    "HeartbeatFrequency": "0:0:1"
   }
 }

@@ -52,7 +52,9 @@ public static class ServerConfiguration
         websocketRoutingHandler.ThrowIfNull();
         websocketRoutingHandler
             .AddRoute<LiveFeed>("party-search/live-feed")
-            .AddRoute<PostPartySearch>("party-search/update", FilterUpdateMessages);
+            .AddRoute<PostPartySearch>("party-search/update", FilterUpdateMessages)
+            .WithHeartbeatEnabled(true)
+            .WithHeartbeatFrequency(TimeSpan.FromSeconds(5));
         return websocketRoutingHandler;
     }
 
