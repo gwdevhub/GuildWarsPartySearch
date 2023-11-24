@@ -26,6 +26,7 @@ jobs:
       shell: pwsh
 
   deploy:
+    needs: build
     runs-on: ubuntu-latest
     
     steps:
@@ -62,5 +63,5 @@ jobs:
         --registry-login-server guildwarspartysearch.azurecr.io `
         --registry-username ${{ secrets.DOCKERHUB_USERNAME }} `
         --registry-password ${{ secrets.DOCKERHUB_PASSWORD }} `
-        --dns-name-label guildwarspartysearch-dns `
+        --dns-name-label guildwarspartysearch `
         --ports 8080
