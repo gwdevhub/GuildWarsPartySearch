@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GuildWarsPartySearch.Server", "GuildWarsPartySearch\GuildWarsPartySearch.Server.csproj", "{3469E092-73C7-44D1-83CD-677E22DC054B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{04737A61-0E1C-4121-8012-AD55B3D3E03E} = {04737A61-0E1C-4121-8012-AD55B3D3E03E}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GuildWarsPartySearch.Common", "GuildWarsPartySearch.Common\GuildWarsPartySearch.Common.csproj", "{04737A61-0E1C-4121-8012-AD55B3D3E03E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GuildWarsPartySearch.Tests", "GuildWarsPartySearch.Tests\GuildWarsPartySearch.Tests.csproj", "{9FCED959-3EE9-40B7-B6A8-AF13FAB54B9C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{6C63473D-A6D9-400D-94AD-2E4DBA48B8B8}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\docker-deploy.yaml = .github\workflows\docker-deploy.yaml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3469E092-73C7-44D1-83CD-677E22DC054B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3469E092-73C7-44D1-83CD-677E22DC054B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3469E092-73C7-44D1-83CD-677E22DC054B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3469E092-73C7-44D1-83CD-677E22DC054B}.Debug|x64.Build.0 = Debug|Any CPU
+		{3469E092-73C7-44D1-83CD-677E22DC054B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3469E092-73C7-44D1-83CD-677E22DC054B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3469E092-73C7-44D1-83CD-677E22DC054B}.Release|x64.ActiveCfg = Release|Any CPU
+		{3469E092-73C7-44D1-83CD-677E22DC054B}.Release|x64.Build.0 = Release|Any CPU
+		{04737A61-0E1C-4121-8012-AD55B3D3E03E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04737A61-0E1C-4121-8012-AD55B3D3E03E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04737A61-0E1C-4121-8012-AD55B3D3E03E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{04737A61-0E1C-4121-8012-AD55B3D3E03E}.Debug|x64.Build.0 = Debug|Any CPU
+		{04737A61-0E1C-4121-8012-AD55B3D3E03E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04737A61-0E1C-4121-8012-AD55B3D3E03E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04737A61-0E1C-4121-8012-AD55B3D3E03E}.Release|x64.ActiveCfg = Release|Any CPU
+		{04737A61-0E1C-4121-8012-AD55B3D3E03E}.Release|x64.Build.0 = Release|Any CPU
+		{9FCED959-3EE9-40B7-B6A8-AF13FAB54B9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FCED959-3EE9-40B7-B6A8-AF13FAB54B9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FCED959-3EE9-40B7-B6A8-AF13FAB54B9C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9FCED959-3EE9-40B7-B6A8-AF13FAB54B9C}.Debug|x64.Build.0 = Debug|Any CPU
+		{9FCED959-3EE9-40B7-B6A8-AF13FAB54B9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FCED959-3EE9-40B7-B6A8-AF13FAB54B9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FCED959-3EE9-40B7-B6A8-AF13FAB54B9C}.Release|x64.ActiveCfg = Release|Any CPU
+		{9FCED959-3EE9-40B7-B6A8-AF13FAB54B9C}.Release|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {41E8BB8F-3A9F-4256-8E34-62CCC9EB5EEE}
+	EndGlobalSection
+EndGlobal
