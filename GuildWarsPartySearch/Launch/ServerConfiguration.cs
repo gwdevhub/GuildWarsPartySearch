@@ -1,9 +1,12 @@
 ﻿using GuildWarsPartySearch.Server.Endpoints;
 using GuildWarsPartySearch.Server.Services.Database;
+using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.Lifetime;
 using GuildWarsPartySearch.Server.Services.Logging;
 using GuildWarsPartySearch.Server.Services.PartySearch;
 using Microsoft.Extensions.DependencyInjection;
+using MTSC.Common.Http;
+using MTSC.ServerSide;
 using MTSC.ServerSide.Handlers;
 using Slim;
 using System.Core.Extensions;
@@ -33,16 +36,21 @@ public static class ServerConfiguration
         services.AddScoped<IServerLifetimeService, ServerLifetimeService>();
         services.AddScoped<IPartySearchDatabase, InMemoryPartySearchDatabase>();
         services.AddScoped<IPartySearchService, PartySearchService>();
+        services.AddScoped<ILiveFeedService, LiveFeedService>();
         return services;
     }
 
-    public static HttpRoutingHandler SetupRoutes(this HttpRoutingHandler httpRoutingHandler)
+    public static WebsocketRoutingHandler SetupRoutes(this WebsocketRoutingHandler websocketRoutingHandler)
     {
-        httpRoutingHandler.ThrowIfNull();
+        websocketRoutingHandler.ThrowIfNull();
+        websocketRoutingHandler
+            .AddRoute<LiveFeed>("party-search/live-feed")
+            .AddRoute<PostPartySearch>("party-search/update", FilterUpdateMessages);
+        return websocketRoutingHandler;
+    }
 
-        httpRoutingHandler
-            .AddRoute<PostPartySearch>(HttpMethods.Post, "party-search")
-            .AddRoute<GetPartySearch>(HttpMethods.Get, "party-search/{campaign}/{continent}/{region}/{map}/{district}");
-        return httpRoutingHandler;
+    private static RouteEnablerResponse FilterUpdateMessages(MTSC.ServerSide.Server server, HttpRequest req, ClientData clientData)
+    {
+        return RouteEnablerResponse.Accept;
     }
 }

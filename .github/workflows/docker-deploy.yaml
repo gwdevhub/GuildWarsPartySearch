@@ -1,8 +1,6 @@
 name: Build and Push Docker Image
 
 on:
-  pull_request:
-    branches: [ master ]
   push:
     branches: [ master ]
 
@@ -13,6 +11,11 @@ jobs:
     steps:
     - name: Check out the repository
       uses: actions/checkout@v2
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.x'
 
     - name: Log in to Docker Hub
       run: |

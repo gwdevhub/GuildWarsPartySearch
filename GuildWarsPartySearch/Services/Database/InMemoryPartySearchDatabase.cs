@@ -1,4 +1,5 @@
 ﻿using GuildWarsPartySearch.Common.Models.GuildWars;
+using GuildWarsPartySearch.Server.Models.Endpoints;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Core.Extensions;
@@ -8,7 +9,7 @@ namespace GuildWarsPartySearch.Server.Services.Database;
 
 public sealed class InMemoryPartySearchDatabase : IPartySearchDatabase
 {
-    private static readonly ConcurrentDictionary<string, List<Models.Database.PartySearch>> partySearchCache = new();
+    private static readonly ConcurrentDictionary<(Campaign Campaign, Continent Continent, Region Region, Map Map, string District), List<Models.Database.PartySearch>> PartySearchCache = new();
 
     private readonly ILogger<InMemoryPartySearchDatabase> logger;
 
@@ -22,7 +23,7 @@ public sealed class InMemoryPartySearchDatabase : IPartySearchDatabase
     {
         var scopedLogger = this.logger.CreateScopedLogger(nameof(SetPartySearches), string.Empty);
         var key = BuildKey(campaign, continent, region, map, district);
-        partySearchCache[key] = partySearch;
+        PartySearchCache[key] = partySearch;
         scopedLogger.LogInformation($"Set cache for {key}");
         return Task.FromResult(true);
     }
@@ -32,7 +33,7 @@ public sealed class InMemoryPartySearchDatabase : IPartySearchDatabase
         district = district.Replace("%20", " ");
         var scopedLogger = this.logger.CreateScopedLogger(nameof(GetPartySearches), string.Empty);
         var key = BuildKey(campaign, continent, region, map, district);
-        if (!partySearchCache.TryGetValue(key, out var partySearch))
+        if (!PartySearchCache.TryGetValue(key, out var partySearch))
         {
             return Task.FromResult<List<Models.Database.PartySearch>?>(default);
         }
@@ -40,10 +41,29 @@ public sealed class InMemoryPartySearchDatabase : IPartySearchDatabase
         return Task.FromResult<List<Models.Database.PartySearch>?>(partySearch);
     }
 
-    private static string BuildKey(Campaign campaign, Continent continent, Region region, Map map, string district)
+    public Task<List<PartySearchUpdate>> GetAllPartySearches()
     {
-        return $"{campaign.Name};{continent.Name};{region.Name};{map.Name};{district}";
+        return Task.FromResult(PartySearchCache.Select(t =>
+        {
+            return new PartySearchUpdate
+            {
+                Campaign = t.Key.Campaign,
+                Continent = t.Key.Continent,
+                Region = t.Key.Region,
+                Map = t.Key.Map,
+                District = t.Key.District,
+                PartySearchEntries = t.Value.Select(e => new PartySearchEntry
+                {
+                    Npcs = e.Npcs,
+                    PartyMaxSize = e.PartyMaxSize,
+                    PartySize = e.PartySize,
+                }).ToList()
+            };
+        }).ToList());
     }
 
-    
+    private static (Campaign Campaign, Continent Continent, Region Region, Map Map, string District) BuildKey(Campaign campaign, Continent continent, Region region, Map map, string district)
+    {
+        return (campaign, continent, region, map, district);
+    }
 }
