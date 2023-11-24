@@ -1,4 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using GuildWarsPartySearch.Server.Options;
+using GuildWarsPartySearch.Server.Tcp;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using MTSC.ServerSide.Handlers;
 using MTSC.ServerSide.Schedulers;
 using MTSC.ServerSide.UsageMonitors;
@@ -18,8 +22,10 @@ public class Program
             .AddHandler(
                 new WebsocketRoutingHandler()
                     .SetupRoutes()
-                    .WithHeartbeatEnabled(true))
-            .AddServerUsageMonitor(new TickrateEnforcer() { TicksPerSecond = 240, Silent = true })
+                    .WithHeartbeatEnabled(true)
+                    .WithHeartbeatFrequency(server.ServiceManager.GetRequiredService<IOptions<ServerOptions>>().Value.HeartbeatFrequency ?? TimeSpan.FromSeconds(5)))
+            .AddHandler(new ConnectionMonitorHandler())
+            .AddServerUsageMonitor(new TickrateEnforcer() { TicksPerSecond = 60, Silent = true })
             .SetScheduler(new TaskAwaiterScheduler())
             .WithLoggingMessageContents(false);
 
