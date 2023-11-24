@@ -14,19 +14,13 @@ jobs:
     - name: Check out the repository
       uses: actions/checkout@v2
 
-    - name: Publish .NET project
-      run: dotnet publish GuildWarsPartySearch/GuildWarsPartySearch.Server.csproj -c Release
-
     - name: Log in to Docker Hub
       run: |
         docker login guildwarspartysearch.azurecr.io --username "${{ secrets.DOCKERHUB_USERNAME }}" --password "${{ secrets.DOCKERHUB_PASSWORD }}"
 
     - name: Build and push Docker image
-      uses: docker/build-push-action@v2
-      with:
-        push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/guildwarspartysearch:latest
-        context: GuildWarsPartySearch/
-        file: Dockerfile
-        build-args: |
-          BUILD_DIR=out
+      run: |
+        cd GuildWarsPartySearch
+        .\BuildDockerImage.ps1
+        docker push guildwarspartysearch.azurecr.io/guildwarspartysearch.server
+      shell: powershell
