@@ -23,4 +23,4 @@ jobs:
         cd GuildWarsPartySearch
         .\BuildDockerImage.ps1
         docker push guildwarspartysearch.azurecr.io/guildwarspartysearch.server
-      shell: powershell
+      shell: pwsh
