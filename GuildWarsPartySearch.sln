@@ -14,8 +14,26 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GuildWarsPartySearch.Tests"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{6C63473D-A6D9-400D-94AD-2E4DBA48B8B8}"
 	ProjectSection(SolutionItems) = preProject
+		.github\workflows\content-deploy.yaml = .github\workflows\content-deploy.yaml
 		.github\workflows\docker-deploy.yaml = .github\workflows\docker-deploy.yaml
 		.github\workflows\test.yaml = .github\workflows\test.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GuildWarsPartySearch.FrontEnd", "GuildWarsPartySearch.FrontEnd", "{4F0DB527-1570-4513-ABAA-EED4BBF0DBFD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{5224A4C7-E145-4D52-A1AF-A7493574FA08}"
+	ProjectSection(SolutionItems) = preProject
+		GuildWarsPartySearch.FrontEnd\Content\Index.html = GuildWarsPartySearch.FrontEnd\Content\Index.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{32EDAB43-7D06-4BBE-9F6C-6C81B8C00C94}"
+	ProjectSection(SolutionItems) = preProject
+		GuildWarsPartySearch.FrontEnd\Scripts\BuildAndUploadContent.ps1 = GuildWarsPartySearch.FrontEnd\Scripts\BuildAndUploadContent.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{0DA6EA05-0FC5-4036-9B11-F7139789FCD0}"
+	ProjectSection(SolutionItems) = preProject
+		GuildWarsPartySearch.FrontEnd\Content\Scripts\scripts.js = GuildWarsPartySearch.FrontEnd\Content\Scripts\scripts.js
 	EndProjectSection
 EndProject
 Global
@@ -67,6 +85,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5224A4C7-E145-4D52-A1AF-A7493574FA08} = {4F0DB527-1570-4513-ABAA-EED4BBF0DBFD}
+		{32EDAB43-7D06-4BBE-9F6C-6C81B8C00C94} = {4F0DB527-1570-4513-ABAA-EED4BBF0DBFD}
+		{0DA6EA05-0FC5-4036-9B11-F7139789FCD0} = {5224A4C7-E145-4D52-A1AF-A7493574FA08}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41E8BB8F-3A9F-4256-8E34-62CCC9EB5EEE}

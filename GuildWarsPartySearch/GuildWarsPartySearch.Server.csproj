@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Data.Tables" Version="12.8.2" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
     <PackageReference Include="MTSC" Version="5.5.1" />
     <PackageReference Include="Slim" Version="1.9.2" />
     <PackageReference Include="Slim.Integration" Version="1.0.4" />

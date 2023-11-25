@@ -1,4 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using GuildWarsPartySearch.Server.HttpModules;
 using GuildWarsPartySearch.Server.Options;
 using GuildWarsPartySearch.Server.ServerHandlers;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,9 @@ public class Program
                     .WithHeartbeatFrequency(server.ServiceManager.GetRequiredService<IOptions<ServerOptions>>().Value.HeartbeatFrequency ?? TimeSpan.FromSeconds(5)))
             .AddHandler(new ConnectionMonitorHandler())
             .AddHandler(new StartupHandler())
+            .AddHandler(new ContentManagementHandler())
+            .AddHandler(new HttpHandler()
+                .AddHttpModule(new ContentModule()))
             .AddServerUsageMonitor(new TickrateEnforcer() { TicksPerSecond = 60, Silent = true })
             .SetScheduler(new TaskAwaiterScheduler())
             .WithLoggingMessageContents(false);
