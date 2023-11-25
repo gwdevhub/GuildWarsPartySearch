@@ -13,7 +13,7 @@
     "ConnectionString": "[AZURE_TABLESTORAGE_CONNECTIONSTRING]"
   },
   "ContentOptions": {
-    "UpdateFrequency": "0:30:0",
+    "UpdateFrequency": "0:1:0",
     "StagingFolder": "Content"
   }
 }
