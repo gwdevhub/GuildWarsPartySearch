@@ -1,5 +1,6 @@
 ﻿using GuildWarsPartySearch.Server.Options;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MTSC.Common.Http;
 using MTSC.Common.Http.ServerModules;
@@ -12,6 +13,7 @@ namespace GuildWarsPartySearch.Server.HttpModules;
 public sealed class ContentModule : IHttpModule
 {
     private ContentOptions? contentOptions;
+    private ILogger<ContentModule> logger;
 
     public bool HandleRequest(MTSC.ServerSide.Server server, HttpHandler handler, ClientData client, HttpRequest request, ref HttpResponse response)
     {
@@ -21,6 +23,7 @@ public sealed class ContentModule : IHttpModule
             return true;
         }
 
+        this.logger.LogInformation($"Requesting {request.RequestURI}");
         var path = request.RequestURI;
         var contentRootPath = Path.GetFullPath(this.contentOptions.StagingFolder);
         var requestUri = request.RequestURI;
@@ -31,18 +34,22 @@ public sealed class ContentModule : IHttpModule
         }
 
         var requestedPath = Path.Combine(contentRootPath, requestUri);
+        this.logger.LogInformation($"Resolved path to {requestedPath}");
         if (!IsSubPathOf(contentRootPath, requestedPath))
         {
+            this.logger.LogWarning($"Forbidden to {requestedPath}");
             response = Forbidden403;
             return true;
         }
 
         if (!File.Exists(requestedPath))
         {
+            this.logger.LogWarning($"Not found {requestedPath}");
             response = NotFound404;
             return true;
         }
 
+        this.logger.LogWarning($"Returning {requestedPath}");
         response = Ok200(File.ReadAllBytes(requestedPath));
         return true;
     }
@@ -52,6 +59,7 @@ public sealed class ContentModule : IHttpModule
         if (this.contentOptions is null)
         {
             this.contentOptions = server.ServiceManager.GetRequiredService<IOptions<ContentOptions>>().Value;
+            this.logger = server.ServiceManager.GetRequiredService<ILogger<ContentModule>>();
         }
     }
 
