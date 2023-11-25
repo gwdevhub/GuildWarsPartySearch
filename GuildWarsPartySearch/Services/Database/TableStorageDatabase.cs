@@ -1,15 +1,12 @@
-﻿using Azure.Core.Diagnostics;
-using Azure.Data.Tables;
+﻿using Azure.Data.Tables;
 using GuildWarsPartySearch.Common.Models.GuildWars;
 using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Options;
 using GuildWarsPartySearch.Server.Services.Database.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Collections.Concurrent;
 using System.Core.Extensions;
 using System.Extensions;
-using System.Threading;
 
 namespace GuildWarsPartySearch.Server.Services.Database;
 
@@ -80,7 +77,7 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
         {
             var entries = partySearch.Select(e =>
             {
-                var rowKey = BuildRowKey(e.CharName!, e.PartySize!.Value, e.PartyMaxSize!.Value, e.Npcs!.Value);
+                var rowKey = e.CharName ?? string.Empty;
                 return new PartySearchTableEntity
                 {
                     PartitionKey = partitionKey,
@@ -154,10 +151,5 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
     private static string BuildPartitionKey(Campaign campaign, Continent continent, Region region, Map map, string district)
     {
         return $"{campaign.Name};{continent.Name};{region.Name};{map.Name};{district}";
-    }
-
-    private static string BuildRowKey(string charName, int partySize, int partyMaxSize, int npcs)
-    {
-        return $"{charName};{partySize};{partyMaxSize};{npcs}";
     }
 }

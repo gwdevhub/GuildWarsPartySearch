@@ -29,7 +29,7 @@ public sealed class LiveFeed : WebsocketRouteBase<None>
 
     public override void ConnectionClosed()
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ConnectionInitialized), this.ClientData.Socket.RemoteEndPoint?.ToString() ?? string.Empty);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ConnectionClosed), this.ClientData.Socket.RemoteEndPoint?.ToString() ?? string.Empty);
         try
         {
             scopedLogger.LogInformation("Client disconnected");
