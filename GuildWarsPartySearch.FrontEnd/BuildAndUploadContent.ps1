@@ -9,5 +9,6 @@ param(
     [string]$SourceFolderPath
 )
 
+
 az storage blob delete-batch --source $ContainerName --connection-string $ConnectionString --pattern '*'
 az storage blob upload-batch --destination $ContainerName --source $SourceFolderPath --connection-string $ConnectionString

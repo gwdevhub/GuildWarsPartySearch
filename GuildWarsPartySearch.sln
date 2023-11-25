@@ -20,15 +20,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GuildWarsPartySearch.FrontEnd", "GuildWarsPartySearch.FrontEnd", "{4F0DB527-1570-4513-ABAA-EED4BBF0DBFD}"
+	ProjectSection(SolutionItems) = preProject
+		GuildWarsPartySearch.FrontEnd\BuildAndUploadContent.ps1 = GuildWarsPartySearch.FrontEnd\BuildAndUploadContent.ps1
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{5224A4C7-E145-4D52-A1AF-A7493574FA08}"
 	ProjectSection(SolutionItems) = preProject
 		GuildWarsPartySearch.FrontEnd\Content\Index.html = GuildWarsPartySearch.FrontEnd\Content\Index.html
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{32EDAB43-7D06-4BBE-9F6C-6C81B8C00C94}"
-	ProjectSection(SolutionItems) = preProject
-		GuildWarsPartySearch.FrontEnd\Scripts\BuildAndUploadContent.ps1 = GuildWarsPartySearch.FrontEnd\Scripts\BuildAndUploadContent.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{0DA6EA05-0FC5-4036-9B11-F7139789FCD0}"
@@ -88,7 +86,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5224A4C7-E145-4D52-A1AF-A7493574FA08} = {4F0DB527-1570-4513-ABAA-EED4BBF0DBFD}
-		{32EDAB43-7D06-4BBE-9F6C-6C81B8C00C94} = {4F0DB527-1570-4513-ABAA-EED4BBF0DBFD}
 		{0DA6EA05-0FC5-4036-9B11-F7139789FCD0} = {5224A4C7-E145-4D52-A1AF-A7493574FA08}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
