@@ -41,6 +41,11 @@ jobs:
         docker push guildwarspartysearch.azurecr.io/guildwarspartysearch.server
       shell: pwsh
 
+    - name: Debug
+      run: |
+        cd GuildWarsPartySearch/bin/Release/net8.0/publish/
+        ls
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
