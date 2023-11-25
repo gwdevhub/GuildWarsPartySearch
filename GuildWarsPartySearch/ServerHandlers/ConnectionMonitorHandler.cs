@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using GuildWarsPartySearch.Server.Options;
 
-namespace GuildWarsPartySearch.Server.Tcp;
+namespace GuildWarsPartySearch.Server.ServerHandlers;
 
 public class ConnectionMonitorHandler : IHandler
 {
@@ -25,15 +25,15 @@ public class ConnectionMonitorHandler : IHandler
 
     void IHandler.Tick(MTSC.ServerSide.Server server)
     {
-        if (!this.initialized)
+        if (!initialized)
         {
-            this.initialized = true;
-            this.inactivityTimeout = server.ServiceManager.GetRequiredService<IOptions<ServerOptions>>().Value.InactivityTimeout ?? TimeSpan.FromSeconds(15);
+            initialized = true;
+            inactivityTimeout = server.ServiceManager.GetRequiredService<IOptions<ServerOptions>>().Value.InactivityTimeout ?? TimeSpan.FromSeconds(15);
         }
 
         foreach (ClientData client in server.Clients)
         {
-            if ((DateTime.Now - client.LastActivityTime) > this.inactivityTimeout)
+            if (DateTime.Now - client.LastActivityTime > inactivityTimeout)
             {
                 if (!IsConnected(client.Socket))
                 {
