@@ -75,6 +75,8 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SetPartySearches), partitionKey);
         try
         {
+            scopedLogger.LogInformation("Retrieving existing entries");
+            var existingEntries = await this.GetPartySearches(campaign, continent, region, map, district, cancellationToken);
             var entries = partySearch.Select(e =>
             {
                 var rowKey = e.CharName ?? string.Empty;
@@ -95,9 +97,23 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
                 };
             });
 
+            var actions = new List<TableTransactionAction>();
+            if (existingEntries is not null)
+            {
+                scopedLogger.LogInformation("Patching nonexisting entries");
+                // Find all existing entries that don't exist in the update. For those, queue a delete transaction
+                actions.AddRange(existingEntries
+                    .Where(e => entries.FirstOrDefault(e2 => e.CharName == e2.CharName) is null)
+                    .Select(e => new TableTransactionAction(TableTransactionActionType.Delete, new PartySearchTableEntity
+                    {
+                        PartitionKey = partitionKey,
+                        RowKey = e.CharName ?? string.Empty,
+                    })));
+            }
+
             scopedLogger.LogInformation("Batch transaction");
-            var transactions = entries.Select(e => new TableTransactionAction(TableTransactionActionType.UpsertReplace, e));
-            var responses = await this.tableClient.SubmitTransactionAsync(transactions, cancellationToken);
+            actions.AddRange(entries.Select(e => new TableTransactionAction(TableTransactionActionType.UpsertReplace, e)));
+            var responses = await this.tableClient.SubmitTransactionAsync(actions, cancellationToken);
             foreach(var response in responses.Value)
             {
                 scopedLogger.LogInformation($"[{response.Status}] {response.ReasonPhrase}");
