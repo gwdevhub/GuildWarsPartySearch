@@ -25,7 +25,7 @@ jobs:
       shell: pwsh
       run: |
         cd GuildWarsPartySearch
-        $content = Get-Content Config.json
+        $content = Get-Content Config.Release.json
         $content = $content.Replace("[APIKEY]", "${{ secrets.APIKEY }}")
         $content = $content.Replace("[AZURE_TABLESTORAGE_CONNECTIONSTRING]", "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}")
         Set-Content -Path Config.json -Value $content

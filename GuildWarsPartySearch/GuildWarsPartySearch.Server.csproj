@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <Configurations>Debug;Release;Local</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,9 +26,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Config.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Folder Include="Tcp\" />
   </ItemGroup>
+
+  <Target Name="CopyCustomConfigurationJson" BeforeTargets="PostBuildEvent">
+    <Copy SourceFiles="Config.$(Configuration).json" DestinationFiles="$(OutputPath)Config.json" />
+  </Target>
 
 </Project>

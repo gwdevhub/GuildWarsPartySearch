@@ -1,0 +1,14 @@
+{
+  "EnvironmentOptions": {
+    "Name": "Release"
+  },
+  "ServerOptions": {
+    "ApiKey": "[APIKEY]",
+    "InactivityTimeout": "0:0:5",
+    "HeartbeatFrequency": "0:0:1"
+  },
+  "TableStorageOptions": {
+    "TableName": "searches",
+    "ConnectionString": "[AZURE_TABLESTORAGE_CONNECTIONSTRING]"
+  }
+}

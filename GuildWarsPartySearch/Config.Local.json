@@ -1,4 +1,7 @@
 {
+  "EnvironmentOptions": {
+    "Name": "Local"
+  },
   "ServerOptions": {
     "ApiKey": "[APIKEY]",
     "InactivityTimeout": "0:0:5",
