@@ -1,6 +1,8 @@
 name: Build and Push Docker Image
 
 on:
+  pull_request:
+    branches: [ master ]
   push:
     branches: [ master ]
     paths:
@@ -40,6 +42,11 @@ jobs:
         .\BuildDockerImage.ps1
         docker push guildwarspartysearch.azurecr.io/guildwarspartysearch.server
       shell: pwsh
+
+    - name: Debug
+      run: |
+        cd GuildWarsPartySearch/GuildWarsPartySearch/bin/Release/net8.0/publish/
+        ls
 
   deploy:
     needs: build
