@@ -26,8 +26,9 @@ jobs:
       run: |
         cd GuildWarsPartySearch
         $content = Get-Content Config.json
-        $updatedContent = $content.Replace("[API_KEY_PLACEHOLDER]", "${{ secrets.APIKEY }}")
-        Set-Content -Path Config.json -Value $updatedContent
+        $content = $content.Replace("[APIKEY]", "${{ secrets.APIKEY }}")
+        $content = $content.Replace("[AZURE_TABLESTORAGE_CONNECTIONSTRING]", "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}")
+        Set-Content -Path Config.json -Value $content
         Write-Host "Placeholder replaced successfully in Config.json"
 
     - name: Build and push Docker image

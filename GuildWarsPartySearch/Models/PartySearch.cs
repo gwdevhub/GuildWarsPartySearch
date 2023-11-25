@@ -1,9 +1,9 @@
 ﻿using GuildWarsPartySearch.Common.Models.GuildWars;
 using Newtonsoft.Json;
 
-namespace GuildWarsPartySearch.Server.Models.Endpoints;
+namespace GuildWarsPartySearch.Server.Models;
 
-public sealed class PartySearchUpdate
+public sealed class PartySearch
 {
     [JsonProperty(nameof(Campaign))]
     public Campaign? Campaign { get; set; }

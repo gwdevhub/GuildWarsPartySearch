@@ -44,6 +44,10 @@ public abstract class PostPartySearchFailure
     {
     }
 
+    public sealed class InvalidCharName : PostPartySearchFailure
+    {
+    }
+
     public sealed class UnspecifiedFailure : PostPartySearchFailure
     {
     }
