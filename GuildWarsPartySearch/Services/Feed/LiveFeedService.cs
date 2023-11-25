@@ -1,5 +1,4 @@
-﻿using GuildWarsPartySearch.Server.Models.Endpoints;
-using MTSC.Common.WebSockets;
+﻿using MTSC.Common.WebSockets;
 using MTSC.ServerSide;
 using Newtonsoft.Json;
 using System.Text;
@@ -15,7 +14,7 @@ public sealed class LiveFeedService : ILiveFeedService
         AddClientInternal(client);
     }
 
-    public void PushUpdate(MTSC.ServerSide.Server server, PartySearchUpdate partySearchUpdate)
+    public void PushUpdate(MTSC.ServerSide.Server server, Models.PartySearch partySearchUpdate)
     {
         var payloadString = JsonConvert.SerializeObject(partySearchUpdate);
         var payload = Encoding.UTF8.GetBytes(payloadString);

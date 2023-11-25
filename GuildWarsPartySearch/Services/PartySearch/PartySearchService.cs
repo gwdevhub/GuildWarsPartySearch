@@ -1,4 +1,5 @@
 ﻿using GuildWarsPartySearch.Common.Models.GuildWars;
+using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Models.Endpoints;
 using GuildWarsPartySearch.Server.Services.Database;
 using Microsoft.Extensions.Logging;
@@ -20,12 +21,12 @@ public sealed class PartySearchService : IPartySearchService
         this.logger = logger.ThrowIfNull();
     }
 
-    public Task<List<PartySearchUpdate>> GetAllPartySearches()
+    public Task<List<Models.PartySearch>> GetAllPartySearches(CancellationToken cancellationToken)
     {
-        return this.partySearchDatabase.GetAllPartySearches();
+        return this.partySearchDatabase.GetAllPartySearches(cancellationToken);
     }
 
-    public async Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Campaign? campaign, Continent? continent, Region? region, Map? map, string? district)
+    public async Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Campaign? campaign, Continent? continent, Region? region, Map? map, string? district, CancellationToken cancellationToken)
     {
         if (campaign is null)
         {
@@ -54,21 +55,16 @@ public sealed class PartySearchService : IPartySearchService
 
         //TODO: Validate district
 
-        var result = await this.partySearchDatabase.GetPartySearches(campaign, continent, region, map, district);
-        if (result is not List<Models.Database.PartySearch> entries)
+        var result = await this.partySearchDatabase.GetPartySearches(campaign, continent, region, map, district, cancellationToken);
+        if (result is not List<PartySearchEntry> entries)
         {
             return new GetPartySearchFailure.EntriesNotFound();
         }
 
-        return entries.Select(e => new PartySearchEntry
-        {
-            PartySize = e.PartySize,
-            PartyMaxSize = e.PartyMaxSize,
-            Npcs = e.Npcs
-        }).ToList();
+        return entries.ToList();
     }
 
-    public async Task<Result<PostPartySearchRequest, PostPartySearchFailure>> PostPartySearch(PostPartySearchRequest? request)
+    public async Task<Result<PostPartySearchRequest, PostPartySearchFailure>> PostPartySearch(PostPartySearchRequest? request, CancellationToken cancellationToken)
     {
         if (request is null)
         {
@@ -121,6 +117,11 @@ public sealed class PartySearchService : IPartySearchService
             {
                 return new PostPartySearchFailure.InvalidNpcs();
             }
+
+            if (entry.CharName is null)
+            {
+                return new PostPartySearchFailure.InvalidCharName();
+            }
         }
 
         //TODO: Implement district validation, party size validation, party max size validation and npcs validation
@@ -130,12 +131,8 @@ public sealed class PartySearchService : IPartySearchService
             request.Region,
             request.Map,
             request.District,
-            request.PartySearchEntries.Select(e => new Models.Database.PartySearch
-            {
-                Npcs = e.Npcs,
-                PartySize = e.PartySize,
-                PartyMaxSize = e.PartyMaxSize
-            }).ToList());
+            request.PartySearchEntries,
+            cancellationToken);
 
         if (!result)
         {

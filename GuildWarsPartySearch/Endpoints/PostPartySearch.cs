@@ -1,4 +1,5 @@
-﻿using GuildWarsPartySearch.Server.Models.Endpoints;
+﻿using GuildWarsPartySearch.Server.Models;
+using GuildWarsPartySearch.Server.Models.Endpoints;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
 using Microsoft.Extensions.Logging;
@@ -38,38 +39,47 @@ public sealed class PostPartySearch : WebsocketRouteBase<PostPartySearchRequest,
 
     public override async void HandleReceivedMessage(PostPartySearchRequest message)
     {
-        var result = await this.partySearchService.PostPartySearch(message);
-        var response = result.Switch<PostPartySearchResponse>(
-            onSuccess: _ =>
-            {
-                this.liveFeedService.PushUpdate(this.Server, new PartySearchUpdate
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.HandleReceivedMessage), string.Empty);
+        try
+        {
+            var result = await this.partySearchService.PostPartySearch(message, this.ClientData.CancellationToken);
+            var response = result.Switch<PostPartySearchResponse>(
+                onSuccess: _ =>
                 {
-                    Campaign = message.Campaign,
-                    Continent = message.Continent,
-                    District = message.District,
-                    Map = message.Map,
-                    PartySearchEntries = message.PartySearchEntries,
-                    Region = message.Region
+                    this.liveFeedService.PushUpdate(this.Server, new PartySearch
+                    {
+                        Campaign = message.Campaign,
+                        Continent = message.Continent,
+                        District = message.District,
+                        Map = message.Map,
+                        PartySearchEntries = message.PartySearchEntries,
+                        Region = message.Region
+                    });
+                    return Success;
+                },
+                onFailure: failure => failure switch
+                {
+                    PostPartySearchFailure.InvalidPayload => InvalidPayload,
+                    PostPartySearchFailure.InvalidCampaign => InvalidCampaign,
+                    PostPartySearchFailure.InvalidContinent => InvalidContinent,
+                    PostPartySearchFailure.InvalidRegion => InvalidRegion,
+                    PostPartySearchFailure.InvalidMap => InvalidMap,
+                    PostPartySearchFailure.InvalidDistrict => InvalidDistrict,
+                    PostPartySearchFailure.InvalidEntries => InvalidEntries,
+                    PostPartySearchFailure.InvalidPartySize => InvalidPartySize,
+                    PostPartySearchFailure.InvalidPartyMaxSize => InvalidPartyMaxSize,
+                    PostPartySearchFailure.InvalidNpcs => InvalidNpcs,
+                    PostPartySearchFailure.InvalidCharName => InvalidCharName,
+                    PostPartySearchFailure.UnspecifiedFailure => UnspecifiedFailure,
+                    _ => UnspecifiedFailure
                 });
-                return Success;
-            },
-            onFailure: failure => failure switch
-            {
-                PostPartySearchFailure.InvalidPayload => InvalidPayload,
-                PostPartySearchFailure.InvalidCampaign => InvalidCampaign,
-                PostPartySearchFailure.InvalidContinent => InvalidContinent,
-                PostPartySearchFailure.InvalidRegion => InvalidRegion,
-                PostPartySearchFailure.InvalidMap => InvalidMap,
-                PostPartySearchFailure.InvalidDistrict => InvalidDistrict,
-                PostPartySearchFailure.InvalidEntries => InvalidEntries,
-                PostPartySearchFailure.InvalidPartySize => InvalidPartySize,
-                PostPartySearchFailure.InvalidPartyMaxSize => InvalidPartyMaxSize,
-                PostPartySearchFailure.InvalidNpcs => InvalidNpcs,
-                PostPartySearchFailure.UnspecifiedFailure => UnspecifiedFailure,
-                _ => UnspecifiedFailure
-            });
 
-        this.SendMessage(response);
+            this.SendMessage(response);
+        }
+        catch(Exception e)
+        {
+            scopedLogger.LogError(e, "Encountered exception");
+        }
     }
 
     public override void Tick()
@@ -140,6 +150,12 @@ public sealed class PostPartySearch : WebsocketRouteBase<PostPartySearchRequest,
     {
         Result = 0,
         Description = "Invalid npcs"
+    };
+
+    private static PostPartySearchResponse InvalidCharName => new()
+    {
+        Result = 0,
+        Description = "Invalid char name"
     };
 
     private static PostPartySearchResponse UnspecifiedFailure => new()

@@ -7,6 +7,7 @@ using GuildWarsPartySearch.Server.Services.Logging;
 using GuildWarsPartySearch.Server.Services.Options;
 using GuildWarsPartySearch.Server.Services.PartySearch;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MTSC.Common.Http;
 using MTSC.ServerSide;
@@ -15,7 +16,6 @@ using Slim;
 using System.Core.Extensions;
 using System.Extensions;
 using System.Logging;
-using System.Runtime.CompilerServices;
 using static MTSC.Common.Http.HttpMessage;
 
 namespace GuildWarsPartySearch.Server.Launch;
@@ -30,9 +30,17 @@ public static class ServerConfiguration
 
         serviceManager.RegisterResolver(new LoggerResolver());
         serviceManager.RegisterOptionsResolver();
-        serviceManager.RegisterLogWriter<ConsoleLogger>();
+        serviceManager.RegisterSingleton<ILogsWriter, ConsoleLogger>();
+        serviceManager.RegisterScoped<ILoggerFactory, ILoggerFactory>(sp =>
+        {
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddFilter("Azure", LogLevel.Information);
+                builder.AddProvider(new CVLoggerProvider(sp.GetService<ILogsWriter>()));
+            });
+            return loggerFactory;
+        });
         serviceManager.RegisterOptionsManager<JsonOptionsManager>();
-
         return serviceManager;
     }
 
@@ -41,7 +49,7 @@ public static class ServerConfiguration
         services.ThrowIfNull();
 
         services.AddScoped<IServerLifetimeService, ServerLifetimeService>();
-        services.AddScoped<IPartySearchDatabase, InMemoryPartySearchDatabase>();
+        services.AddScoped<IPartySearchDatabase, TableStorageDatabase>();
         services.AddScoped<IPartySearchService, PartySearchService>();
         services.AddSingleton<ILiveFeedService, LiveFeedService>();
         return services;

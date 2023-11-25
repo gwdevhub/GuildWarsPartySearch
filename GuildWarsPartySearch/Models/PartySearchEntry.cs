@@ -1,9 +1,12 @@
 ﻿using Newtonsoft.Json;
 
-namespace GuildWarsPartySearch.Server.Models.Endpoints;
+namespace GuildWarsPartySearch.Server.Models;
 
 public sealed class PartySearchEntry
 {
+    [JsonProperty(nameof(CharName))]
+    public string? CharName { get; set; }
+
     [JsonProperty(nameof(PartySize))]
     public int? PartySize { get; set; }
 
