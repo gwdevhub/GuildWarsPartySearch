@@ -69,13 +69,15 @@ public sealed class ContentManagementHandler : IHandler
         var serviceBlobClient = new BlobServiceClient(options.ConnectionString);
         var blobContainerClient = serviceBlobClient.GetBlobContainerClient(options.ContainerName);
         var blobs = blobContainerClient.GetBlobsAsync();
-        
+
         //TODO: Implement a better update. Currently we simply delete everything and redownload all the content
+        scopedLogger.LogInformation($"[{this.stagingFolder}] Deleting staging folder if it exists");
         if (Directory.Exists(this.stagingFolder))
         {
             Directory.Delete(this.stagingFolder, true);
         }
 
+        scopedLogger.LogInformation($"Retrieving blobs");
         await foreach(var blob in blobs)
         {
             var finalPath = Path.Combine(this.stagingFolder, blob.Name);

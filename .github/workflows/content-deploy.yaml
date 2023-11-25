@@ -1,6 +1,8 @@
 name: Build and Push Content
 
 on:
+  pull_request:
+    branches: [ master ]
   push:
     branches: [ master ]
     paths:
@@ -17,5 +19,5 @@ jobs:
 
     - name: Build and push content
       run: |
-        .\GuildWarsPartySearch.FrontEnd\Scripts\BuildAndUploadContent.ps1 -ConnectionString "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}" -ContainerName "content" -SourceFolderPath .\GuildWarsPartySearch.FrontEnd\Content\ 
+        .\GuildWarsPartySearch.FrontEnd\Scripts\BuildAndUploadContent.ps1 -ConnectionString "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}" -ContainerName "content" -SourceFolderPath GuildWarsPartySearch.FrontEnd\Content\ 
       shell: pwsh
