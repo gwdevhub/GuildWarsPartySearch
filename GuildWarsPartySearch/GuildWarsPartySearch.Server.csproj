@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Tcp\**" />
+    <EmbeddedResource Remove="Tcp\**" />
+    <None Remove="Tcp\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Azure.Data.Tables" Version="12.8.2" />
     <PackageReference Include="MTSC" Version="5.5.1" />
     <PackageReference Include="Slim" Version="1.9.2" />
@@ -23,10 +29,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GuildWarsPartySearch.Common\GuildWarsPartySearch.Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Tcp\" />
   </ItemGroup>
 
   <Target Name="CopyCustomConfigurationJson" BeforeTargets="PostBuildEvent">
