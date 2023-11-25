@@ -27,5 +27,5 @@ jobs:
         ls
         cd ..
         cd ..
-        .\GuildWarsPartySearch.FrontEnd\Scripts\BuildAndUploadContent.ps1 -ConnectionString "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}" -ContainerName "content" -SourceFolderPath GuildWarsPartySearch.FrontEnd\Content
+        .\GuildWarsPartySearch.FrontEnd\Scripts\BuildAndUploadContent.ps1 -ConnectionString "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}" -ContainerName "content" -SourceFolderPath ".\GuildWarsPartySearch.FrontEnd\Content"
       shell: pwsh
