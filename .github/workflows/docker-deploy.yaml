@@ -45,7 +45,7 @@ jobs:
 
     - name: Debug
       run: |
-        cd GuildWarsPartySearch/GuildWarsPartySearch/bin/Release/net8.0/publish/
+        cd GuildWarsPartySearch/bin/Release/net8.0/publish/
         ls
 
   deploy:
