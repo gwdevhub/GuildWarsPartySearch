@@ -1,0 +1,21 @@
+name: Build and Push Content
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - "GuildWarsPartySearch.FrontEnd/**"
+      - ".github/workflows/content-deploy.yaml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v2
+
+    - name: Build and push content
+      run: |
+        .\GuildWarsPartySearch.FrontEnd\Scripts\BuildAndUploadContent.ps1 -ConnectionString "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}" -ContainerName "content" -SourceFolderPath .\GuildWarsPartySearch.FrontEnd\Content\ 
+      shell: pwsh

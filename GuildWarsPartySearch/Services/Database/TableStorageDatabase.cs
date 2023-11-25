@@ -13,11 +13,11 @@ namespace GuildWarsPartySearch.Server.Services.Database;
 public sealed class TableStorageDatabase : IPartySearchDatabase
 {
     private readonly TableClient tableClient;
-    private readonly IOptions<TableStorageOptions> options;
+    private readonly IOptions<StorageAccountOptions> options;
     private readonly ILogger<TableStorageDatabase> logger;
 
     public TableStorageDatabase(
-        IOptions<TableStorageOptions> options,
+        IOptions<StorageAccountOptions> options,
         ILogger<TableStorageDatabase> logger)
     {
         var tableClientOptions = new TableClientOptions();

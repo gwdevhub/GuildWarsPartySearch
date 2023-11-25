@@ -7,8 +7,13 @@
     "InactivityTimeout": "0:0:5",
     "HeartbeatFrequency": "0:0:1"
   },
-  "TableStorageOptions": {
+  "StorageAccountOptions": {
     "TableName": "searches",
+    "ContainerName": "content",
     "ConnectionString": "[AZURE_TABLESTORAGE_CONNECTIONSTRING]"
+  },
+  "ContentOptions": {
+    "UpdateFrequency": "0:30:0",
+    "StagingFolder": "Content"
   }
 }
