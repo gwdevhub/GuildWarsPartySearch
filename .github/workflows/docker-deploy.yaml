@@ -5,6 +5,7 @@ on:
     branches: [ master ]
     paths:
       - "GuildWarsPartySearch/**"
+      - ".github/workflows/docker-deploy.yaml"
 
 jobs:
   build:
@@ -30,8 +31,8 @@ jobs:
         $content = Get-Content Config.Release.json
         $content = $content.Replace("[APIKEY]", "${{ secrets.APIKEY }}")
         $content = $content.Replace("[AZURE_TABLESTORAGE_CONNECTIONSTRING]", "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}")
-        Set-Content -Path Config.json -Value $content
-        Write-Host "Placeholder replaced successfully in Config.json"
+        Set-Content -Path Config.Release.json -Value $content
+        Write-Host "Placeholder replaced successfully in Config.Release.json"
 
     - name: Build and push Docker image
       run: |
