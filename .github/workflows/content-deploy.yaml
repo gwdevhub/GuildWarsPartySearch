@@ -20,12 +20,5 @@ jobs:
     - name: Build and push content
       run: |
         cd GuildWarsPartySearch.FrontEnd
-        Write-Host FrontEnd Directory
-        ls
-        cd Content
-        Write-Host Content Directory
-        ls
-        cd ..
-        cd ..
-        .\GuildWarsPartySearch.FrontEnd\Scripts\BuildAndUploadContent.ps1 -ConnectionString "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}" -ContainerName "content" -SourceFolderPath .\GuildWarsPartySearch.FrontEnd\Content\
+        .\BuildAndUploadContent.ps1 -ConnectionString "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}" -ContainerName "content" -SourceFolderPath Content
       shell: pwsh
