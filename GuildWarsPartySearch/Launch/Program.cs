@@ -1,6 +1,4 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using GuildWarsPartySearch.Server.Endpoints;
-using GuildWarsPartySearch.Server.Extensions;
 using GuildWarsPartySearch.Server.Options;
 using Microsoft.Extensions.FileProviders;
 using System.Net;
@@ -52,13 +50,12 @@ public class Program
            {
                FileProvider = new PhysicalFileProvider(contentDirectory.FullName)
            });
-        app.MapGet("/", context =>
-        {
-            context.Response.Redirect("/index.html");
-            return Task.CompletedTask;
-        });
-        app.MapWebSocket<PostPartySearch>("party-search/update");
-        app.MapWebSocket<LiveFeed>("party-search/live-feed");
+        app.SetupRoutes()
+           .MapGet("/", context =>
+            {
+                context.Response.Redirect("/index.html");
+                return Task.CompletedTask;
+            });
 
         await app.RunAsync();
     }

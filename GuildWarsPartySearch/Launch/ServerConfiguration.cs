@@ -68,8 +68,8 @@ public static class ServerConfiguration
     public static WebApplication SetupRoutes(this WebApplication app)
     {
         app.ThrowIfNull()
-            .MapWebSocket<LiveFeed>("party-search/live-feed")
-            .MapWebSocket<PostPartySearch>("party-search/update", FilterUpdateMessages);
+           .MapWebSocket<LiveFeed>("party-search/live-feed")
+           .MapWebSocket<PostPartySearch>("party-search/update", FilterUpdateMessages);
 
         return app;
     }

@@ -38,6 +38,10 @@ public static class WebApplicationExtensions
                 {
                     logger.LogInformation("Websocket closed prematurely. Marking as closed");
                 }
+                catch(OperationCanceledException)
+                {
+                    logger.LogInformation("Websocket closed prematurely. Marking as closed");
+                }
                 catch(Exception ex)
                 {
                     logger.LogError(ex, "Encountered exception while handling websocket. Closing");
