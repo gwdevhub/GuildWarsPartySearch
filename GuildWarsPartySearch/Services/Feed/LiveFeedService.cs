@@ -1,5 +1,4 @@
-﻿using MTSC.Common.WebSockets;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Core.Extensions;
 using System.Net.WebSockets;
 using System.Text;
@@ -27,13 +26,6 @@ public sealed class LiveFeedService : ILiveFeedService
     {
         var payloadString = JsonConvert.SerializeObject(partySearchUpdate);
         var payload = Encoding.UTF8.GetBytes(payloadString);
-        var websocketMessage = new WebsocketMessage
-        {
-            Data = payload,
-            FIN = true,
-            Opcode = WebsocketMessage.Opcodes.Text
-        };
-        var messageBytes = websocketMessage.GetMessageBytes();
         await ExecuteOnClientsInternal(async client =>
         {
             try
