@@ -3,7 +3,7 @@ FROM mcr.microsoft.com/dotnet/runtime:8.0
 # Set the working directory inside the container
 WORKDIR /app
 
-EXPOSE 8080
+EXPOSE 80 443
 
 # Copy the build output to the working directory
 COPY ./bin/Release/net8.0/publish/ .

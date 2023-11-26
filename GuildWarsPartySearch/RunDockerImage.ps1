@@ -1,1 +1,1 @@
-docker run -d -p 8080:8080 --name guildwarspartysearch guildwarspartysearch.server
+docker run -d -p 80:80 -p 443:443 --name guildwarspartysearch guildwarspartysearch.server
