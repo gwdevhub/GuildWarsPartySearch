@@ -80,4 +80,4 @@ jobs:
         --registry-username ${{ secrets.DOCKERHUB_USERNAME }} `
         --registry-password ${{ secrets.DOCKERHUB_PASSWORD }} `
         --dns-name-label guildwarspartysearch `
-        --ports 8080
+        --ports 80 443
