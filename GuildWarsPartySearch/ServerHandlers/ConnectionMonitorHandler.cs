@@ -27,13 +27,14 @@ public class ConnectionMonitorHandler : IHandler
     {
         if (!initialized)
         {
-            initialized = true;
-            inactivityTimeout = server.ServiceManager.GetRequiredService<IOptions<ServerOptions>>().Value.InactivityTimeout ?? TimeSpan.FromSeconds(15);
+            this.initialized = true;
+            this.inactivityTimeout = server.ServiceManager.GetRequiredService<IOptions<ServerOptions>>().Value.InactivityTimeout ?? TimeSpan.FromSeconds(15);
         }
 
         foreach (ClientData client in server.Clients)
         {
-            if (DateTime.Now - client.LastActivityTime > inactivityTimeout)
+            if (DateTime.Now - client.LastActivityTime > this.inactivityTimeout &&
+                !IsConnected(client.Socket))
             {
                 server.Log("Disconnected: " + client.Socket.RemoteEndPoint?.ToString());
                 client.ToBeRemoved = true;
