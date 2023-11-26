@@ -35,11 +35,8 @@ public class ConnectionMonitorHandler : IHandler
         {
             if (DateTime.Now - client.LastActivityTime > inactivityTimeout)
             {
-                if (!IsConnected(client.Socket))
-                {
-                    server.Log("Disconnected: " + client.Socket.RemoteEndPoint?.ToString());
-                    client.ToBeRemoved = true;
-                }
+                server.Log("Disconnected: " + client.Socket.RemoteEndPoint?.ToString());
+                client.ToBeRemoved = true;
             }
         }
     }
