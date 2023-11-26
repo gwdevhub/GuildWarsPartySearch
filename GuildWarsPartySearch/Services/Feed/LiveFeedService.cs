@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using GuildWarsPartySearch.Server.Models.Endpoints;
+using Newtonsoft.Json;
 using System.Core.Extensions;
 using System.Net.WebSockets;
 using System.Text;
@@ -24,7 +25,8 @@ public sealed class LiveFeedService : ILiveFeedService
 
     public async Task PushUpdate(Models.PartySearch partySearchUpdate, CancellationToken cancellationToken)
     {
-        var payloadString = JsonConvert.SerializeObject(partySearchUpdate);
+        // Since LiveFeed endpoint expects a PartySearchList, so we send a PartySearchList with only the update to keep it consistent
+        var payloadString = JsonConvert.SerializeObject(new PartySearchList { Searches = [ partySearchUpdate ] });
         var payload = Encoding.UTF8.GetBytes(payloadString);
         await ExecuteOnClientsInternal(async client =>
         {
