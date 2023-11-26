@@ -5,7 +5,7 @@
   "ServerOptions": {
     "ApiKey": "[APIKEY]",
     "Certificate": "[CERTIFICATE_BASE64]",
-    "InactivityTimeout": "0:0:5",
+    "InactivityTimeout": "0:0:15",
     "HeartbeatFrequency": "0:0:1"
   },
   "StorageAccountOptions": {
