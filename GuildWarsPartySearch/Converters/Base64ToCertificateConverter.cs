@@ -3,32 +3,22 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace GuildWarsPartySearch.Server.Converters;
 
-public sealed class Base64ToCertificateConverter : JsonConverter
+public sealed class Base64ToCertificateConverter : JsonConverter<X509Certificate2>
 {
-    public override bool CanConvert(Type objectType)
-    {
-        return objectType == typeof(X509Certificate2);
-    }
-
-    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    public override X509Certificate2? ReadJson(JsonReader reader, Type objectType, X509Certificate2? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
         if (reader.Value is not string base64)
         {
-            throw new InvalidOperationException($"Cannot convert {reader.Value} to {nameof(X509Certificate2)}");
+            throw new InvalidOperationException($"Cannot deserialize {nameof(X509Certificate2)} from {reader.Value}");
         }
 
         var bytes = Convert.FromBase64String(base64);
         return new X509Certificate2(bytes);
     }
 
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    public override void WriteJson(JsonWriter writer, X509Certificate2? value, JsonSerializer serializer)
     {
-        if (value is not X509Certificate2 certificate2)
-        {
-            throw new InvalidOperationException($"Cannot convert {value} as {nameof(X509Certificate2)}");
-        }
-
-        var base64 = Convert.ToBase64String(certificate2.GetRawCertData());
+        var base64 = Convert.ToBase64String(value!.GetRawCertData());
         writer.WriteValue(base64);
     }
 }

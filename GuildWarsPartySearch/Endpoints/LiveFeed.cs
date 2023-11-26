@@ -1,17 +1,12 @@
 ﻿using GuildWarsPartySearch.Server.Models.Endpoints;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
-using Microsoft.Extensions.Logging;
-using MTSC.Common.WebSockets;
-using MTSC.Common.WebSockets.RoutingModules;
-using Newtonsoft.Json;
 using System.Core.Extensions;
 using System.Extensions;
-using System.Text;
 
 namespace GuildWarsPartySearch.Server.Endpoints;
 
-public sealed class LiveFeed : WebsocketRouteBase<None>
+public sealed class LiveFeed : WebSocketRouteBase<None, List<Models.PartySearch>>
 {
     private readonly IPartySearchService partySearchService;
     private readonly ILiveFeedService liveFeedService;
@@ -27,49 +22,27 @@ public sealed class LiveFeed : WebsocketRouteBase<None>
         this.logger = logger.ThrowIfNull();
     }
 
-    public override void ConnectionClosed()
+    public override Task ExecuteAsync(None? type, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ConnectionClosed), this.ClientData.Socket.RemoteEndPoint?.ToString() ?? string.Empty);
-        try
-        {
-            scopedLogger.LogInformation("Client disconnected");
-            this.liveFeedService.RemoveClient(this.ClientData);
-        }
-        catch(Exception e)
-        {
-            scopedLogger.LogError(e, "Encountered exception");
-        }
+        return Task.CompletedTask;
     }
 
-    public override async void ConnectionInitialized()
+    public override async Task SocketAccepted(CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ConnectionInitialized), this.ClientData.Socket.RemoteEndPoint?.ToString() ?? string.Empty);
-        try
-        {
-            scopedLogger.LogInformation("Client connected");
-            this.liveFeedService.AddClient(this.ClientData);
-            scopedLogger.LogInformation("Sending all party searches");
-            var updates = await this.partySearchService.GetAllPartySearches(this.ClientData.CancellationToken);
-            var serialized = JsonConvert.SerializeObject(updates);
-            var payload = Encoding.UTF8.GetBytes(serialized);
-            this.SendMessage(new WebsocketMessage
-            {
-                Data = payload,
-                FIN = true,
-                Opcode = WebsocketMessage.Opcodes.Text
-            });
-        }
-        catch(Exception e)
-        {
-            scopedLogger.LogError(e, "Encountered exception");
-        }
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), this.Context?.Connection.RemoteIpAddress?.ToString() ?? string.Empty);
+        this.liveFeedService.AddClient(this.WebSocket!);
+        scopedLogger.LogInformation("Client accepted to livefeed");
+
+        scopedLogger.LogInformation("Sending all party searches");
+        var updates = await this.partySearchService.GetAllPartySearches(cancellationToken);
+        await this.SendMessage(updates, cancellationToken);
     }
 
-    public override void HandleReceivedMessage(None message)
+    public override Task SocketClosed()
     {
-    }
-
-    public override void Tick()
-    {
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), this.Context?.Connection.RemoteIpAddress?.ToString() ?? string.Empty);
+        this.liveFeedService.RemoveClient(this.WebSocket!);
+        scopedLogger.LogInformation("Client removed from livefeed");
+        return Task.CompletedTask;
     }
 }

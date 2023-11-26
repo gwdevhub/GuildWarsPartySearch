@@ -1,10 +1,7 @@
-﻿using GuildWarsPartySearch.Server.Converters;
-using MTSC.Common.WebSockets.RoutingModules;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace GuildWarsPartySearch.Server.Models.Endpoints;
 
-[WebsocketMessageConvert(typeof(PostPartyResponseWebsocketMessageConverter))]
 public sealed class PostPartySearchResponse
 {
     [JsonProperty(nameof(Result))]
