@@ -48,11 +48,11 @@ public class Program
             .SetScheduler(new TaskAwaiterScheduler())
             .WithLoggingMessageContents(false);
 
-        var serverTask = httpsServer.RunAsync(CancellationTokenSource.Token);
-        var verificationServerTask = httpServer.RunAsync(CancellationTokenSource.Token);
+        var httpsServerTask = httpsServer.RunAsync(CancellationTokenSource.Token);
+        var httpServerTask = httpServer.RunAsync(CancellationTokenSource.Token);
 
         await Task.WhenAll(
-            serverTask,
-            verificationServerTask);
+            httpsServerTask,
+            httpServerTask);
     }
 }
