@@ -31,6 +31,7 @@ jobs:
         $content = Get-Content Config.Release.json
         $content = $content.Replace("[APIKEY]", "${{ secrets.APIKEY }}")
         $content = $content.Replace("[AZURE_TABLESTORAGE_CONNECTIONSTRING]", "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}")
+        $content = $content.Replace("[CERTIFICATE_BASE64]", "${{ secrets.CERTIFICATE_BASE64 }}")
         Set-Content -Path Config.Release.json -Value $content
         Write-Host "Placeholder replaced successfully in Config.Release.json"
 
