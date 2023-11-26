@@ -32,7 +32,7 @@ public class Program
             .AddHandler(new HttpHandler()
                 .AddHttpModule(new ContentModule()))
             .AddServerUsageMonitor(new TickrateEnforcer() { TicksPerSecond = 60, Silent = true })
-            .SetScheduler(new FireTasksAndForgetScheduler())
+            .SetScheduler(new TaskAwaiterScheduler())
             .WithLoggingMessageContents(false);
         var serverOptions = httpsServer.ServiceManager.GetRequiredService<IOptions<ServerOptions>>();
         httpsServer.WithCertificate(serverOptions.Value.Certificate);
@@ -45,7 +45,7 @@ public class Program
         httpServer.AddHandler(new HttpHandler()
             .AddHttpModule(new ContentModule()))
             .AddServerUsageMonitor(new TickrateEnforcer { TicksPerSecond = 10, Silent = true })
-            .SetScheduler(new FireTasksAndForgetScheduler())
+            .SetScheduler(new TaskAwaiterScheduler())
             .WithLoggingMessageContents(false);
 
         var httpsServerTask = httpsServer.RunAsync(CancellationTokenSource.Token);

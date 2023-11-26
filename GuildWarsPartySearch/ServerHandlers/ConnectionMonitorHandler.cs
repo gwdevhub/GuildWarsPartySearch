@@ -25,7 +25,7 @@ public class ConnectionMonitorHandler : IHandler
 
     void IHandler.Tick(MTSC.ServerSide.Server server)
     {
-        if (!initialized)
+        if (!this.initialized)
         {
             this.initialized = true;
             this.inactivityTimeout = server.ServiceManager.GetRequiredService<IOptions<ServerOptions>>().Value.InactivityTimeout ?? TimeSpan.FromSeconds(15);
@@ -34,7 +34,7 @@ public class ConnectionMonitorHandler : IHandler
         foreach (ClientData client in server.Clients)
         {
             if (DateTime.Now - client.LastActivityTime > this.inactivityTimeout &&
-                !IsConnected(client.Socket))
+                !this.IsConnected(client.Socket))
             {
                 server.Log("Disconnected: " + client.Socket.RemoteEndPoint?.ToString());
                 client.ToBeRemoved = true;
