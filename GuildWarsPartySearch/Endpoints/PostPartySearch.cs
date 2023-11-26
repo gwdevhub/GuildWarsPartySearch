@@ -2,14 +2,12 @@
 using GuildWarsPartySearch.Server.Models.Endpoints;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
-using Microsoft.Extensions.Logging;
-using MTSC.Common.WebSockets.RoutingModules;
 using System.Core.Extensions;
 using System.Extensions;
 
 namespace GuildWarsPartySearch.Server.Endpoints;
 
-public sealed class PostPartySearch : WebsocketRouteBase<PostPartySearchRequest, PostPartySearchResponse>
+public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest, PostPartySearchResponse>
 {
     private readonly ILiveFeedService liveFeedService;
     private readonly IPartySearchService partySearchService;
@@ -25,28 +23,16 @@ public sealed class PostPartySearch : WebsocketRouteBase<PostPartySearchRequest,
         this.logger = logger.ThrowIfNull();
     }
 
-    public override void ConnectionClosed()
+    public override async Task ExecuteAsync(PostPartySearchRequest? message, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ConnectionInitialized), this.ClientData.Socket.RemoteEndPoint?.ToString() ?? string.Empty);
-        scopedLogger.LogInformation("Client disconnected");
-    }
-
-    public override void ConnectionInitialized()
-    {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ConnectionInitialized), this.ClientData.Socket.RemoteEndPoint?.ToString() ?? string.Empty);
-        scopedLogger.LogInformation("Client connected");
-    }
-
-    public override async void HandleReceivedMessage(PostPartySearchRequest message)
-    {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.HandleReceivedMessage), string.Empty);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ExecuteAsync), string.Empty);
         try
         {
-            var result = await this.partySearchService.PostPartySearch(message, this.ClientData.CancellationToken);
+            var result = await this.partySearchService.PostPartySearch(message, cancellationToken);
             var response = result.Switch<PostPartySearchResponse>(
                 onSuccess: _ =>
                 {
-                    this.liveFeedService.PushUpdate(this.Server, new PartySearch
+                    this.liveFeedService.PushUpdate(new PartySearch
                     {
                         Campaign = message.Campaign,
                         Continent = message.Continent,
@@ -54,7 +40,7 @@ public sealed class PostPartySearch : WebsocketRouteBase<PostPartySearchRequest,
                         Map = message.Map,
                         PartySearchEntries = message.PartySearchEntries,
                         Region = message.Region
-                    });
+                    }, cancellationToken);
                     return Success;
                 },
                 onFailure: failure => failure switch
@@ -74,16 +60,12 @@ public sealed class PostPartySearch : WebsocketRouteBase<PostPartySearchRequest,
                     _ => UnspecifiedFailure
                 });
 
-            this.SendMessage(response);
+            await this.SendMessage(response, cancellationToken);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             scopedLogger.LogError(e, "Encountered exception");
         }
-    }
-
-    public override void Tick()
-    {
     }
 
     private static PostPartySearchResponse Success => new()

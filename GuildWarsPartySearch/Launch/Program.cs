@@ -1,14 +1,10 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using GuildWarsPartySearch.Server.HttpModules;
+using GuildWarsPartySearch.Server.Endpoints;
+using GuildWarsPartySearch.Server.Extensions;
 using GuildWarsPartySearch.Server.Options;
-using GuildWarsPartySearch.Server.Scheduler;
-using GuildWarsPartySearch.Server.ServerHandlers;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MTSC.ServerSide.Handlers;
-using MTSC.ServerSide.Schedulers;
-using MTSC.ServerSide.UsageMonitors;
+using Microsoft.Extensions.FileProviders;
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
 
 namespace GuildWarsPartySearch.Server.Launch;
 
@@ -18,42 +14,52 @@ public class Program
 
     private static async Task Main()
     {
-        var httpsServer = new MTSC.ServerSide.Server(443);
-        httpsServer.ServiceCollection.SetupServices();
-        httpsServer.ServiceManager.SetupServiceManager();
-        httpsServer
-            .AddHandler(
-                new WebsocketRoutingHandler()
-                    .SetupRoutes()
-                    .WithHeartbeatEnabled(true)
-                    .WithHeartbeatFrequency(httpsServer.ServiceManager.GetRequiredService<IOptions<ServerOptions>>().Value.HeartbeatFrequency ?? TimeSpan.FromSeconds(5)))
-            .AddHandler(new ConnectionMonitorHandler())
-            .AddHandler(new StartupHandler())
-            .AddHandler(new ContentManagementHandler())
-            .AddHandler(new HttpHandler()
-                .AddHttpModule(new ContentModule()))
-            .AddServerUsageMonitor(new TickrateEnforcer() { TicksPerSecond = 60, Silent = true })
-            .SetScheduler(new TaskWithExpiryScheduler())
-            .WithLoggingMessageContents(false);
-        var serverOptions = httpsServer.ServiceManager.GetRequiredService<IOptions<ServerOptions>>();
-        httpsServer.WithCertificate(serverOptions.Value.Certificate);
-        httpsServer.WithClientCertificate(false);
+        var config = new ConfigurationBuilder()
+            .SetupConfiguration()
+            .Build();
 
-        var httpServer = new MTSC.ServerSide.Server(80);
-        httpServer.ServiceCollection.AddScoped(_ => httpsServer.ServiceManager.GetRequiredService<ILogger<MTSC.ServerSide.Server>>());
-        httpServer.ServiceCollection.AddScoped(_ => httpsServer.ServiceManager.GetRequiredService<ILogger<ContentModule>>());
-        httpServer.ServiceCollection.AddScoped(_ => httpsServer.ServiceManager.GetRequiredService<IOptions<ContentOptions>>());
-        httpServer.AddHandler(new HttpHandler()
-            .AddHttpModule(new ContentModule()))
-            .AddServerUsageMonitor(new TickrateEnforcer { TicksPerSecond = 10, Silent = true })
-            .SetScheduler(new TaskWithExpiryScheduler())
-            .WithLoggingMessageContents(false);
+        var builder = WebApplication.CreateBuilder()
+            .SetupOptions()
+            .SetupHostedServices();
+        builder.Logging.SetupLogging();
+        builder.Services.SetupServices();
+        builder.Configuration.AddConfiguration(config);
+        builder.WebHost.ConfigureKestrel(kestrelOptions =>
+        {
+            kestrelOptions.Listen(IPAddress.Any, 443, listenOptions =>
+            {
+                var serverOptions = builder.Configuration.GetRequiredSection(nameof(ServerOptions)).Get<ServerOptions>();
+                var certificateBytes = Convert.FromBase64String(serverOptions?.Certificate!);
+                var certificate = new X509Certificate2(certificateBytes);
+                listenOptions.UseHttps(certificate);
+            });
 
-        var httpsServerTask = httpsServer.RunAsync(CancellationTokenSource.Token);
-        var httpServerTask = httpServer.RunAsync(CancellationTokenSource.Token);
+            kestrelOptions.Listen(IPAddress.Any, 80, listenOptions =>
+            {
+            });
+        });
 
-        await Task.WhenAll(
-            httpsServerTask,
-            httpServerTask);
+        var contentOptions = builder.Configuration.GetRequiredSection(nameof(ContentOptions)).Get<ContentOptions>()!;
+        var contentDirectory = new DirectoryInfo(contentOptions.StagingFolder);
+        if (!contentDirectory.Exists)
+        {
+            contentDirectory.Create();
+        }
+
+        var app = builder.Build();
+        app.UseWebSockets()
+           .UseStaticFiles(new StaticFileOptions
+           {
+               FileProvider = new PhysicalFileProvider(contentDirectory.FullName)
+           });
+        app.MapGet("/", context =>
+        {
+            context.Response.Redirect("/index.html");
+            return Task.CompletedTask;
+        });
+        app.MapWebSocket<PostPartySearch>("party-search/update");
+        app.MapWebSocket<LiveFeed>("party-search/live-feed");
+
+        await app.RunAsync();
     }
 }

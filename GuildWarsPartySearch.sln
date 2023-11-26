@@ -12,14 +12,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GuildWarsPartySearch.Common
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GuildWarsPartySearch.Tests", "GuildWarsPartySearch.Tests\GuildWarsPartySearch.Tests.csproj", "{9FCED959-3EE9-40B7-B6A8-AF13FAB54B9C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{6C63473D-A6D9-400D-94AD-2E4DBA48B8B8}"
-	ProjectSection(SolutionItems) = preProject
-		.github\workflows\content-deploy.yaml = .github\workflows\content-deploy.yaml
-		.github\workflows\docker-deploy.yaml = .github\workflows\docker-deploy.yaml
-		.github\workflows\test.yaml = .github\workflows\test.yaml
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuildWarsPartySearch.FrontEnd", "GuildWarsPartySearch.FrontEnd\GuildWarsPartySearch.FrontEnd.csproj", "{3BC53FC6-A022-4D14-B917-5A679AF41EC6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GuildWarsPartySearch.FrontEnd", "GuildWarsPartySearch.FrontEnd\GuildWarsPartySearch.FrontEnd.csproj", "{3BC53FC6-A022-4D14-B917-5A679AF41EC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

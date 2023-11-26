@@ -1,14 +1,11 @@
-﻿using GuildWarsPartySearch.Server.Converters;
-using Newtonsoft.Json;
-using System.Security.Cryptography.X509Certificates;
+﻿using Newtonsoft.Json;
 
 namespace GuildWarsPartySearch.Server.Options;
 
 public sealed class ServerOptions
 {
     [JsonProperty(nameof(Certificate))]
-    [JsonConverter(typeof(Base64ToCertificateConverter))]
-    public X509Certificate2? Certificate { get; set; }
+    public string? Certificate { get; set; }
 
     [JsonProperty(nameof(ApiKey))]
     public string? ApiKey { get; set; }

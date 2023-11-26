@@ -1,20 +1,29 @@
 ﻿using MTSC.Common.WebSockets;
-using MTSC.ServerSide;
 using Newtonsoft.Json;
+using System.Core.Extensions;
+using System.Net.WebSockets;
 using System.Text;
 
 namespace GuildWarsPartySearch.Server.Services.Feed;
 
 public sealed class LiveFeedService : ILiveFeedService
 {
-    private static readonly List<ClientData> Clients = [];
+    private static readonly List<WebSocket> Clients = [];
 
-    public void AddClient(ClientData client)
+    private readonly ILogger<LiveFeedService> logger;
+
+    public LiveFeedService(
+        ILogger<LiveFeedService> logger)
+    {
+        this.logger = logger.ThrowIfNull();
+    }
+
+    public void AddClient(WebSocket client)
     {
         AddClientInternal(client);
     }
 
-    public void PushUpdate(MTSC.ServerSide.Server server, Models.PartySearch partySearchUpdate)
+    public async Task PushUpdate(Models.PartySearch partySearchUpdate, CancellationToken cancellationToken)
     {
         var payloadString = JsonConvert.SerializeObject(partySearchUpdate);
         var payload = Encoding.UTF8.GetBytes(payloadString);
@@ -25,41 +34,51 @@ public sealed class LiveFeedService : ILiveFeedService
             Opcode = WebsocketMessage.Opcodes.Text
         };
         var messageBytes = websocketMessage.GetMessageBytes();
-        ExecuteOnClientsInternal(client =>
+        await ExecuteOnClientsInternal(async client =>
         {
-            server.QueueMessage(client, messageBytes);
+            try
+            {
+                await client.SendAsync(payload, WebSocketMessageType.Text, true, cancellationToken);
+            }
+            catch(Exception ex)
+            {
+                this.logger.LogError(ex, $"Encountered exception while broadcasting update");
+            }
         });
     }
 
-    public void RemoveClient(ClientData client)
+    public void RemoveClient(WebSocket client)
     {
         RemoveClientInternal(client);
     }
 
-    private static void AddClientInternal(ClientData clientData)
+    private static void AddClientInternal(WebSocket client)
     {
-        lock (Clients)
-        {
-            Clients.Add(clientData);
-        }
+        while (!Monitor.TryEnter(Clients)) { }
+        
+        Clients.Add(client);
+        
+        Monitor.Exit(Clients);
     }
 
-    private static void RemoveClientInternal(ClientData clientData)
+    private static void RemoveClientInternal(WebSocket client)
     {
-        lock (Clients)
-        {
-            Clients.Remove(clientData);
-        }
+        while (!Monitor.TryEnter(Clients)) { }
+
+        Clients.Remove(client);
+
+        Monitor.Exit(Clients);
     }
 
-    private static void ExecuteOnClientsInternal(Action<ClientData> action)
+    private static async Task ExecuteOnClientsInternal(Func<WebSocket, Task> action)
     {
-        lock (Clients)
+        while (!Monitor.TryEnter(Clients)) { }
+
+        foreach (var client in Clients)
         {
-            foreach (var client in Clients)
-            {
-                action(client);
-            }
+            await action(client);
         }
+
+        Monitor.Exit(Clients);
     }
 }

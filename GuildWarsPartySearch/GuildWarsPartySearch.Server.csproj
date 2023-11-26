@@ -1,7 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -10,17 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Tcp\**" />
-    <EmbeddedResource Remove="Tcp\**" />
-    <None Remove="Tcp\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Azure.Data.Tables" Version="12.8.2" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
-    <PackageReference Include="MTSC" Version="5.5.2" />
-    <PackageReference Include="Slim" Version="1.9.2" />
-    <PackageReference Include="Slim.Integration" Version="1.0.4" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="SystemExtensions.NetCore" Version="1.0.1" />

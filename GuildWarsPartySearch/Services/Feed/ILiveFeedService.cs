@@ -1,10 +1,10 @@
-﻿using MTSC.ServerSide;
+﻿using System.Net.WebSockets;
 
 namespace GuildWarsPartySearch.Server.Services.Feed;
 
 public interface ILiveFeedService
 {
-    void AddClient(ClientData client);
-    void RemoveClient(ClientData client);
-    void PushUpdate(MTSC.ServerSide.Server server, Models.PartySearch partySearchUpdate);
+    void AddClient(WebSocket webSocket);
+    void RemoveClient(WebSocket webSocket);
+    Task PushUpdate(Models.PartySearch partySearchUpdate, CancellationToken cancellationToken);
 }
