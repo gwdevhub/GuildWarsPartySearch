@@ -33,7 +33,8 @@ public class ConnectionMonitorHandler : IHandler
 
         foreach (ClientData client in server.Clients)
         {
-            if (DateTime.Now - client.LastActivityTime > this.inactivityTimeout)
+            if (DateTime.Now - client.LastActivityTime > this.inactivityTimeout &&
+                !this.IsConnected(client.Socket))
             {
                 server.Log("Disconnected: " + client.Socket.RemoteEndPoint?.ToString());
                 client.ToBeRemoved = true;
