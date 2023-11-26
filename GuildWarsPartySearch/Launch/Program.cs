@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using GuildWarsPartySearch.Server.HttpModules;
 using GuildWarsPartySearch.Server.Options;
+using GuildWarsPartySearch.Server.Scheduler;
 using GuildWarsPartySearch.Server.ServerHandlers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -32,7 +33,7 @@ public class Program
             .AddHandler(new HttpHandler()
                 .AddHttpModule(new ContentModule()))
             .AddServerUsageMonitor(new TickrateEnforcer() { TicksPerSecond = 60, Silent = true })
-            .SetScheduler(new TaskAwaiterScheduler())
+            .SetScheduler(new TaskWithExpiryScheduler())
             .WithLoggingMessageContents(false);
         var serverOptions = httpsServer.ServiceManager.GetRequiredService<IOptions<ServerOptions>>();
         httpsServer.WithCertificate(serverOptions.Value.Certificate);
@@ -45,7 +46,7 @@ public class Program
         httpServer.AddHandler(new HttpHandler()
             .AddHttpModule(new ContentModule()))
             .AddServerUsageMonitor(new TickrateEnforcer { TicksPerSecond = 10, Silent = true })
-            .SetScheduler(new TaskAwaiterScheduler())
+            .SetScheduler(new TaskWithExpiryScheduler())
             .WithLoggingMessageContents(false);
 
         var httpsServerTask = httpsServer.RunAsync(CancellationTokenSource.Token);
