@@ -17,15 +17,15 @@ public class Program
 
     private static async Task Main()
     {
-        var server = new MTSC.ServerSide.Server(443);
-        server.ServiceCollection.SetupServices();
-        server.ServiceManager.SetupServiceManager();
-        server
+        var httpsServer = new MTSC.ServerSide.Server(443);
+        httpsServer.ServiceCollection.SetupServices();
+        httpsServer.ServiceManager.SetupServiceManager();
+        httpsServer
             .AddHandler(
                 new WebsocketRoutingHandler()
                     .SetupRoutes()
                     .WithHeartbeatEnabled(true)
-                    .WithHeartbeatFrequency(server.ServiceManager.GetRequiredService<IOptions<ServerOptions>>().Value.HeartbeatFrequency ?? TimeSpan.FromSeconds(5)))
+                    .WithHeartbeatFrequency(httpsServer.ServiceManager.GetRequiredService<IOptions<ServerOptions>>().Value.HeartbeatFrequency ?? TimeSpan.FromSeconds(5)))
             .AddHandler(new ConnectionMonitorHandler())
             .AddHandler(new StartupHandler())
             .AddHandler(new ContentManagementHandler())
@@ -34,20 +34,22 @@ public class Program
             .AddServerUsageMonitor(new TickrateEnforcer() { TicksPerSecond = 60, Silent = true })
             .SetScheduler(new TaskAwaiterScheduler())
             .WithLoggingMessageContents(false);
+        var serverOptions = httpsServer.ServiceManager.GetRequiredService<IOptions<ServerOptions>>();
+        httpsServer.WithCertificate(serverOptions.Value.Certificate);
+        httpsServer.WithClientCertificate(false);
 
-        var verificationServer = new MTSC.ServerSide.Server(80);
-        verificationServer.ServiceCollection.AddScoped(_ => server.ServiceManager.GetRequiredService<ILogger<MTSC.ServerSide.Server>>());
-        verificationServer.ServiceCollection.AddScoped(_ => server.ServiceManager.GetRequiredService<ILogger<ContentModule>>());
-        verificationServer.ServiceCollection.AddScoped(_ => server.ServiceManager.GetRequiredService<IOptions<ContentOptions>>());
-        verificationServer.AddHandler(new HttpHandler()
+        var httpServer = new MTSC.ServerSide.Server(80);
+        httpServer.ServiceCollection.AddScoped(_ => httpsServer.ServiceManager.GetRequiredService<ILogger<MTSC.ServerSide.Server>>());
+        httpServer.ServiceCollection.AddScoped(_ => httpsServer.ServiceManager.GetRequiredService<ILogger<ContentModule>>());
+        httpServer.ServiceCollection.AddScoped(_ => httpsServer.ServiceManager.GetRequiredService<IOptions<ContentOptions>>());
+        httpServer.AddHandler(new HttpHandler()
             .AddHttpModule(new ContentModule()))
             .AddServerUsageMonitor(new TickrateEnforcer { TicksPerSecond = 10, Silent = true })
             .SetScheduler(new TaskAwaiterScheduler())
             .WithLoggingMessageContents(false);
 
-        //Ugly hack to copy the setup from the https server onto the http server
-        var serverTask = server.RunAsync(CancellationTokenSource.Token);
-        var verificationServerTask = verificationServer.RunAsync(CancellationTokenSource.Token);
+        var serverTask = httpsServer.RunAsync(CancellationTokenSource.Token);
+        var verificationServerTask = httpServer.RunAsync(CancellationTokenSource.Token);
 
         await Task.WhenAll(
             serverTask,
