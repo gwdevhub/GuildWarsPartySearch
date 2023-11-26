@@ -1,7 +1,7 @@
-﻿using GuildWarsPartySearch.Server.BackgroundServices;
-using GuildWarsPartySearch.Server.Endpoints;
+﻿using GuildWarsPartySearch.Server.Endpoints;
 using GuildWarsPartySearch.Server.Extensions;
 using GuildWarsPartySearch.Server.Options;
+using GuildWarsPartySearch.Server.Services.Content;
 using GuildWarsPartySearch.Server.Services.Database;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.Lifetime;
