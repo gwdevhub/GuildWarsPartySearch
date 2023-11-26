@@ -79,7 +79,7 @@ public static class WebApplicationExtensions
                 return;
             }
 
-            await route.ExecuteAsync(memoryStream.ToArray(), cancellationToken);
+            await route.ExecuteAsync(result.MessageType, memoryStream.ToArray(), cancellationToken);
             memoryStream.SetLength(0);
         }
     }

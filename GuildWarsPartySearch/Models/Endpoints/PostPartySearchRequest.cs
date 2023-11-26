@@ -1,8 +1,11 @@
 ﻿using GuildWarsPartySearch.Common.Models.GuildWars;
+using GuildWarsPartySearch.Server.Attributes;
+using GuildWarsPartySearch.Server.Converters;
 using Newtonsoft.Json;
 
 namespace GuildWarsPartySearch.Server.Models.Endpoints;
 
+[WebSocketConverter<JsonWebSocketMessageConverter<PostPartySearchRequest>, PostPartySearchRequest>]
 public sealed class PostPartySearchRequest
 {
     [JsonProperty(nameof(Campaign))]
