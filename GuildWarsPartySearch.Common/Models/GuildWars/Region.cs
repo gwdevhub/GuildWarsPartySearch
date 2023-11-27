@@ -860,7 +860,7 @@ public sealed class Region
     }
     public static bool TryParse(string name, out Region region)
     {
-        region = Regions.Where(region => region.Name == name).FirstOrDefault()!;
+        region = Regions.Where(region => region.Name?.Equals(name, StringComparison.OrdinalIgnoreCase) is true).FirstOrDefault()!;
         if (region is null)
         {
             return false;

@@ -34,6 +34,70 @@ public sealed class PartySearchService : IPartySearchService
         return await this.partySearchDatabase.GetPartySearchesByCharName(charName, cancellationToken);
     }
 
+    public async Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByCampaign(string campaign, CancellationToken cancellationToken)
+    {
+        if (int.TryParse(campaign, out var id) &&
+            Campaign.TryParse(id, out var parsedCampaign))
+        {
+            return await this.partySearchDatabase.GetPartySearchesByCampaign(parsedCampaign, cancellationToken);
+        }
+        
+        if (Campaign.TryParse(campaign, out var namedCampaign))
+        {
+            return await this.partySearchDatabase.GetPartySearchesByCampaign(namedCampaign, cancellationToken);
+        }
+
+        return new GetPartySearchFailure.InvalidCampaign();
+    }
+
+    public async Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByContinent(string continent, CancellationToken cancellationToken)
+    {
+        if (int.TryParse(continent, out var id) &&
+            Continent.TryParse(id, out var parsedContinent))
+        {
+            return await this.partySearchDatabase.GetPartySearchesByContinent(parsedContinent, cancellationToken);
+        }
+
+        if (Continent.TryParse(continent, out var namedContinent))
+        {
+            return await this.partySearchDatabase.GetPartySearchesByContinent(namedContinent, cancellationToken);
+        }
+
+        return new GetPartySearchFailure.InvalidContinent();
+    }
+
+    public async Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByRegion(string region, CancellationToken cancellationToken)
+    {
+        if (int.TryParse(region, out var id) &&
+            Region.TryParse(id, out var parsedRegion))
+        {
+            return await this.partySearchDatabase.GetPartySearchesByRegion(parsedRegion, cancellationToken);
+        }
+
+        if (Region.TryParse(region, out var namedRegion))
+        {
+            return await this.partySearchDatabase.GetPartySearchesByRegion(namedRegion, cancellationToken);
+        }
+
+        return new GetPartySearchFailure.InvalidRegion();
+    }
+
+    public async Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByMap(string map, CancellationToken cancellationToken)
+    {
+        if (int.TryParse(map, out var id) &&
+            Map.TryParse(id, out var parsedMap))
+        {
+            return await this.partySearchDatabase.GetPartySearchesByMap(parsedMap, cancellationToken);
+        }
+
+        if (Map.TryParse(map, out var namedMap))
+        {
+            return await this.partySearchDatabase.GetPartySearchesByMap(namedMap, cancellationToken);
+        }
+
+        return new GetPartySearchFailure.InvalidMap();
+    }
+
     public Task<List<Models.PartySearch>> GetAllPartySearches(CancellationToken cancellationToken)
     {
         return this.partySearchDatabase.GetAllPartySearches(cancellationToken);

@@ -116,7 +116,7 @@ public sealed class Continent
     }
     public static bool TryParse(string name, out Continent continent)
     {
-        continent = Continents.Where(continent => continent.Name == name).FirstOrDefault()!;
+        continent = Continents.Where(continent => continent.Name?.Equals(name, StringComparison.OrdinalIgnoreCase) is true).FirstOrDefault()!;
         if (continent is null)
         {
             return false;

@@ -2,7 +2,7 @@
 using AspNetCoreRateLimit;
 using GuildWarsPartySearch.Server.Options;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
@@ -26,6 +26,11 @@ public class Program
         var builder = WebApplication.CreateBuilder()
             .SetupOptions()
             .SetupHostedServices();
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "Guild Wars Party Search API", Version = "v1" });
+            c.DocumentFilter<WebSocketEndpointsDocumentFilter>();
+        });
         builder.Services.AddSingleton(jsonOptions);
         builder.Logging.SetupLogging();
         builder.Services.SetupServices();
@@ -54,13 +59,15 @@ public class Program
         }
 
         var app = builder.Build();
-        app.UseIpRateLimiting()
+        app.UseSwagger()
+           .UseIpRateLimiting()
            .UseWebSockets()
            .UseRouting()
            .UseEndpoints(endpoints =>
            {
                endpoints.MapControllers();
            })
+           .UseSwaggerUI(c => c.SwaggerEndpoint("v1/swagger.json", "Guild Wars Party Search API"))
            .UseStaticFiles(new StaticFileOptions
            {
                FileProvider = new PhysicalFileProvider(contentDirectory.FullName)

@@ -1427,7 +1427,7 @@ public sealed class Map
     }
     public static bool TryParse(string name, out Map map)
     {
-        map = Maps.Where(map => map.Name == name).FirstOrDefault()!;
+        map = Maps.Where(map => map.Name?.Equals(name, StringComparison.OrdinalIgnoreCase) is true).FirstOrDefault()!;
         if (map is null)
         {
             return false;
