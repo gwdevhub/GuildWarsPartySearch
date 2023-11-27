@@ -100,7 +100,7 @@ public sealed class Campaign
     }
     public static bool TryParse(string name, out Campaign campaign)
     {
-        campaign = Campaigns.Where(region => region.Name == name).FirstOrDefault()!;
+        campaign = Campaigns.Where(region => region.Name?.Equals(name, StringComparison.OrdinalIgnoreCase) is true).FirstOrDefault()!;
         if (campaign is null)
         {
             return false;

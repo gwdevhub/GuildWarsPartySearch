@@ -7,7 +7,7 @@ namespace GuildWarsPartySearch.Server.Filters;
 
 public sealed class ApiKeyProtected : IActionFilter
 {
-    private const string ApiKeyHeader = "X-ApiKey";
+    public const string ApiKeyHeader = "X-ApiKey";
 
     public void OnActionExecuting(ActionExecutingContext context)
     {

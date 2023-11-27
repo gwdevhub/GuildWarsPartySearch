@@ -3,7 +3,6 @@ using GuildWarsPartySearch.Common.Models.GuildWars;
 using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Options;
 using GuildWarsPartySearch.Server.Services.Database.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Core.Extensions;
 using System.Extensions;
@@ -42,13 +41,78 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
         catch (Exception e)
         {
             scopedLogger.LogError(e, "Encountered exception");
-            return new List<Server.Models.PartySearch>();
+            return [];
+        }
+    }
+
+    public async Task<List<Server.Models.PartySearch>> GetPartySearchesByCampaign(Campaign campaign, CancellationToken cancellationToken)
+    {
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByCampaign), string.Empty);
+        try
+        {
+            return await this.QuerySearches($"{nameof(PartySearchTableEntity.Campaign)} eq '{campaign.Name?.Replace("'", "''")}'", cancellationToken);
+        }
+        catch (Exception e)
+        {
+            scopedLogger.LogError(e, "Encountered exception");
+            return [];
+        }
+    }
+
+    public async Task<List<Server.Models.PartySearch>> GetPartySearchesByContinent(Continent continent, CancellationToken cancellationToken)
+    {
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByContinent), string.Empty);
+        try
+        {
+            return await this.QuerySearches($"{nameof(PartySearchTableEntity.Continent)} eq '{continent.Name?.Replace("'", "''")}'", cancellationToken);
+        }
+        catch(Exception e)
+        {
+            scopedLogger.LogError(e, "Encountered exception");
+            return [];
+        }
+    }
+
+    public async Task<List<Server.Models.PartySearch>> GetPartySearchesByRegion(Region region, CancellationToken cancellationToken)
+    {
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByRegion), string.Empty);
+        try
+        {
+            return await this.QuerySearches($"{nameof(PartySearchTableEntity.Region)} eq '{region.Name?.Replace("'", "''")}'", cancellationToken);
+        }
+        catch(Exception e)
+        {
+            scopedLogger.LogError(e, "Encountered exception");
+            return [];
+        }
+    }
+
+    public async Task<List<Server.Models.PartySearch>> GetPartySearchesByMap(Map map, CancellationToken cancellationToken)
+    {
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByMap), string.Empty);
+        try
+        {
+            return await this.QuerySearches($"{nameof(PartySearchTableEntity.Map)} eq '{map.Name?.Replace("'", "''")}'", cancellationToken);
+        }
+        catch(Exception e)
+        {
+            scopedLogger.LogError(e, "Encountered exception");
+            return [];
         }
     }
 
     public async Task<List<Server.Models.PartySearch>> GetPartySearchesByCharName(string charName, CancellationToken cancellationToken)
     {
-        return await this.QuerySearches($"{nameof(PartySearchTableEntity.CharName)} eq '{charName}'", cancellationToken);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByCharName), string.Empty);
+        try
+        {
+            return await this.QuerySearches($"{nameof(PartySearchTableEntity.CharName)} eq '{charName.Replace("'", "''")}'", cancellationToken);
+        }
+        catch(Exception e)
+        {
+            scopedLogger.LogError(e, "Encountered exception");
+            return [];
+        }
     }
 
     public async Task<List<PartySearchEntry>?> GetPartySearches(Campaign campaign, Continent continent, Region region, Map map, string district, CancellationToken cancellationToken)
