@@ -11,7 +11,7 @@ namespace GuildWarsPartySearch.Server.Launch;
 
 public class Program
 {
-    public static CancellationTokenSource CancellationTokenSource = new();
+    public static readonly CancellationTokenSource CancellationTokenSource = new();
 
     private static async Task Main()
     {
