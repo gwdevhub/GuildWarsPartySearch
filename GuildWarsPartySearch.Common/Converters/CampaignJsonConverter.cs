@@ -46,6 +46,6 @@ public sealed class CampaignJsonConverter : JsonConverter
             return;
         }
 
-        writer.WriteValue(campaign.Id);
+        writer.WriteValue(campaign.Name);
     }
 }

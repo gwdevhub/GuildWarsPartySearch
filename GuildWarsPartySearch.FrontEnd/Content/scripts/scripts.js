@@ -2,6 +2,7 @@ window.onload = function () {
     connect();
 };
 
+let locationMap = new Map();
 let socket;
 let isConnected = false;
 function connect() {
@@ -19,7 +20,14 @@ function connect() {
             console.log('Pong received from server.');
         } else {
             console.log('Message from server:', event.data);
-            document.getElementById('response').textContent = 'Response: ' + event.data;
+            let obj = JSON.parse(event.data);
+            console.log(obj);
+            obj.Searches.forEach(searchEntry => {
+                let combinedKey = `${searchEntry.Campaign};${searchEntry.Continent};${searchEntry.Region};${searchEntry.Map};${searchEntry.District}`;
+                locationMap.set(combinedKey, searchEntry);
+            });
+
+            updateEntriesDiv();
         }
     };
 
@@ -56,4 +64,23 @@ function disconnect() {
     if (socket) {
         socket.close();
     }
+}
+
+function updateEntriesDiv() {
+    let entriesDiv = document.getElementById('entries');
+
+    let htmlContent = '';
+
+    locationMap.forEach((searchEntry, combinedKey) => {
+        // Adding the combined key as a header
+        htmlContent += `<h3>${searchEntry.Campaign} - ${searchEntry.Continent} - ${searchEntry.Region} - ${searchEntry.Map} - ${searchEntry.District}</h3 >`;
+
+        // Adding each party search entry as a row
+        searchEntry.PartySearchEntries.forEach(entry => {
+            htmlContent += `<div>Character Name: ${entry.CharName}, Party Size: ${entry.PartySize}, Max Party Size: ${entry.PartyMaxSize}, NPCs: ${entry.Npcs}</div>`;
+        });
+    });
+
+    // Updating the div with the constructed HTML
+    entriesDiv.innerHTML = htmlContent;
 }
