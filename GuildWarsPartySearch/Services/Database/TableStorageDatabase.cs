@@ -121,7 +121,7 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearches), partitionKey);
         try
         {
-            var response = await this.QuerySearches($"PartitionKey eq '{partitionKey}'", cancellationToken);
+            var response = await this.QuerySearches($"PartitionKey eq '{partitionKey.Replace("'", "''")}'", cancellationToken);
             var partition = response.FirstOrDefault();
             if (partition is null)
             {
