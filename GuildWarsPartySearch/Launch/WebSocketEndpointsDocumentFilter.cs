@@ -26,7 +26,55 @@ public sealed class WebSocketEndpointsDocumentFilter : IDocumentFilter
                                     Name = "PartySearch" 
                                 } 
                             }, 
-                            Description = "WebSocket endpoint for live feed.",
+                            Description = @"
+WebSocket endpoint for live feed.
+
+Sends periodic party search updates. Example:
+```json
+{
+    ""Searches"":
+    [
+        {
+            ""Campaign"":""Prophecies"",
+            ""Continent"":""Tyria"",
+            ""Region"":""Kryta"",
+            ""Map"":""Lions Arch"",
+            ""District"":""En - 1"",
+            ""PartySearchEntries"":
+            [
+                {
+                    ""CharName"":""Shiro Tagachi"",
+                    ""PartySize"":8,
+                    ""PartyMaxSize"":8,
+                    ""Npcs"":0
+                },
+                {
+                    ""CharName"":""Kormir Sucks"",
+                    ""PartySize"":8,
+                    ""PartyMaxSize"":8,
+                    ""Npcs"":0
+                }
+            ]
+        },
+        {
+            ""Campaign"":""Prophecies"",
+            ""Continent"":""Tyria"",
+            ""Region"":""Kryta"",
+            ""Map"":""Warrior's Isle"",
+            ""District"":""En - 1"",
+            ""PartySearchEntries"":
+            [
+                {
+                    ""CharName"":""Don Abaddon"",
+                    ""PartySize"":0,
+                    ""PartyMaxSize"":16,
+                    ""Npcs"":2
+                }
+            ]
+        }
+    ]
+}
+```",
                             Responses = new OpenApiResponses
                             {
                                 { "200", new OpenApiResponse(){ Description = "Success" } },
@@ -78,7 +126,43 @@ public sealed class WebSocketEndpointsDocumentFilter : IDocumentFilter
                                     Name = "PartySearch" 
                                 } 
                             }, 
-                            Description = $"WebSocket endpoint for posting party search updates. Protected by {ApiKeyProtected.ApiKeyHeader} header.",
+                            Description = @$"
+WebSocket endpoint for posting party search updates.
+
+Protected by *{ApiKeyProtected.ApiKeyHeader}* header.
+
+Accepts json payloads. Example:
+```json
+{{
+    ""Continent"": ""Tyria"",
+    ""Campaign"": ""Prophecies"",
+    ""Region"": ""Kryta"",
+    ""Map"": 4,
+    ""District"": ""En - 1"",
+    ""PartySearchEntries"": [
+        {{
+            ""PartySize"": 8,
+            ""PartyMaxSize"": 8,
+            ""Npcs"": 0,
+            ""CharName"": ""Shiro Tagachi"",
+        }},
+        {{
+            ""PartySize"": 8,
+            ""PartyMaxSize"": 8,
+            ""Npcs"": 0,
+            ""CharName"": ""Kormir Sucks"",
+        }}
+    ]
+}}
+```
+
+Returns json payloads. Example:
+```json
+{{
+    ""Result"": 0,
+    ""Description"": ""Success""
+}}
+```",
                             Responses = new OpenApiResponses
                             {
                                 { "200", new OpenApiResponse(){ Description = "Success" } },
