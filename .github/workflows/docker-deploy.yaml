@@ -4,6 +4,7 @@ on:
   push:
     branches: [ master ]
     paths:
+      - "GuildWarsPartySearch.Common/**"
       - "GuildWarsPartySearch/**"
       - ".github/workflows/docker-deploy.yaml"
 
