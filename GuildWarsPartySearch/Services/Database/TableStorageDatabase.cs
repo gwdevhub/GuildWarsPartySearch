@@ -181,7 +181,28 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
             }
 
             scopedLogger.LogInformation("Batch transaction");
-            actions.AddRange(entries.Select(e => new TableTransactionAction(TableTransactionActionType.UpsertReplace, e)));
+            actions.AddRange(entries
+                .Where(e =>
+                {
+                    // Only update entries that have changed
+                    var existingEntry = entries.FirstOrDefault(e2 => e2.RowKey == e.RowKey);
+                    return e.Campaign != existingEntry?.Campaign ||
+                            e.Continent != existingEntry?.Continent ||
+                            e.Region != existingEntry?.Region ||
+                            e.Map != existingEntry?.Map ||
+                            e.District != existingEntry?.District ||
+                            e.CharName != existingEntry?.CharName ||
+                            e.PartySize != existingEntry?.PartySize ||
+                            e.PartyMaxSize != existingEntry?.PartyMaxSize ||
+                            e.Npcs != existingEntry?.Npcs;
+                })
+                .Select(e => new TableTransactionAction(TableTransactionActionType.UpsertReplace, e)));
+            if (actions.None())
+            {
+                scopedLogger.LogInformation("No change detected. Skipping operation");
+                return true;
+            }
+
             var responses = await this.tableClient.SubmitTransactionAsync(actions, cancellationToken);
             foreach(var response in responses.Value)
             {
