@@ -1,22 +1,16 @@
 ﻿using GuildWarsPartySearch.Common.Models.GuildWars;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GuildWarsPartySearch.Common.Converters;
-public sealed class CampaignJsonConverter : JsonConverter
+public sealed class CampaignJsonConverter : JsonConverter<Campaign>
 {
-    public override bool CanConvert(Type objectType) => true;
-
-    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    public override Campaign? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (!objectType.IsAssignableTo(typeof(Campaign)))
-        {
-            return default;
-        }
-
         switch (reader.TokenType)
         {
-            case JsonToken.String:
-                var name = reader.Value as string;
+            case JsonTokenType.String:
+                var name = reader.GetString();
                 if (name is null ||
                     !Campaign.TryParse(name, out var namedCampaign))
                 {
@@ -24,10 +18,9 @@ public sealed class CampaignJsonConverter : JsonConverter
                 }
 
                 return namedCampaign;
-            case JsonToken.Integer:
-                var id = reader.Value as long?;
-                if (id is not long ||
-                    !Campaign.TryParse((int)id.Value, out var parsedCampaign))
+            case JsonTokenType.Number:
+                reader.TryGetInt64(out var id);
+                if (!Campaign.TryParse((int)id, out var parsedCampaign))
                 {
                     return default;
                 }
@@ -39,13 +32,13 @@ public sealed class CampaignJsonConverter : JsonConverter
         }
     }
 
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, Campaign value, JsonSerializerOptions options)
     {
         if (value is not Campaign campaign)
         {
             return;
         }
 
-        writer.WriteValue(campaign.Name);
+        writer.WriteStringValue(campaign.Name);
     }
 }

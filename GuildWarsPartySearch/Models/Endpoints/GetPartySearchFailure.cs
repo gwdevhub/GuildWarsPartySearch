@@ -32,6 +32,10 @@ public abstract class GetPartySearchFailure
     {
     }
 
+    public sealed class InvalidCharName : GetPartySearchFailure
+    {
+    }
+
     public sealed class UnspecifiedFailure : GetPartySearchFailure
     {
     }

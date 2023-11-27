@@ -46,6 +46,11 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
         }
     }
 
+    public async Task<List<Server.Models.PartySearch>> GetPartySearchesByCharName(string charName, CancellationToken cancellationToken)
+    {
+        return await this.QuerySearches($"{nameof(PartySearchTableEntity.CharName)} eq '{charName}'", cancellationToken);
+    }
+
     public async Task<List<PartySearchEntry>?> GetPartySearches(Campaign campaign, Continent continent, Region region, Map map, string district, CancellationToken cancellationToken)
     {
         var partitionKey = BuildPartitionKey(campaign, continent, region, map, district);

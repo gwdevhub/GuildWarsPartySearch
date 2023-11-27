@@ -1,5 +1,7 @@
 ﻿using GuildWarsPartySearch.Server.Attributes;
 using GuildWarsPartySearch.Server.Converters;
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Extensions;
 using System.Net.WebSockets;
 
@@ -27,12 +29,17 @@ public abstract class WebSocketRouteBase
 public abstract class WebSocketRouteBase<TReceiveType> : WebSocketRouteBase
     where TReceiveType : class, new()
 {
-    private readonly Lazy<WebSocketMessageConverterBase> converter = new(() =>
+    private readonly Lazy<WebSocketMessageConverterBase> converter;
+
+    public WebSocketRouteBase()
     {
-        var attribute = typeof(TReceiveType).GetCustomAttributes(true).First(a => a is WebSocketConverterAttributeBase).Cast<WebSocketConverterAttributeBase>();
-        var converter = Activator.CreateInstance(attribute.ConverterType)!.Cast<WebSocketMessageConverterBase>();
-        return converter;
-    });
+        this.converter = new Lazy<WebSocketMessageConverterBase>(() =>
+        {
+            var attribute = typeof(TReceiveType).GetCustomAttributes(true).First(a => a is WebSocketConverterAttributeBase).Cast<WebSocketConverterAttributeBase>();
+            var parsedConverter = GetConverter(attribute.ConverterType, this.Context!);
+            return parsedConverter;
+        });
+    }
 
     public sealed override Task ExecuteAsync(WebSocketMessageType type, byte[] data, CancellationToken cancellationToken)
     {
@@ -50,6 +57,29 @@ public abstract class WebSocketRouteBase<TReceiveType> : WebSocketRouteBase
     }
 
     public abstract Task ExecuteAsync(TReceiveType? type, CancellationToken cancellationToken);
+
+    internal static WebSocketMessageConverterBase GetConverter(Type converterType, HttpContext context)
+    {
+        var constructors = converterType.GetConstructors();
+        foreach (var constructor in constructors)
+        {
+            if (constructor.GetCustomAttributes(false).Any(a => a is DoNotInjectAttribute))
+            {
+                continue;
+            }
+
+            var dependencies = constructor.GetParameters().Select(param => context.RequestServices.GetService(param.ParameterType));
+            if (dependencies.Any(d => d is null))
+            {
+                continue;
+            }
+
+            var route = constructor.Invoke(dependencies.ToArray());
+            return route.Cast<WebSocketMessageConverterBase>();
+        }
+
+        throw new InvalidOperationException($"Unable to resolve {converterType.Name}");
+    }
 }
 
 public abstract class WebSocketRouteBase<TReceiveType, TSendType> : WebSocketRouteBase<TReceiveType>
@@ -61,6 +91,16 @@ public abstract class WebSocketRouteBase<TReceiveType, TSendType> : WebSocketRou
         var converter = Activator.CreateInstance(attribute.ConverterType)!.Cast<WebSocketMessageConverterBase>();
         return converter;
     });
+
+    public WebSocketRouteBase()
+    {
+        this.converter = new Lazy<WebSocketMessageConverterBase>(() =>
+        {
+            var attribute = typeof(TSendType).GetCustomAttributes(true).First(a => a is WebSocketConverterAttributeBase).Cast<WebSocketConverterAttributeBase>();
+            var parsedConverter = GetConverter(attribute.ConverterType, this.Context!);
+            return parsedConverter;
+        });
+    }
 
     public Task SendMessage(TSendType sendType, CancellationToken cancellationToken)
     {

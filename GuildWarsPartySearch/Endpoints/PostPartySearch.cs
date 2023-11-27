@@ -1,12 +1,15 @@
-﻿using GuildWarsPartySearch.Server.Models;
+﻿using GuildWarsPartySearch.Server.Filters;
+using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Models.Endpoints;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
+using Microsoft.AspNetCore.Mvc;
 using System.Core.Extensions;
 using System.Extensions;
 
 namespace GuildWarsPartySearch.Server.Endpoints;
 
+[ServiceFilter<ApiKeyProtected>]
 public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest, PostPartySearchResponse>
 {
     private readonly ILiveFeedService liveFeedService;

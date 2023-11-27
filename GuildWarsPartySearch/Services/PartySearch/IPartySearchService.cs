@@ -7,6 +7,8 @@ namespace GuildWarsPartySearch.Server.Services.PartySearch;
 
 public interface IPartySearchService
 {
+    Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByCharName(string charName, CancellationToken cancellationToken);
+
     Task<List<Models.PartySearch>> GetAllPartySearches(CancellationToken cancellationToken);
 
     Task<Result<PostPartySearchRequest, PostPartySearchFailure>> PostPartySearch(PostPartySearchRequest? request, CancellationToken cancellationToken);
