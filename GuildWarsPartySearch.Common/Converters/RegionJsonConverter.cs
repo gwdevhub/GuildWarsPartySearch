@@ -46,6 +46,6 @@ public sealed class RegionJsonConverter : JsonConverter
             return;
         }
 
-        writer.WriteValue(region.Id);
+        writer.WriteValue(region.Name);
     }
 }

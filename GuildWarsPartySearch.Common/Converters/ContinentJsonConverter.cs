@@ -46,6 +46,6 @@ public sealed class ContinentJsonConverter : JsonConverter
             return;
         }
 
-        writer.WriteValue(continent.Id);
+        writer.WriteValue(continent.Name);
     }
 }

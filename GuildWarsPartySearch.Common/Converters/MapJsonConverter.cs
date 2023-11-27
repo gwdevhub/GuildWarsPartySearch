@@ -46,6 +46,6 @@ public sealed class MapJsonConverter : JsonConverter
             return;
         }
 
-        writer.WriteValue(map.Id);
+        writer.WriteValue(map.Name);
     }
 }
