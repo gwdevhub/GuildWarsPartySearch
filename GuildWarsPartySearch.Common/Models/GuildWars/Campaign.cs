@@ -1,6 +1,6 @@
 ﻿using GuildWarsPartySearch.Common.Converters;
-using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace GuildWarsPartySearch.Common.Models.GuildWars;
 

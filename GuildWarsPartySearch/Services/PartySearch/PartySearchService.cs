@@ -1,8 +1,8 @@
 ﻿using GuildWarsPartySearch.Common.Models.GuildWars;
 using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Models.Endpoints;
+using GuildWarsPartySearch.Server.Services.CharName;
 using GuildWarsPartySearch.Server.Services.Database;
-using Microsoft.Extensions.Logging;
 using System.Core.Extensions;
 using System.Extensions;
 
@@ -10,15 +10,28 @@ namespace GuildWarsPartySearch.Server.Services.PartySearch;
 
 public sealed class PartySearchService : IPartySearchService
 {
+    private readonly ICharNameValidator charNameValidator;
     private readonly IPartySearchDatabase partySearchDatabase;
     private readonly ILogger<PartySearchService> logger;
 
     public PartySearchService(
+        ICharNameValidator charNameValidator,
         IPartySearchDatabase partySearchDatabase,
         ILogger<PartySearchService> logger)
     {
+        this.charNameValidator = charNameValidator.ThrowIfNull();
         this.partySearchDatabase = partySearchDatabase.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
+    }
+
+    public async Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByCharName(string charName, CancellationToken cancellationToken)
+    {
+        if (!this.charNameValidator.Validate(charName))
+        {
+            return new GetPartySearchFailure.InvalidCharName();
+        }
+
+        return await this.partySearchDatabase.GetPartySearchesByCharName(charName, cancellationToken);
     }
 
     public Task<List<Models.PartySearch>> GetAllPartySearches(CancellationToken cancellationToken)

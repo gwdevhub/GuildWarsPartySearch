@@ -1,22 +1,16 @@
 ﻿using GuildWarsPartySearch.Common.Models.GuildWars;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GuildWarsPartySearch.Common.Converters;
-public sealed class ContinentJsonConverter : JsonConverter
+public sealed class ContinentJsonConverter : JsonConverter<Continent>
 {
-    public override bool CanConvert(Type objectType) => true;
-
-    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    public override Continent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (!objectType.IsAssignableTo(typeof(Continent)))
-        {
-            return default;
-        }
-
         switch (reader.TokenType)
         {
-            case JsonToken.String:
-                var name = reader.Value as string;
+            case JsonTokenType.String:
+                var name = reader.GetString();
                 if (name is null ||
                     !Continent.TryParse(name, out var namedContinent))
                 {
@@ -24,10 +18,9 @@ public sealed class ContinentJsonConverter : JsonConverter
                 }
 
                 return namedContinent;
-            case JsonToken.Integer:
-                var id = reader.Value as long?;
-                if (id is not long ||
-                    !Continent.TryParse((int)id.Value, out var parsedContinent))
+            case JsonTokenType.Number:
+                reader.TryGetInt64(out var id);
+                if (!Continent.TryParse((int)id, out var parsedContinent))
                 {
                     return default;
                 }
@@ -39,13 +32,13 @@ public sealed class ContinentJsonConverter : JsonConverter
         }
     }
 
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, Continent value, JsonSerializerOptions options)
     {
         if (value is not Continent continent)
         {
             return;
         }
 
-        writer.WriteValue(continent.Name);
+        writer.WriteStringValue(continent.Name);
     }
 }

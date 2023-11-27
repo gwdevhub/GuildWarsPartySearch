@@ -1,22 +1,16 @@
 ﻿using GuildWarsPartySearch.Common.Models.GuildWars;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GuildWarsPartySearch.Common.Converters;
-public sealed class RegionJsonConverter : JsonConverter
+public sealed class RegionJsonConverter : JsonConverter<Region>
 {
-    public override bool CanConvert(Type objectType) => true;
-
-    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    public override Region? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (!objectType.IsAssignableTo(typeof(Region)))
-        {
-            return default;
-        }
-
         switch (reader.TokenType)
         {
-            case JsonToken.String:
-                var name = reader.Value as string;
+            case JsonTokenType.String:
+                var name = reader.GetString();
                 if (name is null ||
                     !Region.TryParse(name, out var namedRegion))
                 {
@@ -24,10 +18,9 @@ public sealed class RegionJsonConverter : JsonConverter
                 }
 
                 return namedRegion;
-            case JsonToken.Integer:
-                var id = reader.Value as long?;
-                if (id is not long ||
-                    !Region.TryParse((int)id.Value, out var parsedRegion))
+            case JsonTokenType.Number:
+                reader.TryGetInt64(out var id);
+                if (!Region.TryParse((int)id, out var parsedRegion))
                 {
                     return default;
                 }
@@ -39,13 +32,13 @@ public sealed class RegionJsonConverter : JsonConverter
         }
     }
 
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, Region value, JsonSerializerOptions options)
     {
         if (value is not Region region)
         {
             return;
         }
 
-        writer.WriteValue(region.Name);
+        writer.WriteStringValue(region.Name);
     }
 }

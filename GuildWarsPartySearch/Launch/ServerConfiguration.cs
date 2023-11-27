@@ -1,20 +1,33 @@
-﻿using GuildWarsPartySearch.Server.Endpoints;
+﻿using AspNetCoreRateLimit;
+using GuildWarsPartySearch.Common.Converters;
+using GuildWarsPartySearch.Server.Endpoints;
 using GuildWarsPartySearch.Server.Extensions;
+using GuildWarsPartySearch.Server.Filters;
 using GuildWarsPartySearch.Server.Options;
+using GuildWarsPartySearch.Server.Services.CharName;
 using GuildWarsPartySearch.Server.Services.Content;
 using GuildWarsPartySearch.Server.Services.Database;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.Lifetime;
 using GuildWarsPartySearch.Server.Services.PartySearch;
-using Microsoft.Extensions.Options;
 using System.Core.Extensions;
 using System.Extensions;
+using System.Text.Json.Serialization;
 
 namespace GuildWarsPartySearch.Server.Launch;
 
 public static class ServerConfiguration
 {
-    private const string ApiKeyHeader = "X-ApiKey";
+    public static IList<JsonConverter> SetupConverters(this IList<JsonConverter> converters)
+    {
+        converters.ThrowIfNull();
+        converters.Add(new CampaignJsonConverter());
+        converters.Add(new ContinentJsonConverter());
+        converters.Add(new MapJsonConverter());
+        converters.Add(new RegionJsonConverter());
+
+        return converters;
+    }
 
     public static WebApplicationBuilder SetupHostedServices(this WebApplicationBuilder builder)
     {
@@ -49,7 +62,9 @@ public static class ServerConfiguration
             .Services.Configure<EnvironmentOptions>(builder.Configuration.GetSection(nameof(EnvironmentOptions)))
                      .Configure<ContentOptions>(builder.Configuration.GetSection(nameof(ContentOptions)))
                      .Configure<StorageAccountOptions>(builder.Configuration.GetSection(nameof(StorageAccountOptions)))
-                     .Configure<ServerOptions>(builder.Configuration.GetSection(nameof(ServerOptions)));
+                     .Configure<ServerOptions>(builder.Configuration.GetSection(nameof(ServerOptions)))
+                     .Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"))
+                     .Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
 
         return builder;
     }
@@ -58,10 +73,15 @@ public static class ServerConfiguration
     {
         services.ThrowIfNull();
 
+        services.AddMemoryCache();
+        services.AddInMemoryRateLimiting();
+        services.AddScoped<ApiKeyProtected>();
         services.AddScoped<IServerLifetimeService, ServerLifetimeService>();
         services.AddScoped<IPartySearchDatabase, TableStorageDatabase>();
         services.AddScoped<IPartySearchService, PartySearchService>();
+        services.AddScoped<ICharNameValidator, CharNameValidator>();
         services.AddSingleton<ILiveFeedService, LiveFeedService>();
+        services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
         return services;
     }
 
@@ -69,26 +89,8 @@ public static class ServerConfiguration
     {
         app.ThrowIfNull()
            .MapWebSocket<LiveFeed>("party-search/live-feed")
-           .MapWebSocket<PostPartySearch>("party-search/update", FilterUpdateMessages);
+           .MapWebSocket<PostPartySearch>("party-search/update");
 
         return app;
-    }
-
-    private static Task<bool> FilterUpdateMessages(HttpContext context)
-    {
-        var serverOptions = context.RequestServices.GetRequiredService<IOptions<ServerOptions>>();
-        if (serverOptions.Value.ApiKey!.IsNullOrWhiteSpace())
-        {
-            return Task.FromResult(false);
-        }
-
-        if (!context.Request.Headers.TryGetValue(ApiKeyHeader, out var value) ||
-            value.FirstOrDefault() is not string headerValue ||
-            headerValue != serverOptions.Value.ApiKey)
-        {
-            return Task.FromResult(false);
-        }
-
-        return Task.FromResult(true);
     }
 }

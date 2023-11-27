@@ -1,22 +1,16 @@
 ﻿using GuildWarsPartySearch.Common.Models.GuildWars;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GuildWarsPartySearch.Common.Converters;
-public sealed class MapJsonConverter : JsonConverter
+public sealed class MapJsonConverter : JsonConverter<Map>
 {
-    public override bool CanConvert(Type objectType) => true;
-
-    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    public override Map? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (!objectType.IsAssignableTo(typeof(Map)))
-        {
-            return default;
-        }
-
         switch (reader.TokenType)
         {
-            case JsonToken.String:
-                var name = reader.Value as string;
+            case JsonTokenType.String:
+                var name = reader.GetString();
                 if (name is null ||
                     !Map.TryParse(name, out var namedMap))
                 {
@@ -24,10 +18,9 @@ public sealed class MapJsonConverter : JsonConverter
                 }
 
                 return namedMap;
-            case JsonToken.Integer:
-                var id = reader.Value as long?;
-                if (id is not long ||
-                    !Map.TryParse((int)id.Value, out var parsedMap))
+            case JsonTokenType.Number:
+                reader.TryGetInt64(out var id);
+                if (!Map.TryParse((int)id, out var parsedMap))
                 {
                     return default;
                 }
@@ -39,13 +32,13 @@ public sealed class MapJsonConverter : JsonConverter
         }
     }
 
-    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    public override void Write(Utf8JsonWriter writer, Map value, JsonSerializerOptions options)
     {
         if (value is not Map map)
         {
             return;
         }
 
-        writer.WriteValue(map.Name);
+        writer.WriteStringValue(map.Name);
     }
 }

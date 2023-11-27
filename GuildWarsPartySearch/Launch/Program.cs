@@ -1,8 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using AspNetCoreRateLimit;
 using GuildWarsPartySearch.Server.Options;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 
 namespace GuildWarsPartySearch.Server.Launch;
 
@@ -16,11 +19,17 @@ public class Program
             .SetupConfiguration()
             .Build();
 
+        var jsonOptions = new JsonSerializerOptions();
+        jsonOptions.Converters.SetupConverters();
+        jsonOptions.AllowTrailingCommas = true;
+
         var builder = WebApplication.CreateBuilder()
             .SetupOptions()
             .SetupHostedServices();
+        builder.Services.AddSingleton(jsonOptions);
         builder.Logging.SetupLogging();
         builder.Services.SetupServices();
+        builder.Services.AddControllers();
         builder.Configuration.AddConfiguration(config);
         builder.WebHost.ConfigureKestrel(kestrelOptions =>
         {
@@ -45,17 +54,24 @@ public class Program
         }
 
         var app = builder.Build();
-        app.UseWebSockets()
+        app.UseIpRateLimiting()
+           .UseWebSockets()
+           .UseRouting()
+           .UseEndpoints(endpoints =>
+           {
+               endpoints.MapControllers();
+           })
            .UseStaticFiles(new StaticFileOptions
            {
                FileProvider = new PhysicalFileProvider(contentDirectory.FullName)
            });
-        app.SetupRoutes()
-           .MapGet("/", context =>
+        app.MapGet("/", context =>
             {
                 context.Response.Redirect("/index.html");
                 return Task.CompletedTask;
             });
+
+        app.SetupRoutes();
 
         await app.RunAsync();
     }

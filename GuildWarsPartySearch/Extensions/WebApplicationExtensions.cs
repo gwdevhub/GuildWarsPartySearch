@@ -1,4 +1,7 @@
 ﻿using GuildWarsPartySearch.Server.Endpoints;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Filters;
 using System.Core.Extensions;
 using System.Diagnostics.CodeAnalysis;
 using System.Extensions;
@@ -8,31 +11,35 @@ namespace GuildWarsPartySearch.Server.Extensions;
 
 public static class WebApplicationExtensions
 {
-    public static WebApplication MapWebSocket<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TWebSocketRoute>(this WebApplication app, string route, Func<HttpContext, Task<bool>>? routeFilter = default)
+    public static WebApplication MapWebSocket<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TWebSocketRoute>(this WebApplication app, string route)
         where TWebSocketRoute : WebSocketRouteBase
     {
         app.ThrowIfNull();
         app.Map(route, async context =>
         {
-            if (routeFilter is not null &&
-                await routeFilter(context) is false)
-            {
-                context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                return;
-            }
-
             if (context.WebSockets.IsWebSocketRequest)
             {
                 var logger = app.Services.GetRequiredService<ILogger<WebSocketRouteBase>>();
                 var route = GetRoute<TWebSocketRoute>(context);
+                var routeFilters = GetRouteFilters<TWebSocketRoute>(context).ToList();
+
+                var actionContext = new ActionContext(
+                        context,
+                        new RouteData(),
+                        new ActionDescriptor());
+                var actionExecutingContext = new ActionExecutingContext(
+                        actionContext,
+                        routeFilters,
+                        new Dictionary<string, object?>(),
+                        route);
+                var actionExecutedContext = new ActionExecutedContext(
+                        actionContext,
+                        routeFilters,
+                        route);
                 try
                 {
-                    using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                    route.WebSocket = webSocket;
-                    route.Context = context;
-                    await route.SocketAccepted(context.RequestAborted);
-                    await HandleWebSocket(webSocket, route, context.RequestAborted);
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", context.RequestAborted);
+                    var processingTask = new Func<Task>(() => ProcessWebSocketRequest(route, context));
+                    await BeginProcessingPipeline(actionExecutingContext, actionExecutedContext, processingTask);
                 }
                 catch(WebSocketException ex) when (ex.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely)
                 {
@@ -58,6 +65,53 @@ public static class WebApplicationExtensions
         });
 
         return app;
+    }
+
+    private static async Task ProcessWebSocketRequest(WebSocketRouteBase route, HttpContext httpContext)
+    {
+        using var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync();
+        route.WebSocket = webSocket;
+        route.Context = httpContext;
+        await route.SocketAccepted(httpContext.RequestAborted);
+        await HandleWebSocket(webSocket, route, httpContext.RequestAborted);
+        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", httpContext.RequestAborted);
+    }
+
+    private static async Task BeginProcessingPipeline(ActionExecutingContext actionExecutingContext, ActionExecutedContext actionExecutedContext, Func<Task> processWebSocket)
+    {
+        foreach (var filter in actionExecutingContext.Filters.OfType<IActionFilter>())
+        {
+            filter.OnActionExecuting(actionExecutingContext);
+            if (actionExecutingContext.Result is IActionResult result)
+            {
+                await result.ExecuteResultAsync(actionExecutedContext);
+                return;
+            }
+        }
+
+        ActionExecutionDelegate pipeline = async () =>
+        {
+            await processWebSocket();
+            return actionExecutedContext;
+        };
+
+        foreach (var filter in actionExecutingContext.Filters.OfType<IAsyncActionFilter>())
+        {
+            var next = pipeline;
+            pipeline = async () =>
+            {
+                if (actionExecutingContext.Result is IActionResult result)
+                {
+                    await result.ExecuteResultAsync(actionExecutedContext);
+                    return actionExecutedContext;
+                }
+
+                await filter.OnActionExecutionAsync(actionExecutingContext, next);
+                return actionExecutedContext;
+            };
+        }
+
+        await pipeline();
     }
 
     private static async Task HandleWebSocket(WebSocket webSocket, WebSocketRouteBase route, CancellationToken cancellationToken)
@@ -101,5 +155,15 @@ public static class WebApplicationExtensions
         }
 
         throw new InvalidOperationException($"Unable to resolve {typeof(TWebSocketRoute).Name}");
+    }
+
+    private static IEnumerable<IFilterMetadata> GetRouteFilters<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TWebSocketRoute>(HttpContext context)
+        where TWebSocketRoute : WebSocketRouteBase
+    {
+        foreach(var attribute in typeof(TWebSocketRoute).GetCustomAttributes(true).OfType<ServiceFilterAttribute>())
+        {
+            var filter = context.RequestServices.GetRequiredService(attribute.ServiceType);
+            yield return filter.Cast<IFilterMetadata>();
+        }
     }
 }
