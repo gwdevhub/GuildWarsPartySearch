@@ -10,6 +10,7 @@ using System.Extensions;
 namespace GuildWarsPartySearch.Server.Endpoints;
 
 [ServiceFilter<ApiKeyProtected>]
+[ServiceFilter<UserAgentRequired>]
 public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest, PostPartySearchResponse>
 {
     private readonly ILiveFeedService liveFeedService;
@@ -37,12 +38,12 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                 {
                     this.liveFeedService.PushUpdate(new PartySearch
                     {
-                        Campaign = message.Campaign,
-                        Continent = message.Continent,
-                        District = message.District,
-                        Map = message.Map,
-                        PartySearchEntries = message.PartySearchEntries,
-                        Region = message.Region
+                        Campaign = message?.Campaign,
+                        Continent = message?.Continent,
+                        District = message?.District,
+                        Map = message?.Map,
+                        PartySearchEntries = message?.PartySearchEntries,
+                        Region = message?.Region
                     }, cancellationToken);
                     return Success;
                 },

@@ -174,12 +174,8 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
                 .Where(e =>
                 {
                     // Only update entries that have changed
-                    var existingEntry = entries.FirstOrDefault(e2 => e2.RowKey == e.RowKey);
-                    return e.Campaign != existingEntry?.Campaign ||
-                            e.Continent != existingEntry?.Continent ||
-                            e.Region != existingEntry?.Region ||
-                            e.Map != existingEntry?.Map ||
-                            e.District != existingEntry?.District ||
+                    var existingEntry = existingEntries?.FirstOrDefault(e2 => e2.CharName == e.CharName);
+                    return existingEntry is null ||
                             e.CharName != existingEntry?.CharName ||
                             e.PartySize != existingEntry?.PartySize ||
                             e.PartyMaxSize != existingEntry?.PartyMaxSize ||
