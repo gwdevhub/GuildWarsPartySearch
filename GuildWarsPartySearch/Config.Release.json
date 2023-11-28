@@ -54,5 +54,13 @@
   },
   "ApplicationInsights": {
     "InstrumentationKey": "[AZURE_INSIGHTS_INSTRUMENTATIONKEY]"
+  },
+  "TelemetryOptions": {
+    "SuccessfulStatusCodes": [
+      401,
+      403,
+      404,
+      429
+    ]
   }
 }

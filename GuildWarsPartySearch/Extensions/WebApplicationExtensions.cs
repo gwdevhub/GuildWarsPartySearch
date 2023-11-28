@@ -73,6 +73,7 @@ public static class WebApplicationExtensions
         route.WebSocket = webSocket;
         route.Context = httpContext;
         await route.SocketAccepted(httpContext.RequestAborted);
+        httpContext.Request.Scheme = httpContext.Request.Scheme == "https" ? "wss" : "ws";
         await HandleWebSocket(webSocket, route, httpContext.RequestAborted);
         await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", httpContext.RequestAborted);
     }
