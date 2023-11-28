@@ -1,4 +1,25 @@
 {
+  "IpRateLimitOptions": {
+    "EnableEndpointRateLimiting": false,
+    "StackBlockedRequests": false,
+    "GeneralRules": [
+      {
+        "Endpoint": "*",
+        "Period": "1s",
+        "Limit": 20
+      },
+      {
+        "Endpoint": "*",
+        "Period": "10m",
+        "Limit": 100
+      },
+      {
+        "Endpoint": "*",
+        "Period": "12h",
+        "Limit": 3000
+      }
+    ]
+  },
   "Logging": {
     "LogLevel": {
       "Default": "Debug",
@@ -16,11 +37,13 @@
     "HeartbeatFrequency": "0:0:1"
   },
   "StorageAccountOptions": {
-    "TableName": "searches",
-    "ContainerName": "content",
     "ConnectionString": "[AZURE_TABLESTORAGE_CONNECTIONSTRING]"
   },
+  "PartySearchTableOptions": {
+    "TableName": "searches"
+  },
   "ContentOptions": {
+    "ContainerName": "content",
     "UpdateFrequency": "0:5:0",
     "StagingFolder": "Content"
   }

@@ -2,8 +2,8 @@
 using GuildWarsPartySearch.Common.Models.GuildWars;
 using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Options;
+using GuildWarsPartySearch.Server.Services.Azure;
 using GuildWarsPartySearch.Server.Services.Database.Models;
-using Microsoft.Extensions.Options;
 using System.Core.Extensions;
 using System.Extensions;
 
@@ -11,23 +11,15 @@ namespace GuildWarsPartySearch.Server.Services.Database;
 
 public sealed class TableStorageDatabase : IPartySearchDatabase
 {
-    private readonly TableClient tableClient;
-    private readonly IOptions<StorageAccountOptions> options;
+    private readonly NamedTableClient<PartySearchTableOptions> client;
     private readonly ILogger<TableStorageDatabase> logger;
 
     public TableStorageDatabase(
-        IOptions<StorageAccountOptions> options,
+        NamedTableClient<PartySearchTableOptions> namedTableClient,
         ILogger<TableStorageDatabase> logger)
     {
-        var tableClientOptions = new TableClientOptions();
-        tableClientOptions.Diagnostics.IsLoggingEnabled = true;
-
-        this.options = options.ThrowIfNull();
+        this.client = namedTableClient.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
-
-        var tableServiceClient = new TableServiceClient(this.options?.Value.ConnectionString ?? throw new InvalidOperationException("Config contains no connection string"));
-        var tableName = options.Value.TableName?.ThrowIfNull() ?? throw new InvalidOperationException("Config contains no table name");
-        this.tableClient = tableServiceClient.GetTableClient(tableName);
     }
 
     public async Task<List<Server.Models.PartySearch>> GetAllPartySearches(CancellationToken cancellationToken)
@@ -144,7 +136,6 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SetPartySearches), partitionKey);
         try
         {
-            scopedLogger.LogInformation("Retrieving existing entries");
             var existingEntries = await this.GetPartySearches(campaign, continent, region, map, district, cancellationToken);
             var entries = partySearch.Select(e =>
             {
@@ -169,7 +160,6 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
             var actions = new List<TableTransactionAction>();
             if (existingEntries is not null)
             {
-                scopedLogger.LogInformation("Patching nonexisting entries");
                 // Find all existing entries that don't exist in the update. For those, queue a delete transaction
                 actions.AddRange(existingEntries
                     .Where(e => entries.FirstOrDefault(e2 => e.CharName == e2.CharName) is null)
@@ -180,7 +170,6 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
                     })));
             }
 
-            scopedLogger.LogInformation("Batch transaction");
             actions.AddRange(entries
                 .Where(e =>
                 {
@@ -203,7 +192,7 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
                 return true;
             }
 
-            var responses = await this.tableClient.SubmitTransactionAsync(actions, cancellationToken);
+            var responses = await this.client.SubmitTransactionAsync(actions, cancellationToken);
             foreach(var response in responses.Value)
             {
                 scopedLogger.LogInformation($"[{response.Status}] {response.ReasonPhrase}");
@@ -221,7 +210,7 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
     private async Task<List<Server.Models.PartySearch>> QuerySearches(string query, CancellationToken cancellationToken)
     {
         var responseList = new Dictionary<string, ((Campaign, Continent, Region, Map, string), List<PartySearchEntry>)>();
-        var response = this.tableClient.QueryAsync<PartySearchTableEntity>(query, cancellationToken: cancellationToken);
+        var response = this.client.QueryAsync<PartySearchTableEntity>(query, cancellationToken: cancellationToken);
         await foreach (var entry in response)
         {
             if (!responseList.TryGetValue(entry.PartitionKey, out var tuple))

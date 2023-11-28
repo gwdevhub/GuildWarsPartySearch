@@ -1,9 +1,9 @@
 ﻿using Azure.Storage.Blobs.Models;
-using Azure.Storage.Blobs;
 using GuildWarsPartySearch.Server.Options;
 using System.Extensions;
 using Microsoft.Extensions.Options;
 using System.Core.Extensions;
+using GuildWarsPartySearch.Server.Services.Azure;
 
 namespace GuildWarsPartySearch.Server.Services.Content;
 
@@ -11,17 +11,17 @@ public sealed class ContentRetrievalService : BackgroundService
 {
     private readonly Dictionary<string, DateTime> fileMetadatas = [];
 
+    private readonly NamedBlobContainerClient<ContentOptions> namedBlobContainerClient;
     private readonly ContentOptions contentOptions;
-    private readonly StorageAccountOptions storageAccountOptions;
     private readonly ILogger<ContentRetrievalService> logger;
 
     public ContentRetrievalService(
+        NamedBlobContainerClient<ContentOptions> namedBlobContainerClient,
         IOptions<ContentOptions> contentOptions,
-        IOptions<StorageAccountOptions> storageAccountOptions,
         ILogger<ContentRetrievalService> logger)
     {
+        this.namedBlobContainerClient = namedBlobContainerClient.ThrowIfNull();
         this.contentOptions = contentOptions.Value.ThrowIfNull();
-        this.storageAccountOptions = storageAccountOptions.Value.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
     }
 
@@ -47,9 +47,7 @@ public sealed class ContentRetrievalService : BackgroundService
     {
         var scopedLogger = logger.CreateScopedLogger(nameof(this.UpdateContent), string.Empty);
         scopedLogger.LogDebug("Checking content to retrieve");
-        var serviceBlobClient = new BlobServiceClient(storageAccountOptions.ConnectionString);
-        var blobContainerClient = serviceBlobClient.GetBlobContainerClient(storageAccountOptions.ContainerName);
-        var blobs = blobContainerClient.GetBlobsAsync(cancellationToken: cancellationToken);
+        var blobs = this.namedBlobContainerClient.GetBlobsAsync(cancellationToken: cancellationToken);
 
         if (!Directory.Exists(contentOptions.StagingFolder))
         {
@@ -90,7 +88,7 @@ public sealed class ContentRetrievalService : BackgroundService
                 continue;
             }
 
-            var blobClient = blobContainerClient.GetBlobClient(blob.Name);
+            var blobClient = this.namedBlobContainerClient.GetBlobClient(blob.Name);
             using var fileStream = new FileStream(finalPath, FileMode.Create);
             using var blobStream = await blobClient.OpenReadAsync(new BlobOpenReadOptions(false)
             {
