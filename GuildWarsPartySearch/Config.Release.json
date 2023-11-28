@@ -22,9 +22,14 @@
   },
   "Logging": {
     "LogLevel": {
-      "Default": "Information",
+      "Default": "Debug",
       "Microsoft": "Warning",
       "Microsoft.Hosting.Lifetime": "Information"
+    },
+    "ApplicationInsights": {
+      "LogLevel": {
+        "Default": "Information"
+      }
     }
   },
   "EnvironmentOptions": {
@@ -46,5 +51,8 @@
     "ContainerName": "content",
     "UpdateFrequency": "0:1:0",
     "StagingFolder": "Content"
+  },
+  "ApplicationInsights": {
+    "InstrumentationKey": "[AZURE_INSIGHTS_INSTRUMENTATIONKEY]"
   }
 }
