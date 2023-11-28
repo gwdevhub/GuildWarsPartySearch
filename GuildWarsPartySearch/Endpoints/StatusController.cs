@@ -1,6 +1,7 @@
 ﻿using GuildWarsPartySearch.Server.Filters;
 using GuildWarsPartySearch.Server.Services.BotStatus;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Core.Extensions;
 
 namespace GuildWarsPartySearch.Server.Endpoints;
@@ -21,7 +22,8 @@ public class StatusController : Controller
     [HttpGet("bots")]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
-    public async Task<IActionResult> GetBotStatus()
+    [SwaggerOperation(Description = $"Protected by *{ApiKeyProtected.ApiKeyHeader}* header.\r\n\r\nRequires *SSL* protocol. (https://)")]
+    public async Task<IActionResult> GetBotStatus([FromHeader(Name = ApiKeyProtected.ApiKeyHeader)] string _)
     {
         return this.Ok(await this.botStatusService.GetBots());
     }
