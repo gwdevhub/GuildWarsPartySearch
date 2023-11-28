@@ -30,6 +30,7 @@ public class Program
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Guild Wars Party Search API", Version = "v1" });
             c.DocumentFilter<WebSocketEndpointsDocumentFilter>();
+            c.EnableAnnotations();
         });
         builder.Services.AddSingleton(jsonOptions);
         builder.Logging.SetupLogging();

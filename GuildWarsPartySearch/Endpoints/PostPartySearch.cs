@@ -1,6 +1,7 @@
 ﻿using GuildWarsPartySearch.Server.Filters;
 using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Models.Endpoints;
+using GuildWarsPartySearch.Server.Services.BotStatus;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
 using Microsoft.AspNetCore.Mvc;
@@ -9,22 +10,56 @@ using System.Extensions;
 
 namespace GuildWarsPartySearch.Server.Endpoints;
 
+[ServiceFilter<RequireSsl>]
 [ServiceFilter<ApiKeyProtected>]
 [ServiceFilter<UserAgentRequired>]
 public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest, PostPartySearchResponse>
 {
+    private readonly IBotStatusService botStatusService;
     private readonly ILiveFeedService liveFeedService;
     private readonly IPartySearchService partySearchService;
     private readonly ILogger<PostPartySearch> logger;
 
     public PostPartySearch(
+        IBotStatusService botStatusService,
         ILiveFeedService liveFeedService,
         IPartySearchService partySearchService,
         ILogger<PostPartySearch> logger)
     {
+        this.botStatusService = botStatusService.ThrowIfNull();
         this.liveFeedService = liveFeedService.ThrowIfNull();
         this.partySearchService = partySearchService.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
+    }
+
+    public override async Task SocketAccepted(CancellationToken cancellationToken)
+    {
+        if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
+            userAgentValue is not string userAgent)
+        {
+            await this.WebSocket!.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.InternalServerError, "Failed to extract user agent", cancellationToken);
+            return;
+        }
+
+        if (!await this.botStatusService.AddBot(userAgent, this.WebSocket!))
+        {
+            await this.WebSocket!.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation, $"Failed to add bot with id {userAgent}", cancellationToken);
+            return;
+        }
+    }
+
+    public override async Task SocketClosed()
+    {
+        if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
+            userAgentValue is not string userAgent)
+        {
+            throw new InvalidOperationException("Unable to extract user agent on client disconnect");
+        }
+
+        if (!await this.botStatusService.RemoveBot(userAgent))
+        {
+            throw new InvalidOperationException($"Failed to remove bot with id {userAgent}");
+        }
     }
 
     public override async Task ExecuteAsync(PostPartySearchRequest? message, CancellationToken cancellationToken)

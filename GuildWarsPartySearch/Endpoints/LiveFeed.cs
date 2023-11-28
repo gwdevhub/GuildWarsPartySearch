@@ -37,9 +37,9 @@ public sealed class LiveFeed : WebSocketRouteBase<TextContent, PartySearchList>
     {
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), this.Context?.Connection.RemoteIpAddress?.ToString() ?? string.Empty);
         this.liveFeedService.AddClient(this.WebSocket!);
-        scopedLogger.LogInformation("Client accepted to livefeed");
+        scopedLogger.LogDebug("Client accepted to livefeed");
 
-        scopedLogger.LogInformation("Sending all party searches");
+        scopedLogger.LogDebug("Sending all party searches");
         var updates = await this.partySearchService.GetAllPartySearches(cancellationToken);
         await this.SendMessage(new PartySearchList { Searches = updates }, cancellationToken);
     }
@@ -48,7 +48,7 @@ public sealed class LiveFeed : WebSocketRouteBase<TextContent, PartySearchList>
     {
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), this.Context?.Connection.RemoteIpAddress?.ToString() ?? string.Empty);
         this.liveFeedService.RemoveClient(this.WebSocket!);
-        scopedLogger.LogInformation("Client removed from livefeed");
+        scopedLogger.LogDebug("Client removed from livefeed");
         return Task.CompletedTask;
     }
 }

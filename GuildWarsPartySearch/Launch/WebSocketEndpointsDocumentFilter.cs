@@ -133,6 +133,8 @@ Protected by *{ApiKeyProtected.ApiKeyHeader}* header.
 
 Requires *User-Agent* header to be set.
 
+Requires *SSL* protocol (wss://).
+
 Accepts json payloads. Example:
 ```json
 {{
