@@ -14,15 +14,25 @@ public sealed class ApiKeyProtected : IActionFilter
         var serverOptions = context.HttpContext.RequestServices.GetRequiredService<IOptions<ServerOptions>>();
         if (serverOptions.Value.ApiKey!.IsNullOrWhiteSpace())
         {
-            context.Result = new ForbiddenResponseActionResult();
+            context.Result = new ForbiddenResponseActionResult("API Key is not configured");
             return;
         }
 
-        if (!context.HttpContext.Request.Headers.TryGetValue(ApiKeyHeader, out var value) ||
-            value.FirstOrDefault() is not string headerValue ||
-            headerValue != serverOptions.Value.ApiKey)
+        if (!context.HttpContext.Request.Headers.TryGetValue(ApiKeyHeader, out var value))
         {
-            context.Result = new ForbiddenResponseActionResult();
+            context.Result = new ForbiddenResponseActionResult($"{ApiKeyHeader} header not found");
+            return;
+        }
+
+        if (value.FirstOrDefault() is not string headerValue)
+        {
+            context.Result = new ForbiddenResponseActionResult($"{ApiKeyHeader} header value is invalid");
+            return;
+        }
+
+        if (headerValue != serverOptions.Value.ApiKey)
+        {
+            context.Result = new ForbiddenResponseActionResult($"{ApiKeyHeader} header value is incorrect");
             return;
         }
 

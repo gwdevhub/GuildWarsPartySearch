@@ -112,7 +112,7 @@ Sends periodic party search updates. Example:
             new OpenApiPathItem
             {
                 Summary = "Connect to WebSocket for updates",
-                Description = $"WebSocket endpoint for posting party search updates. Protected by {ApiKeyProtected.ApiKeyHeader} header.",
+                Description = $"WebSocket endpoint for posting party search updates. Protected by {ApiKeyProtected.ApiKeyHeader} header. Requires User-Agent header to be set",
                 Operations = new Dictionary<OperationType, OpenApiOperation>
                 {
                     {
@@ -130,6 +130,8 @@ Sends periodic party search updates. Example:
 WebSocket endpoint for posting party search updates.
 
 Protected by *{ApiKeyProtected.ApiKeyHeader}* header.
+
+Requires *User-Agent* header to be set.
 
 Accepts json payloads. Example:
 ```json

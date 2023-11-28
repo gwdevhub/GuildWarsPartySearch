@@ -83,6 +83,7 @@ public static class ServerConfiguration
         services.AddMemoryCache();
         services.AddInMemoryRateLimiting();
         services.AddScoped<ApiKeyProtected>();
+        services.AddScoped<UserAgentRequired>();
         services.AddScoped<IServerLifetimeService, ServerLifetimeService>();
         services.AddScoped<IPartySearchDatabase, TableStorageDatabase>();
         services.AddScoped<IPartySearchService, PartySearchService>();
