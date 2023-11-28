@@ -4,6 +4,7 @@ using GuildWarsPartySearch.Server.Endpoints;
 using GuildWarsPartySearch.Server.Extensions;
 using GuildWarsPartySearch.Server.Filters;
 using GuildWarsPartySearch.Server.Options;
+using GuildWarsPartySearch.Server.Services.BotStatus;
 using GuildWarsPartySearch.Server.Services.CharName;
 using GuildWarsPartySearch.Server.Services.Content;
 using GuildWarsPartySearch.Server.Services.Database;
@@ -82,6 +83,7 @@ public static class ServerConfiguration
         services.AddApplicationInsightsTelemetryProcessor<WebSocketTelemetryProcessor>();
         services.AddMemoryCache();
         services.AddInMemoryRateLimiting();
+        services.AddScoped<RequireSsl>();
         services.AddScoped<ApiKeyProtected>();
         services.AddScoped<UserAgentRequired>();
         services.AddScoped<IServerLifetimeService, ServerLifetimeService>();
@@ -90,6 +92,7 @@ public static class ServerConfiguration
         services.AddScoped<ICharNameValidator, CharNameValidator>();
         services.AddSingleton<ILiveFeedService, LiveFeedService>();
         services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+        services.AddSingleton<IBotStatusService, BotStatusService>();
         services.AddScopedTableClient<PartySearchTableOptions>();
         services.AddSingletonBlobContainerClient<ContentOptions>();
         return services;
