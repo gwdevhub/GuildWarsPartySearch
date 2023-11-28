@@ -1,18 +1,18 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace GuildWarsPartySearch.Server.Options;
 
 public sealed class ServerOptions
 {
-    [JsonProperty(nameof(Certificate))]
+    [JsonPropertyName(nameof(Certificate))]
     public string? Certificate { get; set; }
 
-    [JsonProperty(nameof(ApiKey))]
+    [JsonPropertyName(nameof(ApiKey))]
     public string? ApiKey { get; set; }
 
-    [JsonProperty(nameof(InactivityTimeout))]
+    [JsonPropertyName(nameof(InactivityTimeout))]
     public TimeSpan? InactivityTimeout { get; set; }
 
-    [JsonProperty(nameof(HeartbeatFrequency))]
+    [JsonPropertyName(nameof(HeartbeatFrequency))]
     public TimeSpan? HeartbeatFrequency { get; set; }
 }

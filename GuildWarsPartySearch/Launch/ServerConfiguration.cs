@@ -11,6 +11,8 @@ using GuildWarsPartySearch.Server.Services.Database;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.Lifetime;
 using GuildWarsPartySearch.Server.Services.PartySearch;
+using GuildWarsPartySearch.Server.Telemetry;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
 using System.Core.Extensions;
@@ -62,16 +64,15 @@ public static class ServerConfiguration
 
     public static WebApplicationBuilder SetupOptions(this WebApplicationBuilder builder)
     {
-        builder.ThrowIfNull()
-            .Services.Configure<EnvironmentOptions>(builder.Configuration.GetSection(nameof(EnvironmentOptions)))
-                     .Configure<ContentOptions>(builder.Configuration.GetSection(nameof(ContentOptions)))
-                     .Configure<PartySearchTableOptions>(builder.Configuration.GetSection(nameof(PartySearchTableOptions)))
-                     .Configure<StorageAccountOptions>(builder.Configuration.GetSection(nameof(StorageAccountOptions)))
-                     .Configure<ServerOptions>(builder.Configuration.GetSection(nameof(ServerOptions)))
-                     .Configure<IpRateLimitOptions>(builder.Configuration.GetSection(nameof(IpRateLimitOptions)))
-                     .Configure<IpRateLimitPolicies>(builder.Configuration.GetSection(nameof(IpRateLimitPolicies)));
-
-        return builder;
+        return builder.ThrowIfNull()
+            .ConfigureExtended<EnvironmentOptions>()
+            .ConfigureExtended<ContentOptions>()
+            .ConfigureExtended<PartySearchTableOptions>()
+            .ConfigureExtended<StorageAccountOptions>()
+            .ConfigureExtended<ServerOptions>()
+            .ConfigureExtended<IpRateLimitOptions>()
+            .ConfigureExtended<IpRateLimitPolicies>()
+            .ConfigureExtended<TelemetryOptions>();
     }
 
     public static IServiceCollection SetupServices(this IServiceCollection services)
@@ -79,6 +80,8 @@ public static class ServerConfiguration
         services.ThrowIfNull();
 
         services.AddApplicationInsightsTelemetry();
+        services.AddSingleton<ITelemetryInitializer, Mark4xxAsSuccessfulTelemetryInitializer>();
+        services.AddApplicationInsightsTelemetryProcessor<WebSocketTelemetryProcessor>();
         services.AddMemoryCache();
         services.AddInMemoryRateLimiting();
         services.AddScoped<ApiKeyProtected>();
