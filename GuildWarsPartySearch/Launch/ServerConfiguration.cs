@@ -1,4 +1,5 @@
 ﻿using AspNetCoreRateLimit;
+using Azure.Data.Tables;
 using GuildWarsPartySearch.Common.Converters;
 using GuildWarsPartySearch.Server.Endpoints;
 using GuildWarsPartySearch.Server.Extensions;
@@ -10,6 +11,8 @@ using GuildWarsPartySearch.Server.Services.Database;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.Lifetime;
 using GuildWarsPartySearch.Server.Services.PartySearch;
+using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Options;
 using System.Core.Extensions;
 using System.Extensions;
 using System.Text.Json.Serialization;
@@ -61,10 +64,11 @@ public static class ServerConfiguration
         builder.ThrowIfNull()
             .Services.Configure<EnvironmentOptions>(builder.Configuration.GetSection(nameof(EnvironmentOptions)))
                      .Configure<ContentOptions>(builder.Configuration.GetSection(nameof(ContentOptions)))
+                     .Configure<PartySearchTableOptions>(builder.Configuration.GetSection(nameof(PartySearchTableOptions)))
                      .Configure<StorageAccountOptions>(builder.Configuration.GetSection(nameof(StorageAccountOptions)))
                      .Configure<ServerOptions>(builder.Configuration.GetSection(nameof(ServerOptions)))
-                     .Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"))
-                     .Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+                     .Configure<IpRateLimitOptions>(builder.Configuration.GetSection(nameof(IpRateLimitOptions)))
+                     .Configure<IpRateLimitPolicies>(builder.Configuration.GetSection(nameof(IpRateLimitPolicies)));
 
         return builder;
     }
@@ -82,6 +86,8 @@ public static class ServerConfiguration
         services.AddScoped<ICharNameValidator, CharNameValidator>();
         services.AddSingleton<ILiveFeedService, LiveFeedService>();
         services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+        services.AddScopedTableClient<PartySearchTableOptions>();
+        services.AddSingletonBlobContainerClient<ContentOptions>();
         return services;
     }
 
