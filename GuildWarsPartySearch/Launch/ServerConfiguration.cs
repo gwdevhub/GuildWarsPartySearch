@@ -54,6 +54,7 @@ public static class ServerConfiguration
     {
         builder.ThrowIfNull()
             .ClearProviders()
+            .AddApplicationInsights()
             .AddConsole();
 
         return builder;
@@ -77,6 +78,7 @@ public static class ServerConfiguration
     {
         services.ThrowIfNull();
 
+        services.AddApplicationInsightsTelemetry();
         services.AddMemoryCache();
         services.AddInMemoryRateLimiting();
         services.AddScoped<ApiKeyProtected>();
