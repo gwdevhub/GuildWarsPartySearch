@@ -1,9 +1,8 @@
-﻿using System.Text.Json.Serialization;
+﻿using GuildWarsPartySearch.Server.Options.Azure;
 
 namespace GuildWarsPartySearch.Server.Options;
 
 public class PartySearchTableOptions : IAzureTableStorageOptions
 {
-    [JsonPropertyName(nameof(TableName))]
     public string TableName { get; set; } = default!;
 }

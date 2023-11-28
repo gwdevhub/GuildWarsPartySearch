@@ -1,4 +1,4 @@
-﻿namespace GuildWarsPartySearch.Server.Options;
+﻿namespace GuildWarsPartySearch.Server.Options.Azure;
 
 public interface IAzureTableStorageOptions
 {

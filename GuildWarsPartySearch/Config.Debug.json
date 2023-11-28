@@ -42,7 +42,7 @@
     "HeartbeatFrequency": "0:0:1"
   },
   "StorageAccountOptions": {
-    "ConnectionString": "[AZURE_TABLESTORAGE_CONNECTIONSTRING]"
+    "Name": "guildwarspartysearch"
   },
   "PartySearchTableOptions": {
     "TableName": "searches"
@@ -62,5 +62,10 @@
       404,
       429
     ]
+  },
+  "AzureCredentialsOptions": {
+    "ClientSecret": "[AZURE_CLIENT_SECRET]",
+    "ClientId": "[AZURE_CLIENT_ID]",
+    "TenantId": "[AZURE_TENANT_ID]"
   }
 }

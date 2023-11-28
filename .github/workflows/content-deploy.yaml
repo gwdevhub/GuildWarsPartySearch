@@ -18,5 +18,5 @@ jobs:
     - name: Build and push content
       run: |
         cd GuildWarsPartySearch.FrontEnd
-        .\BuildAndUploadContent.ps1 -ConnectionString "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}" -ContainerName "content" -SourceFolderPath Content
+        .\BuildAndUploadContent.ps1 -ContainerName content -SourceFolderPath Content -ClientId "${{ secrets.AZURE_CLIENT_ID }}" -ClientSecret "${{ secrets.AZURE_CLIENT_SECRET }}" -TenantId "${{ secrets.AZURE_TENANT_ID }}" -StorageAccountName "guildwarspartysearch"
       shell: pwsh

@@ -31,9 +31,11 @@ jobs:
         cd GuildWarsPartySearch
         $content = Get-Content Config.Release.json
         $content = $content.Replace("[APIKEY]", "${{ secrets.APIKEY }}")
-        $content = $content.Replace("[AZURE_TABLESTORAGE_CONNECTIONSTRING]", "${{ secrets.AZURE_TABLESTORAGE_CONNECTIONSTRING }}")
         $content = $content.Replace("[CERTIFICATE_BASE64]", "${{ secrets.CERTIFICATE_BASE64 }}")
         $content = $content.Replace("[AZURE_INSIGHTS_INSTRUMENTATIONKEY]", "${{ secrets.AZURE_INSIGHTS_INSTRUMENTATIONKEY }}")
+        $content = $content.Replace("[AZURE_CLIENT_SECRET]", "${{ secrets.AZURE_CLIENT_SECRET }}")
+        $content = $content.Replace("[AZURE_CLIENT_ID]", "${{ secrets.AZURE_CLIENT_ID }}")
+        $content = $content.Replace("[AZURE_TENANT_ID]", "${{ secrets.AZURE_TENANT_ID }}")
         Set-Content -Path Config.Release.json -Value $content
         Write-Host "Placeholder replaced successfully in Config.Release.json"
 
@@ -55,7 +57,7 @@ jobs:
     - name: Login to Azure
       shell: pwsh
       run: |
-        az login --service-principal -u "${{ secrets.AZURE_CLIENTID }}" -p "${{ secrets.AZURE_SECRET }}" --tenant "${{ secrets.AZURE_TENANT }}"
+        az login --service-principal -u "${{ secrets.AZURE_CLIENT_ID }}" -p "${{ secrets.AZURE_CLIENT_SECRET }}" --tenant "${{ secrets.AZURE_TENANT_ID }}"
     
     - name: Check and Delete Existing Container Instance
       shell: pwsh
