@@ -1,5 +1,4 @@
 ﻿using AspNetCoreRateLimit;
-using Azure.Data.Tables;
 using GuildWarsPartySearch.Common.Converters;
 using GuildWarsPartySearch.Server.Endpoints;
 using GuildWarsPartySearch.Server.Extensions;
@@ -13,8 +12,6 @@ using GuildWarsPartySearch.Server.Services.Lifetime;
 using GuildWarsPartySearch.Server.Services.PartySearch;
 using GuildWarsPartySearch.Server.Telemetry;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.Options;
 using System.Core.Extensions;
 using System.Extensions;
 using System.Text.Json.Serialization;
@@ -65,6 +62,7 @@ public static class ServerConfiguration
     public static WebApplicationBuilder SetupOptions(this WebApplicationBuilder builder)
     {
         return builder.ThrowIfNull()
+            .ConfigureAzureClientSecretCredentials<AzureCredentialsOptions>()
             .ConfigureExtended<EnvironmentOptions>()
             .ConfigureExtended<ContentOptions>()
             .ConfigureExtended<PartySearchTableOptions>()

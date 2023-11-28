@@ -1,6 +1,15 @@
 param(
     [Parameter(Mandatory=$true)]
-    [string]$ConnectionString,
+    [string]$ClientId,
+
+    [Parameter(Mandatory=$true)]
+    [string]$ClientSecret,
+
+    [Parameter(Mandatory=$true)]
+    [string]$TenantId,
+
+    [Parameter(Mandatory=$true)]
+    [string]$StorageAccountName,
 
     [Parameter(Mandatory=$true)]
     [string]$ContainerName,
@@ -9,6 +18,6 @@ param(
     [string]$SourceFolderPath
 )
 
-
-az storage blob delete-batch --source $ContainerName --connection-string $ConnectionString --pattern '*'
-az storage blob upload-batch --destination $ContainerName --source $SourceFolderPath --connection-string $ConnectionString
+az login --service-principal -u $ClientId -p $ClientSecret --tenant $TenantId
+az storage blob delete-batch --source $ContainerName --pattern '*' --account-name $StorageAccountName
+az storage blob upload-batch --destination $ContainerName --source $SourceFolderPath --account-name $StorageAccountName
