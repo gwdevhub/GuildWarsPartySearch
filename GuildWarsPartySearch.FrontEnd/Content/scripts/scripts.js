@@ -6,7 +6,7 @@ let locationMap = new Map();
 let socket;
 let isConnected = false;
 function connect() {
-    socket = new WebSocket('wss://guildwarspartysearch.northeurope.azurecontainer.io/party-search/live-feed');
+    socket = new WebSocket('wss://guildwarspartysearch.azurewebsites.net/party-search/live-feed');
 
     socket.onopen = function (event) {
         console.log('Connected to WebSocket server.');
