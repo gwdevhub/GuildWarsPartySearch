@@ -8,7 +8,6 @@ namespace GuildWarsPartySearch.Server.Endpoints;
 
 [Route("status")]
 [ServiceFilter<ApiKeyProtected>]
-[ServiceFilter<RequireSsl>]
 public class StatusController : Controller
 {
     private readonly IBotStatusService botStatusService;
@@ -22,7 +21,7 @@ public class StatusController : Controller
     [HttpGet("bots")]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
-    [SwaggerOperation(Description = $"Protected by *{ApiKeyProtected.ApiKeyHeader}* header.\r\n\r\nRequires *SSL* protocol. (https://)")]
+    [SwaggerOperation(Description = $"Protected by *{ApiKeyProtected.ApiKeyHeader}* header.\r\n\r\n")]
     public async Task<IActionResult> GetBotStatus([FromHeader(Name = ApiKeyProtected.ApiKeyHeader)] string _)
     {
         return this.Ok(await this.botStatusService.GetBots());
