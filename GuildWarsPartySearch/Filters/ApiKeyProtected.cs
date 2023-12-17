@@ -42,7 +42,7 @@ public sealed class ApiKeyProtected : IActionFilter
             return;
         }
 
-        logger.LogDebug("Verified API key");
+        logger.LogDebug($"Verified API key {headerValue} = {serverOptions.Value.ApiKey}");
         return;
     }
 
