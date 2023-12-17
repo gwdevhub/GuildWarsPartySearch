@@ -13,9 +13,10 @@
     <PackageReference Include="Azure.Data.Tables" Version="12.8.2" />
     <PackageReference Include="Azure.Identity" Version="1.10.4" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.21.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.21.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.22.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.Profiler.AspNetCore" Version="2.5.3" />
+    <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.22.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.5.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.5.0" />
