@@ -1,7 +1,5 @@
 ﻿using GuildWarsPartySearch.Server.Attributes;
 using GuildWarsPartySearch.Server.Converters;
-using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Extensions;
 using System.Net.WebSockets;
 
