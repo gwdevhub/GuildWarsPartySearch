@@ -29,12 +29,12 @@ jobs:
       shell: pwsh
       run: |
         az login --service-principal --username "${{ secrets.AZURE_CLIENT_ID }}" --password "${{ secrets.AZURE_CLIENT_SECRET }}" --tenant "${{ secrets.AZURE_TENANT_ID }}"
-        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings ServerOptions:ApiKey=${{ secrets.APIKEY }}
-        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings ServerOptions:Certificate=${{ secrets.CERTIFICATE_BASE64 }}
-        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings ApplicationInsights:InstrumentationKey=${{ secrets.AZURE_INSIGHTS_INSTRUMENTATIONKEY }}
-        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings AzureCredentialsOptions:ClientSecret=${{ secrets.AZURE_CLIENT_SECRET }}
-        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings AzureCredentialsOptions:ClientId=${{ secrets.AZURE_CLIENT_ID }}
-        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings AzureCredentialsOptions:TenantId=${{ secrets.AZURE_TENANT_ID }}
+        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings "ServerOptions__ApiKey=${{ secrets.APIKEY }}"
+        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings ServerOptions__Certificate=${{ secrets.CERTIFICATE_BASE64 }}
+        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings ApplicationInsights__InstrumentationKey=${{ secrets.AZURE_INSIGHTS_INSTRUMENTATIONKEY }}
+        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings AzureCredentialsOptions__ClientSecret=${{ secrets.AZURE_CLIENT_SECRET }}
+        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings AzureCredentialsOptions__ClientId=${{ secrets.AZURE_CLIENT_ID }}
+        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings AzureCredentialsOptions__TenantId=${{ secrets.AZURE_TENANT_ID }}
         Write-Host "Secrets placed in Web App"
 
     - name: Build and push Docker image
