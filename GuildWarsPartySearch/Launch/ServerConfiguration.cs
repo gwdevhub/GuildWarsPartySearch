@@ -45,7 +45,8 @@ public static class ServerConfiguration
     {
         builder.ThrowIfNull()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("Config.json");
+            .AddJsonFile("Config.json", true)
+            .AddEnvironmentVariables();
 
         return builder;
     }

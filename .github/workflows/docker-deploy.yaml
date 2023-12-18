@@ -29,6 +29,7 @@ jobs:
       shell: pwsh
       run: |
         cd GuildWarsPartySearch
+        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings ServerOptions.ApiKey=${{ secrets.APIKEY }}
         $content = Get-Content Config.Release.json
         $content = $content.Replace("[APIKEY]", "${{ secrets.APIKEY }}")
         $content = $content.Replace("[CERTIFICATE_BASE64]", "${{ secrets.CERTIFICATE_BASE64 }}")
