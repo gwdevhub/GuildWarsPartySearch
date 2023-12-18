@@ -23,13 +23,13 @@ jobs:
 
     - name: Log in to Docker Hub
       run: |
-        docker login guildwarspartysearch.azurecr.io --username "${{ secrets.DOCKERHUB_USERNAME }}" --password "${{ secrets.DOCKERHUB_PASSWORD }}"
+        docker login --username "${{ secrets.DOCKERHUB_USERNAME }}" --password "${{ secrets.DOCKERHUB_PASSWORD }}"
 
     - name: Set secrets in Web App
       shell: pwsh
       run: |
         az login --service-principal --username "${{ secrets.AZURE_CLIENT_ID }}" --password "${{ secrets.AZURE_CLIENT_SECRET }}" --tenant "${{ secrets.AZURE_TENANT_ID }}"
-        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings "ServerOptions__ApiKey=${{ secrets.APIKEY }}"
+        az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings ServerOptions__ApiKey=${{ secrets.APIKEY }}
         az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings ServerOptions__Certificate=${{ secrets.CERTIFICATE_BASE64 }}
         az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings ApplicationInsights__InstrumentationKey=${{ secrets.AZURE_INSIGHTS_INSTRUMENTATIONKEY }}
         az webapp config appsettings set --name guildwarspartysearch --resource-group GuildWarsPartySearch --settings AzureCredentialsOptions__ClientSecret=${{ secrets.AZURE_CLIENT_SECRET }}
@@ -41,5 +41,5 @@ jobs:
       run: |
         cd GuildWarsPartySearch
         .\BuildDockerImage.ps1
-        docker push guildwarspartysearch.azurecr.io/guildwarspartysearch.server
+        docker push alex4991/guildwarspartsearch.server
       shell: pwsh
