@@ -41,5 +41,5 @@ jobs:
       run: |
         cd GuildWarsPartySearch
         .\BuildDockerImage.ps1
-        docker push alex4991/guildwarspartsearch.server
+        docker push alex4991/guildwarspartysearch.server
       shell: pwsh
