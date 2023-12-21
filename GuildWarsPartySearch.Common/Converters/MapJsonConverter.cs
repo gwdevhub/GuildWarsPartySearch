@@ -39,6 +39,6 @@ public sealed class MapJsonConverter : JsonConverter<Map>
             return;
         }
 
-        writer.WriteStringValue(map.Name);
+        writer.WriteNumberValue(map.Id);
     }
 }
