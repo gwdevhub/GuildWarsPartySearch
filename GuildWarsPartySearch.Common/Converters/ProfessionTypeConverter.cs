@@ -5,39 +5,39 @@ using System.Globalization;
 
 namespace GuildWarsPartySearch.Common.Converters;
 
-public sealed class RegionTypeConverter : TypeConverter
+public sealed class ProfessionTypeConverter : TypeConverter
 {
     public override bool CanConvertTo(ITypeDescriptorContext? context, [NotNullWhen(true)] Type? destinationType)
     {
-        return destinationType == typeof(Region) ||
+        return destinationType == typeof(Profession) ||
             destinationType == typeof(string) ||
             destinationType == typeof(int);
     }
 
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
     {
-        return sourceType == typeof(Region) ||
+        return sourceType == typeof(Profession) ||
             sourceType == typeof(string) ||
             sourceType == typeof(int);
     }
 
     public override object? ConvertTo(ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType)
     {
-        if (destinationType == typeof(string) && value is Region stringRegion)
+        if (destinationType == typeof(string) && value is Profession stringProfession)
         {
-            return stringRegion.Name;
+            return stringProfession.Name;
         }
-        else if (destinationType == typeof(int) && value is Region intRegion)
+        else if (destinationType == typeof(int) && value is Profession intProfession)
         {
-            return intRegion.Id;
+            return intProfession.Id;
         }
-        else if (destinationType == typeof(Region) && value is string s)
+        else if (destinationType == typeof(Profession) && value is string s)
         {
-            return Region.Parse(s);
+            return Profession.Parse(s);
         }
-        else if (destinationType == typeof(Region) && value is int id)
+        else if (destinationType == typeof(Profession) && value is int id)
         {
-            return Region.Parse(id);
+            return Profession.Parse(id);
         }
 
         return base.ConvertTo(context, culture, value, destinationType);
@@ -47,17 +47,18 @@ public sealed class RegionTypeConverter : TypeConverter
     {
         if (value is string s)
         {
-            return Region.Parse(s);
+            return Profession.Parse(s);
         }
         else if (value is int id)
         {
-            Region.Parse(id);
+            Profession.Parse(id);
         }
-        else if (value is Region region)
+        else if (value is Profession profession)
         {
-            return region.Name;
+            return profession.Name;
         }
 
         return base.ConvertFrom(context, culture, value);
     }
 }
+

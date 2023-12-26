@@ -7,12 +7,6 @@ namespace GuildWarsPartySearch.Server.Services.PartySearch;
 
 public interface IPartySearchService
 {
-    Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByCampaign(string campaign, CancellationToken cancellationToken);
-
-    Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByContinent(string continent, CancellationToken cancellationToken);
-
-    Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByRegion(string region, CancellationToken cancellationToken);
-
     Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByMap(string map, CancellationToken cancellationToken);
 
     Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByCharName(string charName, CancellationToken cancellationToken);
@@ -21,5 +15,5 @@ public interface IPartySearchService
 
     Task<Result<PostPartySearchRequest, PostPartySearchFailure>> PostPartySearch(PostPartySearchRequest? request, CancellationToken cancellationToken);
 
-    Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Campaign? campaign, Continent? continent, Region? region, Map? map, string? district, CancellationToken cancellationToken);
+    Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Map? map, DistrictRegion? districtRegion, int? districtNumber, DistrictLanguage? districtLanguage, CancellationToken cancellationToken);
 }

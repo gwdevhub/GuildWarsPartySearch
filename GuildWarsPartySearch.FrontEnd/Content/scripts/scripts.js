@@ -23,7 +23,7 @@ function connect() {
             let obj = JSON.parse(event.data);
             console.log(obj);
             obj.Searches.forEach(searchEntry => {
-                let combinedKey = `${searchEntry.Campaign};${searchEntry.Continent};${searchEntry.Region};${searchEntry.Map};${searchEntry.District}`;
+                let combinedKey = `${searchEntry.map_id};${searchEntry.district_region};${searchEntry.district_number};${searchEntry.district_language}`;
                 locationMap.set(combinedKey, searchEntry);
             });
 
@@ -73,11 +73,11 @@ function updateEntriesDiv() {
 
     locationMap.forEach((searchEntry, combinedKey) => {
         // Adding the combined key as a header
-        htmlContent += `<h3>${searchEntry.Campaign} - ${searchEntry.Continent} - ${searchEntry.Region} - ${searchEntry.Map} - ${searchEntry.District}</h3 >`;
+        htmlContent += `<h3>${searchEntry.map_id} | ${searchEntry.district_region} | ${searchEntry.district_number} | ${searchEntry.district_language}</h3 >`;
 
         // Adding each party search entry as a row
-        searchEntry.PartySearchEntries.forEach(entry => {
-            htmlContent += `<div>Character Name: ${entry.CharName}, Party Size: ${entry.PartySize}, Max Party Size: ${entry.PartyMaxSize}, NPCs: ${entry.Npcs}</div>`;
+        searchEntry.parties.forEach(entry => {
+            htmlContent += `<div>Character Name: ${entry.sender}, Message: ${entry.message}, Party Size: ${entry.party_size}, Hero Count: ${entry.hero_count}, Hard Mode: ${entry.hard_mode}, Search Type: ${entry.search_type}, Primary: ${entry.primary}, Secondary: ${entry.secondary}, Level: ${entry.level}</div>`;
         });
     });
 

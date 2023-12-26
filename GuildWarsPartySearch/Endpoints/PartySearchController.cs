@@ -23,55 +23,10 @@ public sealed class PartySearchController : Controller
     {
         var result = await this.partySearchService.GetPartySearchesByCharName(charName, this.HttpContext.RequestAborted);
         return result.Switch<IActionResult>(
-            onSuccess: list => this.Ok(list),
+            onSuccess: this.Ok,
             onFailure: failure => failure switch
             {
                 GetPartySearchFailure.InvalidCharName => this.BadRequest("Invalid char name"),
-                _ => this.Problem()
-            });
-    }
-
-    [HttpGet("campaigns/{campaign}")]
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400)]
-    public async Task<IActionResult> GetByCampaign(string campaign)
-    {
-        var result = await this.partySearchService.GetPartySearchesByCampaign(campaign, this.HttpContext.RequestAborted);
-        return result.Switch<IActionResult>(
-            onSuccess: list => this.Ok(list),
-            onFailure: failure => failure switch
-            {
-                GetPartySearchFailure.InvalidCampaign => this.BadRequest("Invalid campaign"),
-                _ => this.Problem()
-            });
-    }
-
-    [HttpGet("continents/{continent}")]
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400)]
-    public async Task<IActionResult> GetByContinent(string continent)
-    {
-        var result = await this.partySearchService.GetPartySearchesByContinent(continent, this.HttpContext.RequestAborted);
-        return result.Switch<IActionResult>(
-            onSuccess: list => this.Ok(list),
-            onFailure: failure => failure switch
-            {
-                GetPartySearchFailure.InvalidContinent => this.BadRequest("Invalid continent"),
-                _ => this.Problem()
-            });
-    }
-
-    [HttpGet("regions/{region}")]
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400)]
-    public async Task<IActionResult> GetByRegion(string region)
-    {
-        var result = await this.partySearchService.GetPartySearchesByRegion(region, this.HttpContext.RequestAborted);
-        return result.Switch<IActionResult>(
-            onSuccess: list => this.Ok(list),
-            onFailure: failure => failure switch
-            {
-                GetPartySearchFailure.InvalidRegion => this.BadRequest("Invalid region"),
                 _ => this.Problem()
             });
     }
@@ -83,7 +38,7 @@ public sealed class PartySearchController : Controller
     {
         var result = await this.partySearchService.GetPartySearchesByMap(map, this.HttpContext.RequestAborted);
         return result.Switch<IActionResult>(
-            onSuccess: list => this.Ok(list),
+            onSuccess: this.Ok,
             onFailure: failure => failure switch
             {
                 GetPartySearchFailure.InvalidMap => this.BadRequest("Invalid map"),

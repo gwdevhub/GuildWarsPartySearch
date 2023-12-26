@@ -1,8 +1,9 @@
 ﻿using GuildWarsPartySearch.Server.Models.Endpoints;
-using Newtonsoft.Json;
+using Microsoft.AspNetCore.Mvc;
 using System.Core.Extensions;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 
 namespace GuildWarsPartySearch.Server.Services.Feed;
 
@@ -10,11 +11,14 @@ public sealed class LiveFeedService : ILiveFeedService
 {
     private static readonly List<WebSocket> Clients = [];
 
+    private readonly JsonSerializerOptions jsonSerializerOptions;
     private readonly ILogger<LiveFeedService> logger;
 
     public LiveFeedService(
+        JsonSerializerOptions jsonSerializerOptions,
         ILogger<LiveFeedService> logger)
     {
+        this.jsonSerializerOptions = jsonSerializerOptions.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
     }
 
@@ -26,7 +30,7 @@ public sealed class LiveFeedService : ILiveFeedService
     public async Task PushUpdate(Models.PartySearch partySearchUpdate, CancellationToken cancellationToken)
     {
         // Since LiveFeed endpoint expects a PartySearchList, so we send a PartySearchList with only the update to keep it consistent
-        var payloadString = JsonConvert.SerializeObject(new PartySearchList { Searches = [ partySearchUpdate ] });
+        var payloadString = JsonSerializer.Serialize(new PartySearchList { Searches = [partySearchUpdate] }, this.jsonSerializerOptions);
         var payload = Encoding.UTF8.GetBytes(payloadString);
         await ExecuteOnClientsInternal(async client =>
         {
