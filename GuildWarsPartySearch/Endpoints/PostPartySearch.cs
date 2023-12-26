@@ -72,28 +72,30 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                 {
                     this.liveFeedService.PushUpdate(new PartySearch
                     {
-                        Campaign = message?.Campaign,
-                        Continent = message?.Continent,
-                        District = message?.District,
                         Map = message?.Map,
+                        DistrictLanguage = message?.DistrictLanguage,
+                        DistrictNumber = message?.DistrictNumber ?? 0,
+                        DistrictRegion = message?.DistrictRegion,
                         PartySearchEntries = message?.PartySearchEntries,
-                        Region = message?.Region
                     }, cancellationToken);
                     return Success;
                 },
                 onFailure: failure => failure switch
                 {
                     PostPartySearchFailure.InvalidPayload => InvalidPayload,
-                    PostPartySearchFailure.InvalidCampaign => InvalidCampaign,
-                    PostPartySearchFailure.InvalidContinent => InvalidContinent,
-                    PostPartySearchFailure.InvalidRegion => InvalidRegion,
                     PostPartySearchFailure.InvalidMap => InvalidMap,
-                    PostPartySearchFailure.InvalidDistrict => InvalidDistrict,
                     PostPartySearchFailure.InvalidEntries => InvalidEntries,
-                    PostPartySearchFailure.InvalidPartySize => InvalidPartySize,
-                    PostPartySearchFailure.InvalidPartyMaxSize => InvalidPartyMaxSize,
-                    PostPartySearchFailure.InvalidNpcs => InvalidNpcs,
-                    PostPartySearchFailure.InvalidCharName => InvalidCharName,
+                    PostPartySearchFailure.InvalidSender => InvalidSender,
+                    PostPartySearchFailure.InvalidMessage => InvalidMessage,
+                    PostPartySearchFailure.InvalidDistrictRegion => InvalidDistrictRegion,
+                    PostPartySearchFailure.InvalidDistrictLanguage => InvalidDistrictLanguage,
+                    PostPartySearchFailure.InvalidDistrictNumber => InvalidDistrictNumber,
+                    PostPartySearchFailure.InvalidHeroCount => InvalidHeroCount,
+                    PostPartySearchFailure.InvalidHardMode => InvalidHardMode,
+                    PostPartySearchFailure.InvalidSearchType => InvalidSearchType,
+                    PostPartySearchFailure.InvalidPrimary => InvalidPrimary,
+                    PostPartySearchFailure.InvalidSecondary => InvalidSecondary,
+                    PostPartySearchFailure.InvalidLevel => InvalidLevel,
                     PostPartySearchFailure.UnspecifiedFailure => UnspecifiedFailure,
                     _ => UnspecifiedFailure
                 });
@@ -118,34 +120,10 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
         Description = "Invalid payload"
     };
 
-    private static PostPartySearchResponse InvalidCampaign => new()
-    {
-        Result = 0,
-        Description = "Invalid campaign"
-    };
-
-    private static PostPartySearchResponse InvalidContinent => new()
-    {
-        Result = 0,
-        Description = "Invalid continent"
-    };
-
-    private static PostPartySearchResponse InvalidRegion => new()
-    {
-        Result = 0,
-        Description = "Invalid region"
-    };
-
     private static PostPartySearchResponse InvalidMap => new()
     {
         Result = 0,
         Description = "Invalid map"
-    };
-
-    private static PostPartySearchResponse InvalidDistrict => new()
-    {
-        Result = 0,
-        Description = "Invalid district"
     };
 
     private static PostPartySearchResponse InvalidEntries => new()
@@ -154,28 +132,76 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
         Description = "Invalid entries"
     };
 
-    private static PostPartySearchResponse InvalidPartySize => new()
+    private static PostPartySearchResponse InvalidSender => new()
     {
         Result = 0,
-        Description = "Invalid party size"
+        Description = "Invalid sender"
     };
 
-    private static PostPartySearchResponse InvalidPartyMaxSize => new()
+    private static PostPartySearchResponse InvalidMessage => new()
     {
         Result = 0,
-        Description = "Invalid max party size"
+        Description = "Invalid message"
     };
 
-    private static PostPartySearchResponse InvalidNpcs => new()
+    private static PostPartySearchResponse InvalidDistrictRegion => new()
     {
         Result = 0,
-        Description = "Invalid npcs"
+        Description = "Invalid district region"
     };
 
-    private static PostPartySearchResponse InvalidCharName => new()
+    private static PostPartySearchResponse InvalidDistrictLanguage => new()
     {
         Result = 0,
-        Description = "Invalid char name"
+        Description = "Invalid district language"
+    };
+
+    private static PostPartySearchResponse InvalidDistrictNumber => new()
+    {
+        Result = 0,
+        Description = "Invalid district number"
+    };
+
+    private static PostPartySearchResponse InvalidPartyId => new()
+    {
+        Result = 0,
+        Description = "Invalid party id"
+    };
+
+    private static PostPartySearchResponse InvalidHeroCount => new()
+    {
+        Result = 0,
+        Description = "Invalid hero count"
+    };
+
+    private static PostPartySearchResponse InvalidHardMode => new()
+    {
+        Result = 0,
+        Description = "Invalid hard mode"
+    };
+
+    private static PostPartySearchResponse InvalidSearchType => new()
+    {
+        Result = 0,
+        Description = "Invalid search type"
+    };
+
+    private static PostPartySearchResponse InvalidPrimary => new()
+    {
+        Result = 0,
+        Description = "Invalid primary"
+    };
+
+    private static PostPartySearchResponse InvalidSecondary => new()
+    {
+        Result = 0,
+        Description = "Invalid secondary"
+    };
+
+    private static PostPartySearchResponse InvalidLevel => new()
+    {
+        Result = 0,
+        Description = "Invalid level"
     };
 
     private static PostPartySearchResponse UnspecifiedFailure => new()

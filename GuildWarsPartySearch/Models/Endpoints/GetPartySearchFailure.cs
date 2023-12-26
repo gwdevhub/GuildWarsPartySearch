@@ -8,15 +8,15 @@ public abstract class GetPartySearchFailure
     {
     }
 
-    public sealed class InvalidCampaign : GetPartySearchFailure
+    public sealed class InvalidDistrictRegion : GetPartySearchFailure
     {
     }
 
-    public sealed class InvalidContinent : GetPartySearchFailure
+    public sealed class InvalidDistrictNumber : GetPartySearchFailure
     {
     }
 
-    public sealed class InvalidRegion : GetPartySearchFailure
+    public sealed class InvalidDistrictLanguage : GetPartySearchFailure
     {
     }
 
@@ -24,15 +24,11 @@ public abstract class GetPartySearchFailure
     {
     }
 
-    public sealed class InvalidDistrict : GetPartySearchFailure
+    public sealed class InvalidCharName : GetPartySearchFailure
     {
     }
 
     public sealed class EntriesNotFound : GetPartySearchFailure
-    {
-    }
-
-    public sealed class InvalidCharName : GetPartySearchFailure
     {
     }
 

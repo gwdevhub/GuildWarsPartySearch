@@ -5,6 +5,7 @@ using GuildWarsPartySearch.Server.Options;
 using GuildWarsPartySearch.Server.Services.Azure;
 using GuildWarsPartySearch.Server.Services.Database.Models;
 using System.Core.Extensions;
+using System.Drawing;
 using System.Extensions;
 
 namespace GuildWarsPartySearch.Server.Services.Database;
@@ -37,54 +38,12 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
         }
     }
 
-    public async Task<List<Server.Models.PartySearch>> GetPartySearchesByCampaign(Campaign campaign, CancellationToken cancellationToken)
-    {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByCampaign), string.Empty);
-        try
-        {
-            return await this.QuerySearches($"{nameof(PartySearchTableEntity.Campaign)} eq '{campaign.Name?.Replace("'", "''")}'", cancellationToken);
-        }
-        catch (Exception e)
-        {
-            scopedLogger.LogError(e, "Encountered exception");
-            return [];
-        }
-    }
-
-    public async Task<List<Server.Models.PartySearch>> GetPartySearchesByContinent(Continent continent, CancellationToken cancellationToken)
-    {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByContinent), string.Empty);
-        try
-        {
-            return await this.QuerySearches($"{nameof(PartySearchTableEntity.Continent)} eq '{continent.Name?.Replace("'", "''")}'", cancellationToken);
-        }
-        catch(Exception e)
-        {
-            scopedLogger.LogError(e, "Encountered exception");
-            return [];
-        }
-    }
-
-    public async Task<List<Server.Models.PartySearch>> GetPartySearchesByRegion(Region region, CancellationToken cancellationToken)
-    {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByRegion), string.Empty);
-        try
-        {
-            return await this.QuerySearches($"{nameof(PartySearchTableEntity.Region)} eq '{region.Name?.Replace("'", "''")}'", cancellationToken);
-        }
-        catch(Exception e)
-        {
-            scopedLogger.LogError(e, "Encountered exception");
-            return [];
-        }
-    }
-
     public async Task<List<Server.Models.PartySearch>> GetPartySearchesByMap(Map map, CancellationToken cancellationToken)
     {
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByMap), string.Empty);
         try
         {
-            return await this.QuerySearches($"{nameof(PartySearchTableEntity.Map)} eq '{map.Name?.Replace("'", "''")}'", cancellationToken);
+            return await this.QuerySearches($"{nameof(PartySearchTableEntity.MapId)} eq {map.Id}", cancellationToken);
         }
         catch(Exception e)
         {
@@ -98,7 +57,7 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByCharName), string.Empty);
         try
         {
-            return await this.QuerySearches($"{nameof(PartySearchTableEntity.CharName)} eq '{charName.Replace("'", "''")}'", cancellationToken);
+            return await this.QuerySearches($"{nameof(PartySearchTableEntity.Sender)} eq '{charName.Replace("'", "''")}'", cancellationToken);
         }
         catch(Exception e)
         {
@@ -107,9 +66,93 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
         }
     }
 
-    public async Task<List<PartySearchEntry>?> GetPartySearches(Campaign campaign, Continent continent, Region region, Map map, string district, CancellationToken cancellationToken)
+    public async Task<bool> SetPartySearches(Map map, DistrictRegion districtRegion, int districtNumber, DistrictLanguage districtLanguage, List<PartySearchEntry> partySearch, CancellationToken cancellationToken)
     {
-        var partitionKey = BuildPartitionKey(campaign, continent, region, map, district);
+        var partitionKey = BuildPartitionKey(map, districtRegion, districtNumber, districtLanguage);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SetPartySearches), partitionKey);
+        try
+        {
+            var existingEntries = await this.GetPartySearches(map, districtRegion, districtNumber, districtLanguage, cancellationToken);
+            var entries = partySearch.Select(e =>
+            {
+                var rowKey = e.Sender ?? string.Empty;
+                return new PartySearchTableEntity
+                {
+                    PartitionKey = partitionKey,
+                    RowKey = rowKey,
+                    DistrictRegion = (int)districtRegion,
+                    DistrictLanguage = (int)(e.DistrictLanguage ?? districtLanguage),
+                    DistrictNumber = e.DistrictNumber,
+                    Message = e.Message,
+                    Sender = e.Sender,
+                    PartyId = e.PartyId,
+                    PartySize = e.PartySize,
+                    HardMode = (int)(e.HardMode ?? HardModeState.Disabled),
+                    HeroCount = e.HeroCount,
+                    Level = e.Level,
+                    MapId = map.Id,
+                    Primary = e.Primary?.Id ?? 0,
+                    Secondary = e.Secondary?.Id ?? 0,
+                    SearchType = e.SearchType,
+                    Timestamp = DateTimeOffset.UtcNow
+                };
+            });
+
+            var actions = new List<TableTransactionAction>();
+            if (existingEntries is not null)
+            {
+                // Find all existing entries that don't exist in the update. For those, queue a delete transaction
+                actions.AddRange(existingEntries
+                    .Where(e => entries.FirstOrDefault(e2 => e.Sender == e2.Sender) is null)
+                    .Select(e => new TableTransactionAction(TableTransactionActionType.Delete, new PartySearchTableEntity
+                    {
+                        PartitionKey = partitionKey,
+                        RowKey = e.Sender ?? string.Empty,
+                    })));
+            }
+
+            actions.AddRange(entries
+                .Where(e =>
+                {
+                    // Only update entries that have changed
+                    var existingEntry = existingEntries?.FirstOrDefault(e2 => e2.Sender == e.Sender);
+                    return existingEntry is null ||
+                            e.Sender != existingEntry?.Sender ||
+                            e.PartySize != existingEntry?.PartySize ||
+                            e.PartyId != existingEntry?.PartyId ||
+                            e.Primary != existingEntry?.Primary?.Id ||
+                            e.Secondary != existingEntry?.Secondary?.Id ||
+                            e.HardMode != (int)(existingEntry?.HardMode ?? 0) ||
+                            e.Level != existingEntry?.Level ||
+                            e.Message != existingEntry.Message ||
+                            e.DistrictLanguage != (int)(existingEntry?.DistrictLanguage ?? DistrictLanguage.English) ||
+                            e.DistrictNumber != existingEntry?.DistrictNumber;
+                })
+                .Select(e => new TableTransactionAction(TableTransactionActionType.UpsertReplace, e)));
+            if (actions.None())
+            {
+                scopedLogger.LogInformation("No change detected. Skipping operation");
+                return true;
+            }
+
+            var responses = await this.client.SubmitTransactionAsync(actions, cancellationToken);
+            foreach (var response in responses.Value)
+            {
+                scopedLogger.LogInformation($"[{response.Status}] {response.ReasonPhrase}");
+            }
+
+            return responses.Value.None(r => r.IsError);
+        }
+        catch (Exception e)
+        {
+            scopedLogger.LogError(e, "Encountered exception while setting party searches");
+            return false;
+        }
+    }
+
+    public async Task<List<PartySearchEntry>?> GetPartySearches(Map map, DistrictRegion districtRegion, int districtNumber, DistrictLanguage districtLanguage, CancellationToken cancellationToken)
+    {
+        var partitionKey = BuildPartitionKey(map, districtRegion, districtNumber, districtLanguage);
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearches), partitionKey);
         try
         {
@@ -122,7 +165,7 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
 
             return partition.PartySearchEntries;
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             scopedLogger.LogError(e, "Encountered exception");
         }
@@ -130,117 +173,52 @@ public sealed class TableStorageDatabase : IPartySearchDatabase
         return default;
     }
 
-    public async Task<bool> SetPartySearches(Campaign campaign, Continent continent, Region region, Map map, string district, List<PartySearchEntry> partySearch, CancellationToken cancellationToken)
-    {
-        var partitionKey = BuildPartitionKey(campaign, continent, region, map, district);
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SetPartySearches), partitionKey);
-        try
-        {
-            var existingEntries = await this.GetPartySearches(campaign, continent, region, map, district, cancellationToken);
-            var entries = partySearch.Select(e =>
-            {
-                var rowKey = e.CharName ?? string.Empty;
-                return new PartySearchTableEntity
-                {
-                    PartitionKey = partitionKey,
-                    RowKey = rowKey,
-                    Campaign = campaign.Name,
-                    Continent = continent.Name,
-                    Region = region.Name,
-                    Map = map.Name,
-                    District = district,
-                    CharName = e.CharName,
-                    PartySize = e.PartySize,
-                    PartyMaxSize = e.PartyMaxSize,
-                    Npcs = e.Npcs,
-                    Timestamp = DateTimeOffset.UtcNow
-                };
-            });
-
-            var actions = new List<TableTransactionAction>();
-            if (existingEntries is not null)
-            {
-                // Find all existing entries that don't exist in the update. For those, queue a delete transaction
-                actions.AddRange(existingEntries
-                    .Where(e => entries.FirstOrDefault(e2 => e.CharName == e2.CharName) is null)
-                    .Select(e => new TableTransactionAction(TableTransactionActionType.Delete, new PartySearchTableEntity
-                    {
-                        PartitionKey = partitionKey,
-                        RowKey = e.CharName ?? string.Empty,
-                    })));
-            }
-
-            actions.AddRange(entries
-                .Where(e =>
-                {
-                    // Only update entries that have changed
-                    var existingEntry = existingEntries?.FirstOrDefault(e2 => e2.CharName == e.CharName);
-                    return existingEntry is null ||
-                            e.CharName != existingEntry?.CharName ||
-                            e.PartySize != existingEntry?.PartySize ||
-                            e.PartyMaxSize != existingEntry?.PartyMaxSize ||
-                            e.Npcs != existingEntry?.Npcs;
-                })
-                .Select(e => new TableTransactionAction(TableTransactionActionType.UpsertReplace, e)));
-            if (actions.None())
-            {
-                scopedLogger.LogInformation("No change detected. Skipping operation");
-                return true;
-            }
-
-            var responses = await this.client.SubmitTransactionAsync(actions, cancellationToken);
-            foreach(var response in responses.Value)
-            {
-                scopedLogger.LogInformation($"[{response.Status}] {response.ReasonPhrase}");
-            }
-
-            return responses.Value.None(r => r.IsError);
-        }
-        catch(Exception e)
-        {
-            scopedLogger.LogError(e, "Encountered exception while setting party searches");
-            return false;
-        }
-    }
-
     private async Task<List<Server.Models.PartySearch>> QuerySearches(string query, CancellationToken cancellationToken)
     {
-        var responseList = new Dictionary<string, ((Campaign, Continent, Region, Map, string), List<PartySearchEntry>)>();
+        var responseList = new Dictionary<string, ((Map, DistrictRegion, int, DistrictLanguage), List<PartySearchEntry>)>();
         var response = this.client.QueryAsync<PartySearchTableEntity>(query, cancellationToken: cancellationToken);
         await foreach (var entry in response)
         {
             if (!responseList.TryGetValue(entry.PartitionKey, out var tuple))
             {
-                Campaign.TryParse(entry.Campaign!, out var campaign);
-                Continent.TryParse(entry.Continent!, out var continent);
-                Region.TryParse(entry.Region!, out var region);
-                Map.TryParse(entry.Map!, out var map);
-                tuple = ((campaign!, continent!, region!, map!, entry.District!), new List<PartySearchEntry>());
+                _ = Map.TryParse(entry.MapId!, out var map);
+                var districtRegion = (DistrictRegion)entry.DistrictRegion;
+                var districtLanguage = (DistrictLanguage)entry.DistrictLanguage;
+                tuple = ((map, districtRegion, entry.DistrictNumber, districtLanguage), new List<PartySearchEntry>());
                 responseList[entry.PartitionKey] = tuple;
             }
 
+            _ = Profession.TryParse(entry.Primary, out var primary);
+            _ = Profession.TryParse(entry.Secondary, out var secondary);
             tuple.Item2.Add(new PartySearchEntry
             {
-                CharName = entry.CharName,
-                Npcs = entry.Npcs,
-                PartyMaxSize = entry.PartyMaxSize,
-                PartySize = entry.PartySize
+                PartyId = entry.PartyId,
+                DistrictNumber = entry.DistrictNumber,
+                DistrictLanguage = (DistrictLanguage)entry.DistrictLanguage,
+                Message = entry.Message,
+                Sender = entry.Sender,
+                PartySize = entry.PartySize,
+                HeroCount = entry.HeroCount,
+                HardMode = (HardModeState)entry.HardMode,
+                SearchType = entry.SearchType,
+                Primary = primary,
+                Secondary = secondary,
+                Level = entry.Level
             });
         }
 
         return responseList.Values.Select(tuple => new Server.Models.PartySearch
         {
-            Campaign = tuple.Item1.Item1,
-            Continent = tuple.Item1.Item2,
-            Region = tuple.Item1.Item3,
-            Map = tuple.Item1.Item4,
-            District = tuple.Item1.Item5,
+            Map = tuple.Item1.Item1,
+            DistrictRegion = tuple.Item1.Item2,
+            DistrictNumber = tuple.Item1.Item3,
+            DistrictLanguage = tuple.Item1.Item4,
             PartySearchEntries = tuple.Item2
         }).ToList();
     }
 
-    private static string BuildPartitionKey(Campaign campaign, Continent continent, Region region, Map map, string district)
+    private static string BuildPartitionKey(Map map, DistrictRegion districtRegion, int districtNumber, DistrictLanguage districtLanguage)
     {
-        return $"{campaign.Name};{continent.Name};{region.Name};{map.Name};{district}";
+        return $"{map.Id};{(int)districtRegion};{districtNumber};{(int)districtLanguage}";
     }
 }

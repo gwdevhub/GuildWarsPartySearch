@@ -8,23 +8,23 @@ public abstract class PostPartySearchFailure
     {
     }
 
-    public sealed class InvalidCampaign : PostPartySearchFailure
+    public sealed class InvalidDistrictRegion : PostPartySearchFailure
     {
     }
 
-    public sealed class InvalidContinent : PostPartySearchFailure
+    public sealed class InvalidDistrictLanguage : PostPartySearchFailure
     {
     }
 
-    public sealed class InvalidRegion : PostPartySearchFailure
+    public sealed class InvalidDistrictNumber : PostPartySearchFailure
     {
     }
 
-    public sealed class InvalidMap : PostPartySearchFailure
+    public sealed class InvalidPartyId : PostPartySearchFailure
     {
     }
 
-    public sealed class InvalidDistrict : PostPartySearchFailure
+    public sealed class InvalidMessage : PostPartySearchFailure
     {
     }
 
@@ -32,19 +32,35 @@ public abstract class PostPartySearchFailure
     {
     }
 
-    public sealed class InvalidPartySize : PostPartySearchFailure
+    public sealed class InvalidSender : PostPartySearchFailure
     {
     }
 
-    public sealed class InvalidPartyMaxSize : PostPartySearchFailure
+    public sealed class InvalidHeroCount : PostPartySearchFailure
     {
     }
 
-    public sealed class InvalidNpcs : PostPartySearchFailure
+    public sealed class InvalidHardMode : PostPartySearchFailure
     {
     }
 
-    public sealed class InvalidCharName : PostPartySearchFailure
+    public sealed class InvalidSearchType : PostPartySearchFailure
+    {
+    }
+
+    public sealed class InvalidPrimary : PostPartySearchFailure
+    {
+    }
+
+    public sealed class InvalidSecondary : PostPartySearchFailure
+    {
+    }
+
+    public sealed class InvalidLevel : PostPartySearchFailure
+    {
+    }
+
+    public sealed class InvalidMap : PostPartySearchFailure
     {
     }
 

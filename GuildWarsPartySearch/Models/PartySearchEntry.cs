@@ -1,18 +1,43 @@
-﻿using Newtonsoft.Json;
+﻿using GuildWarsPartySearch.Common.Models.GuildWars;
+using System.Text.Json.Serialization;
 
 namespace GuildWarsPartySearch.Server.Models;
 
 public sealed class PartySearchEntry
 {
-    [JsonProperty(nameof(CharName))]
-    public string? CharName { get; set; }
+    [JsonPropertyName("party_id")]
+    public int PartyId { get; set; }
 
-    [JsonProperty(nameof(PartySize))]
-    public int? PartySize { get; set; }
+    [JsonPropertyName("district_number")]
+    public int DistrictNumber { get; set; }
 
-    [JsonProperty(nameof(PartyMaxSize))]
-    public int? PartyMaxSize { get; set; }
+    [JsonPropertyName("district_language")]
+    public DistrictLanguage? DistrictLanguage { get; set; }
 
-    [JsonProperty(nameof(Npcs))]
-    public int? Npcs { get; set; }
+    [JsonPropertyName("message")]
+    public string? Message { get; set; }
+
+    [JsonPropertyName("sender")]
+    public string? Sender { get; set; }
+
+    [JsonPropertyName("party_size")]
+    public int PartySize { get; set; }
+
+    [JsonPropertyName("hero_count")]
+    public int HeroCount { get; set; }
+
+    [JsonPropertyName("hard_mode")]
+    public HardModeState? HardMode { get; set; }
+
+    [JsonPropertyName("search_type")]
+    public int SearchType { get; set; }
+
+    [JsonPropertyName("primary")]
+    public Profession? Primary { get; set; }
+
+    [JsonPropertyName("secondary")]
+    public Profession? Secondary { get; set; }
+
+    [JsonPropertyName("level")]
+    public int Level { get; set; }
 }

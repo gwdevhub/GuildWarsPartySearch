@@ -34,54 +34,6 @@ public sealed class PartySearchService : IPartySearchService
         return await this.partySearchDatabase.GetPartySearchesByCharName(charName, cancellationToken);
     }
 
-    public async Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByCampaign(string campaign, CancellationToken cancellationToken)
-    {
-        if (int.TryParse(campaign, out var id) &&
-            Campaign.TryParse(id, out var parsedCampaign))
-        {
-            return await this.partySearchDatabase.GetPartySearchesByCampaign(parsedCampaign, cancellationToken);
-        }
-        
-        if (Campaign.TryParse(campaign, out var namedCampaign))
-        {
-            return await this.partySearchDatabase.GetPartySearchesByCampaign(namedCampaign, cancellationToken);
-        }
-
-        return new GetPartySearchFailure.InvalidCampaign();
-    }
-
-    public async Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByContinent(string continent, CancellationToken cancellationToken)
-    {
-        if (int.TryParse(continent, out var id) &&
-            Continent.TryParse(id, out var parsedContinent))
-        {
-            return await this.partySearchDatabase.GetPartySearchesByContinent(parsedContinent, cancellationToken);
-        }
-
-        if (Continent.TryParse(continent, out var namedContinent))
-        {
-            return await this.partySearchDatabase.GetPartySearchesByContinent(namedContinent, cancellationToken);
-        }
-
-        return new GetPartySearchFailure.InvalidContinent();
-    }
-
-    public async Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByRegion(string region, CancellationToken cancellationToken)
-    {
-        if (int.TryParse(region, out var id) &&
-            Region.TryParse(id, out var parsedRegion))
-        {
-            return await this.partySearchDatabase.GetPartySearchesByRegion(parsedRegion, cancellationToken);
-        }
-
-        if (Region.TryParse(region, out var namedRegion))
-        {
-            return await this.partySearchDatabase.GetPartySearchesByRegion(namedRegion, cancellationToken);
-        }
-
-        return new GetPartySearchFailure.InvalidRegion();
-    }
-
     public async Task<Result<List<Models.PartySearch>, GetPartySearchFailure>> GetPartySearchesByMap(string map, CancellationToken cancellationToken)
     {
         if (int.TryParse(map, out var id) &&
@@ -103,36 +55,29 @@ public sealed class PartySearchService : IPartySearchService
         return this.partySearchDatabase.GetAllPartySearches(cancellationToken);
     }
 
-    public async Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Campaign? campaign, Continent? continent, Region? region, Map? map, string? district, CancellationToken cancellationToken)
+    public async Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Map? map, DistrictRegion? districtRegion, int? districtNumber, DistrictLanguage? districtLanguage, CancellationToken cancellationToken)
     {
-        if (campaign is null)
-        {
-            return new GetPartySearchFailure.InvalidCampaign();
-        }
-
-        if (continent is null)
-        {
-            return new GetPartySearchFailure.InvalidContinent();
-        }
-
-        if (region is null)
-        {
-            return new GetPartySearchFailure.InvalidRegion();
-        }
-
         if (map is null)
         {
             return new GetPartySearchFailure.InvalidMap();
         }
 
-        if (district?.IsNullOrWhiteSpace() is not false)
+        if (districtRegion is not DistrictRegion validRegion)
         {
-            return new GetPartySearchFailure.InvalidDistrict();
+            return new GetPartySearchFailure.InvalidDistrictRegion();
         }
 
-        //TODO: Validate district
+        if (districtNumber is not int validNumber)
+        {
+            return new GetPartySearchFailure.InvalidDistrictNumber();
+        }
 
-        var result = await this.partySearchDatabase.GetPartySearches(campaign, continent, region, map, district, cancellationToken);
+        if (districtLanguage is not DistrictLanguage validLanguage)
+        {
+            return new GetPartySearchFailure.InvalidDistrictLanguage();
+        }
+
+        var result = await this.partySearchDatabase.GetPartySearches(map, validRegion, validNumber, validLanguage, cancellationToken);
         if (result is not List<PartySearchEntry> entries)
         {
             return new GetPartySearchFailure.EntriesNotFound();
@@ -148,29 +93,19 @@ public sealed class PartySearchService : IPartySearchService
             return new PostPartySearchFailure.InvalidPayload();
         }
 
-        if (request.Campaign is null)
-        {
-            return new PostPartySearchFailure.InvalidCampaign();
-        }
-
-        if (request.Continent is null)
-        {
-            return new PostPartySearchFailure.InvalidContinent();
-        }
-
-        if (request.Region is null)
-        {
-            return new PostPartySearchFailure.InvalidRegion();
-        }
-
         if (request.Map is null)
         {
             return new PostPartySearchFailure.InvalidMap();
         }
 
-        if (request.District is null)
+        if (request.DistrictLanguage is not DistrictLanguage validLanguage)
         {
-            return new PostPartySearchFailure.InvalidDistrict();
+            return new PostPartySearchFailure.InvalidDistrictLanguage();
+        }
+
+        if (request.DistrictRegion is not DistrictRegion validRegion)
+        {
+            return new PostPartySearchFailure.InvalidDistrictRegion();
         }
 
         if (request.PartySearchEntries is null)
@@ -180,34 +115,38 @@ public sealed class PartySearchService : IPartySearchService
 
         foreach(var entry in request.PartySearchEntries)
         {
-            if (entry.PartySize is null)
+            if (entry.DistrictLanguage is not DistrictLanguage)
             {
-                return new PostPartySearchFailure.InvalidPartySize();
+                return new PostPartySearchFailure.InvalidDistrictLanguage();
             }
 
-            if (entry.PartyMaxSize is null)
+            if (entry.HardMode is not HardModeState)
             {
-                return new PostPartySearchFailure.InvalidPartyMaxSize();
+                return new PostPartySearchFailure.InvalidHardMode();
             }
 
-            if (entry.Npcs is null)
+            if (entry.Sender?.IsNullOrWhiteSpace() is not false)
             {
-                return new PostPartySearchFailure.InvalidNpcs();
+                return new PostPartySearchFailure.InvalidSender();
             }
 
-            if (entry.CharName is null)
+            if (entry.Primary is null)
             {
-                return new PostPartySearchFailure.InvalidCharName();
+                return new PostPartySearchFailure.InvalidPrimary();
+            }
+
+            if (entry.Secondary is null)
+            {
+                return new PostPartySearchFailure.InvalidSecondary();
             }
         }
 
         //TODO: Implement district validation, party size validation, party max size validation and npcs validation
         var result = await this.partySearchDatabase.SetPartySearches(
-            request.Campaign,
-            request.Continent,
-            request.Region,
             request.Map,
-            request.District,
+            validRegion,
+            request.DistrictNumber,
+            validLanguage,
             request.PartySearchEntries,
             cancellationToken);
 

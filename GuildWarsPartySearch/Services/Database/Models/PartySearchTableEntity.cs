@@ -9,23 +9,33 @@ public sealed class PartySearchTableEntity : ITableEntity
 
     public string RowKey { get; set; } = default!;
 
-    public string? Campaign { get; set; }
+    public int DistrictRegion { get; set; }
 
-    public string? Continent { get; set; }
+    public int DistrictNumber { get; set; }
 
-    public string? Region { get; set; }
+    public int DistrictLanguage { get; set; }
 
-    public string? Map { get; set; }
+    public int MapId { get; set; }
 
-    public string? District { get; set; }
+    public int PartyId { get; set; }
 
-    public string? CharName { get; set; }
+    public string? Message { get; set; }
 
-    public int? PartySize { get; set; }
+    public string? Sender { get; set; }
 
-    public int? PartyMaxSize { get; set; }
+    public int PartySize { get; set; }
 
-    public int? Npcs { get; set; }
+    public int HeroCount { get; set; }
+
+    public int HardMode { get; set; }
+
+    public int SearchType { get; set; }
+
+    public int Primary { get; set; }
+
+    public int Secondary { get; set; }
+
+    public int Level { get; set; }
 
     public DateTimeOffset? Timestamp { get; set; }
 
