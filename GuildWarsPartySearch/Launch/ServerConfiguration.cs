@@ -24,10 +24,8 @@ public static class ServerConfiguration
     public static IList<JsonConverter> SetupConverters(this IList<JsonConverter> converters)
     {
         converters.ThrowIfNull();
-        converters.Add(new CampaignJsonConverter());
-        converters.Add(new ContinentJsonConverter());
         converters.Add(new MapJsonConverter());
-        converters.Add(new RegionJsonConverter());
+        converters.Add(new ProfessionJsonConverter());
 
         return converters;
     }
