@@ -35,40 +35,25 @@ Sends periodic party search updates. Example:
     ""Searches"":
     [
         {
-            ""Campaign"":""Prophecies"",
-            ""Continent"":""Tyria"",
-            ""Region"":""Kryta"",
-            ""Map"":""Lions Arch"",
-            ""District"":""En - 1"",
-            ""PartySearchEntries"":
+            ""map_id"":857,
+            ""district_region"":-2,
+            ""district_number"":1,
+            ""district_language"":0,
+            ""parties"":
             [
                 {
-                    ""CharName"":""Shiro Tagachi"",
-                    ""PartySize"":8,
-                    ""PartyMaxSize"":8,
-                    ""Npcs"":0
-                },
-                {
-                    ""CharName"":""Kormir Sucks"",
-                    ""PartySize"":8,
-                    ""PartyMaxSize"":8,
-                    ""Npcs"":0
-                }
-            ]
-        },
-        {
-            ""Campaign"":""Prophecies"",
-            ""Continent"":""Tyria"",
-            ""Region"":""Kryta"",
-            ""Map"":""Warrior's Isle"",
-            ""District"":""En - 1"",
-            ""PartySearchEntries"":
-            [
-                {
-                    ""CharName"":""Don Abaddon"",
-                    ""PartySize"":0,
-                    ""PartyMaxSize"":16,
-                    ""Npcs"":2
+                    ""party_id"":1,
+                    ""district_number"":1,
+                    ""district_language"":0,
+                    ""message"":"""",
+                    ""sender"":""Demia Frelluis"",
+                    ""party_size"":4,
+                    ""hero_count"":3,
+                    ""hard_mode"":1,
+                    ""search_type"":1,
+                    ""primary"":3,
+                    ""secondary"":10,
+                    ""level"":20
                 }
             ]
         }
@@ -136,25 +121,26 @@ Requires *User-Agent* header to be set.
 Accepts json payloads. Example:
 ```json
 {{
-    ""Continent"": ""Tyria"",
-    ""Campaign"": ""Prophecies"",
-    ""Region"": ""Kryta"",
-    ""Map"": 4,
-    ""District"": ""En - 1"",
-    ""PartySearchEntries"": [
-        {{
-            ""PartySize"": 8,
-            ""PartyMaxSize"": 8,
-            ""Npcs"": 0,
-            ""CharName"": ""Shiro Tagachi"",
-        }},
-        {{
-            ""PartySize"": 8,
-            ""PartyMaxSize"": 8,
-            ""Npcs"": 0,
-            ""CharName"": ""Kormir Sucks"",
-        }}
-    ]
+  ""map_id"": 857,
+  ""district_region"": -2,
+  ""district_number"": 1,
+  ""district_language"": 0,
+  ""parties"": [
+    {{
+      ""party_id"": 1,
+      ""district_number"": 1,
+      ""district_language"": 0,
+      ""message"": """",
+      ""sender"": ""Demia Frelluis"",
+      ""party_size"": 4,
+      ""hero_count"": 3,
+      ""hard_mode"": 1,
+      ""search_type"": 1,
+      ""primary"": 3,
+      ""secondary"": 10,
+      ""level"": 20
+    }}
+  ]
 }}
 ```
 

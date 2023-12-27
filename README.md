@@ -1,6 +1,71 @@
 # GuildWarsPartySearch
 Party Search Aggregator
 
+## GuildWarsPartySearch.Server
+
+### Usage
+- Bots connect with websocket to `party-search/update` where they push the current state of their map. Sample payload:
+```json
+{
+  "map_id": 857,
+  "district_region": -2,
+  "district_number": 1,
+  "district_language": 0,
+  "parties": [
+    {
+      "party_id": 1,
+      "district_number": 1,
+      "district_language": 0,
+      "message": "",
+      "sender": "Demia Frelluis",
+      "party_size": 4,
+      "hero_count": 3,
+      "hard_mode": 1,
+      "search_type": 1,
+      "primary": 3,
+      "secondary": 10,
+      "level": 20
+    }
+  ]
+}
+```
+- Bots need to have `X-ApiKey` and `User-Agent` headers set. `X-ApiKey` is used to protect access to the update endpoint, while `User-Agent` identifies the bot
+- The client/user connects with websocket to `party-search/live-feed`
+- When the client first connects, it receives a json with all the party searches currently in the database (all the snapshots). Sample payload:
+```json
+{
+    "Searches":
+    [
+        {
+            "map_id":857,
+            "district_region":-2,
+            "district_number":1,
+            "district_language":0,
+            "parties":
+            [
+                {
+                    "party_id":1,
+                    "district_number":1,
+                    "district_language":0,
+                    "message":"",
+                    "sender":"Demia Frelluis",
+                    "party_size":4,
+                    "hero_count":3,
+                    "hard_mode":1,
+                    "search_type":1,
+                    "primary":3,
+                    "secondary":10,
+                    "level":20
+                }
+            ]
+        }
+    ]
+}
+```
+- Whenever a bot posts an update, all clients receive that update in the same json format as the first message
+- There's a status page `/status/bots` where you can see a list of all the currently connected bots. You need to have `X-ApiKey` set to see the page
+- Check https://guildwarspartysearch.azurewebsites.net/swagger for the swagger docs and examples of the server
+
 ## GuildWarsPartySearch.BotUploader
 The resulting dll needs to be injected into a running Guild Wars process.
 
