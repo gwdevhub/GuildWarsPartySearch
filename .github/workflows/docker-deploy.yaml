@@ -66,6 +66,11 @@ jobs:
         Set-Content -Path private.key -Value $privateKeyContent
       shell: pwsh
 
+    - name: Set Private Key permissions
+      run: |
+        chmod 400 private.key
+      shell: bash
+
     - name: Deploy Docker image to host
       shell: pwsh
       run: |
