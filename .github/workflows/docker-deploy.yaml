@@ -25,6 +25,21 @@ jobs:
       run: |
         docker login --username "${{ secrets.DOCKERHUB_USERNAME }}" --password "${{ secrets.DOCKERHUB_PASSWORD }}"
 
+    - name: Create Docker Environment File
+      shell: pwsh
+      run: |
+        $envFilePath = "envfile"
+        $envContent = @(
+            "ServerOptions__ApiKey=${{ secrets.APIKEY }}",
+            "ServerOptions__Certificate=${{ secrets.CERTIFICATE_BASE64 }}",
+            "ApplicationInsights__InstrumentationKey=${{ secrets.AZURE_INSIGHTS_INSTRUMENTATIONKEY }}",
+            "AzureCredentialsOptions__ClientSecret=${{ secrets.AZURE_CLIENT_SECRET }}",
+            "AzureCredentialsOptions__ClientId=${{ secrets.AZURE_CLIENT_ID }}",
+            "AzureCredentialsOptions__TenantId=${{ secrets.AZURE_TENANT_ID }}"
+        )
+        $envContent | Set-Content -Path $envFilePath
+        Write-Host "Environment file created: $envFilePath"
+
     - name: Set secrets in Web App
       shell: pwsh
       run: |
@@ -43,3 +58,16 @@ jobs:
         .\BuildDockerImage.ps1
         docker push alex4991/guildwarspartysearch.server
       shell: pwsh
+
+    - name: Create Private Key File
+      run: |
+        cd GuildWarsPartySearch
+        $privateKeyContent = "${{ secrets.HOST_KEY }}"
+        Set-Content -Path private.key -Value $privateKeyContent
+      shell: pwsh
+
+    - name: Deploy Docker image to host
+      shell: pwsh
+      run: |
+        cd GuildWarsPartySearch
+        .\DeployToVM.ps1 -KeyFile private.key -User ${{ secrets.HOST_USER }} -Address ${{ secrets.HOST_ADDRESS }} -PathToEnvFileFolder .

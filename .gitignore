@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /GuildWarsPartySearch/Config.Local.json
 /build*
+/GuildWarsPartySearch/envfile
