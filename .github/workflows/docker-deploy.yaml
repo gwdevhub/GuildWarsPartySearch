@@ -68,6 +68,7 @@ jobs:
 
     - name: Set Private Key permissions
       run: |
+        cd GuildWarsPartySearch
         chmod 400 private.key
       shell: bash
 
