@@ -10,14 +10,14 @@ using System.Extensions;
 
 namespace GuildWarsPartySearch.Server.Services.Database;
 
-public sealed class TableStorageDatabase : IPartySearchDatabase
+public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
 {
     private readonly NamedTableClient<PartySearchTableOptions> client;
-    private readonly ILogger<TableStorageDatabase> logger;
+    private readonly ILogger<PartySearchTableStorageDatabase> logger;
 
-    public TableStorageDatabase(
+    public PartySearchTableStorageDatabase(
         NamedTableClient<PartySearchTableOptions> namedTableClient,
-        ILogger<TableStorageDatabase> logger)
+        ILogger<PartySearchTableStorageDatabase> logger)
     {
         this.client = namedTableClient.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
