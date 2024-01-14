@@ -29,7 +29,7 @@ Party Search Aggregator
   ]
 }
 ```
-- Bots need to have `X-ApiKey` and `User-Agent` headers set. `X-ApiKey` is used to protect access to the update endpoint, while `User-Agent` identifies the bot
+- Bots need to have `User-Agent` header set and have their IP whitelisted. `User-Agent` identifies the bot.
 - The client/user connects with websocket to `party-search/live-feed`
 - When the client first connects, it receives a json with all the party searches currently in the database (all the snapshots). Sample payload:
 ```json
@@ -63,7 +63,7 @@ Party Search Aggregator
 }
 ```
 - Whenever a bot posts an update, all clients receive that update in the same json format as the first message
-- There's a status page `/status/bots` where you can see a list of all the currently connected bots. You need to have `X-ApiKey` set to see the page
+- There's a status page `/status/bots` where you can see a list of all the currently connected bots. You need to have your IP whitelisted set to see the page
 - Check https://guildwarspartysearch.azurewebsites.net/swagger for the swagger docs and examples of the server
 
 ## GuildWarsPartySearch.BotUploader
