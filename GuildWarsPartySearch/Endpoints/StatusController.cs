@@ -7,7 +7,7 @@ using System.Core.Extensions;
 namespace GuildWarsPartySearch.Server.Endpoints;
 
 [Route("status")]
-[ServiceFilter<ApiKeyProtected>]
+[ServiceFilter<IpWhitelistFilter>]
 public class StatusController : Controller
 {
     private readonly IBotStatusService botStatusService;
@@ -21,8 +21,8 @@ public class StatusController : Controller
     [HttpGet("bots")]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
-    [SwaggerOperation(Description = $"Protected by *{ApiKeyProtected.ApiKeyHeader}* header.\r\n\r\n")]
-    public async Task<IActionResult> GetBotStatus([FromHeader(Name = ApiKeyProtected.ApiKeyHeader)] string _)
+    [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n")]
+    public async Task<IActionResult> GetBotStatus()
     {
         return this.Ok(await this.botStatusService.GetBots());
     }

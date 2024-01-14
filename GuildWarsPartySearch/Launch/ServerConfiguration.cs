@@ -67,6 +67,7 @@ public static class ServerConfiguration
             .ConfigureExtended<ContentOptions>()
             .ConfigureExtended<PartySearchTableOptions>()
             .ConfigureExtended<StorageAccountOptions>()
+            .ConfigureExtended<IpWhitelistTableOptions>()
             .ConfigureExtended<ServerOptions>()
             .ConfigureExtended<IpRateLimitOptions>()
             .ConfigureExtended<IpRateLimitPolicies>()
@@ -82,17 +83,18 @@ public static class ServerConfiguration
         services.AddApplicationInsightsTelemetryProcessor<WebSocketTelemetryProcessor>();
         services.AddMemoryCache();
         services.AddInMemoryRateLimiting();
-        services.AddScoped<RequireSsl>();
-        services.AddScoped<ApiKeyProtected>();
         services.AddScoped<UserAgentRequired>();
+        services.AddScoped<IpWhitelistFilter>();
         services.AddScoped<IServerLifetimeService, ServerLifetimeService>();
-        services.AddScoped<IPartySearchDatabase, TableStorageDatabase>();
+        services.AddScoped<IPartySearchDatabase, PartySearchTableStorageDatabase>();
+        services.AddScoped<IIpWhitelistDatabase, IpWhitelistTableStorageDatabase>();
         services.AddScoped<IPartySearchService, PartySearchService>();
         services.AddScoped<ICharNameValidator, CharNameValidator>();
         services.AddSingleton<ILiveFeedService, LiveFeedService>();
         services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
         services.AddSingleton<IBotStatusService, BotStatusService>();
         services.AddScopedTableClient<PartySearchTableOptions>();
+        services.AddSingletonTableClient<IpWhitelistTableOptions>();
         services.AddSingletonBlobContainerClient<ContentOptions>();
         return services;
     }

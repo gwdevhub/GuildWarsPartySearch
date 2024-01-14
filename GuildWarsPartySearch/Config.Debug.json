@@ -47,6 +47,9 @@
   "PartySearchTableOptions": {
     "TableName": "searches"
   },
+  "IpWhitelistTableOptions": {
+    "TableName": "ipfiltering"
+  },
   "ContentOptions": {
     "ContainerName": "content",
     "UpdateFrequency": "0:5:0",

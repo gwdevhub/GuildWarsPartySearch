@@ -1,5 +1,4 @@
-﻿using GuildWarsPartySearch.Server.Filters;
-using Microsoft.OpenApi.Models;
+﻿using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace GuildWarsPartySearch.Server.Launch;
@@ -97,7 +96,7 @@ Sends periodic party search updates. Example:
             new OpenApiPathItem
             {
                 Summary = "Connect to WebSocket for updates",
-                Description = $"WebSocket endpoint for posting party search updates. Protected by {ApiKeyProtected.ApiKeyHeader} header. Requires User-Agent header to be set",
+                Description = $"WebSocket endpoint for posting party search updates. Protected by *IP whitelisting*. Requires User-Agent header to be set",
                 Operations = new Dictionary<OperationType, OpenApiOperation>
                 {
                     {
@@ -114,7 +113,7 @@ Sends periodic party search updates. Example:
                             Description = @$"
 WebSocket endpoint for posting party search updates.
 
-Protected by *{ApiKeyProtected.ApiKeyHeader}* header.
+Protected by *IP whitelisting*.
 
 Requires *User-Agent* header to be set.
 
@@ -161,13 +160,6 @@ Returns json payloads. Example:
                 },
                 Parameters = new List<OpenApiParameter>
                 {
-                    new()
-                    {
-                        Name = ApiKeyProtected.ApiKeyHeader,
-                        In = ParameterLocation.Header,
-                        Description = "Header is required in order to connect to this endpoint",
-                        Required = true
-                    },
                     new()
                     {
                         Name = "Connection",
