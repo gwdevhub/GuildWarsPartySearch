@@ -1,3 +1,3 @@
-[submodule "GWCA"]
-	path = GWCA
-	url = https://github.com/GregLando113/GWCA
+[submodule "GuildWarsPartySearch.Bot/Dependencies/Headquarter"]
+	path = GuildWarsPartySearch.Bot/Dependencies/Headquarter
+	url = https://github.com/AlexMacocian/Headquarter

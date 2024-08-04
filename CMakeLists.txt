@@ -12,5 +12,4 @@ endif()
 project ("GuildWarsPartySearch")
 
 # Include sub-projects.
-add_subdirectory ("GuildWarsPartySearch.BotUploader")
-add_subdirectory ("GWCA")
+add_subdirectory ("GuildWarsPartySearch.Bot")
