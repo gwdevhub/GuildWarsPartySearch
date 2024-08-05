@@ -9,8 +9,6 @@ public sealed class PartySearchTableEntity : ITableEntity
 
     public string RowKey { get; set; } = default!;
 
-    public int DistrictRegion { get; set; }
-
     public int DistrictNumber { get; set; }
 
     public int DistrictLanguage { get; set; }

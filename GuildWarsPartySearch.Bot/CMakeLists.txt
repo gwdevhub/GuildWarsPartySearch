@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-set(CMAKE_CXX_FLAGS_DEBUG  "-g" CACHE "CMAKE_CXX_FLAGS_DEBUG" STRING FORCE)
+set(CMAKE_CXX_FLAGS_DEBUG CACHE "CMAKE_CXX_FLAGS_DEBUG" STRING FORCE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE "CMAKE_POSITION_INDEPENDENT_CODE" BOOL FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE "BUILD_SHARED_LIBS" BOOL FORCE)
 set(CMAKE_BUILD_TYPE Debug CACHE "CMAKE_BUILD_TYPE" STRING FORCE)
@@ -12,8 +12,25 @@ set(BUILD_TESTING OFF CACHE "BUILD_TESTING" BOOL FORCE)
 project(
   GuildWarsPartySearch.Bot
   VERSION 1.0
-  LANGUAGES C
 )
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
+
+if (MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
+
+  # Add this line to allow keyword macros
+  add_definitions(-D_ALLOW_KEYWORD_MACROS)
+
+  # Ensure consistent runtime libraries
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MDd")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
+  set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
+endif()
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Headquarter)
 
@@ -24,6 +41,7 @@ add_library(
   SHARED
 
   main.cpp
+  Dependencies/easywsclient/easywsclient.cpp
 )
 
 target_link_libraries(GuildWarsPartySearch.Bot PRIVATE common client)
@@ -41,7 +59,6 @@ set_target_properties(portal
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/"
 )
-
 set_target_properties(client
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/"
@@ -62,18 +79,8 @@ target_include_directories(
 
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Headquarter/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/easywsclient
+  ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/json
 )
 
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Debug/logs)
-
-if (MSVC)
-  # We disable the following warnings:
-  # - C4057: nonstandard extension used: nameless struct/union
-  # - C4204: nonstandard extension used: non-constant aggregate initializer
-  # - C4221: nonstandard extension used: '<var>': cannot be initialized using address of automatic variable
-  # - C4459: declaration of '<var>' hides global declaration
-  # - C4706: assignment within conditional expression
-  target_compile_options(GuildWarsPartySearch.Bot PRIVATE /WX /W4 /wd4201 /wd4204 /wd4244 /wd4221 /wd4295 /wd4310 /wd4018 /wd4459 /wd4100 /wd4706)
-  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT client)
-endif()
-

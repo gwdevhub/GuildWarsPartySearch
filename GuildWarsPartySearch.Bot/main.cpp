@@ -8,11 +8,13 @@
 #include <stdbool.h>
 
 #define HEADQUARTER_RUNTIME_LINKING
-#include <client/constants.h>
-#include <client/Headquarter.h>
-#include <common/time.h>
-#include <common/thread.h>
-#include <common/dlfunc.h>
+extern "C" {
+    #include <client/constants.h>
+    #include <client/Headquarter.h>
+    #include <common/time.h>
+    #include <common/thread.h>
+    #include <common/dlfunc.h>
+}
 
 #ifdef _WIN32
 # define DllExport __declspec(dllexport)
@@ -20,14 +22,25 @@
 # define DllExport
 #endif
 
+#include <fstream>
 #include <signal.h>
 #include <stdio.h>
 #include <vector>
 #include <atomic>
 #include <time.h>
+#include <codecvt>
 
+#ifdef array
+#undef array
+#endif
+#include <json.hpp>
+#include <easywsclient.hpp>
 
-#define FAILED_TO_START 1
+#define FAILED_TO_START             1
+#define FAILED_TO_LOAD_GAME         2
+#define FAILED_TO_LOAD_CHAR_NAME    3
+#define FAILED_TO_LOAD_CONFIG       4
+#define FAILED_TO_CONNECT           5
 
 typedef struct {
     uint16_t            party_id;
@@ -40,23 +53,16 @@ typedef struct {
     uint8_t             primary;
     uint8_t             secondary;
     uint8_t             level;
-    char                message[65];
-    char                sender[41];
+    std::string         message;
+    std::string         sender;
 } PartySearchAdvertisement;
-
-#define MapID_EmbarkBeach               857
-#define MapID_Ascalon                   148
-#define MapID_Kamadan                   449
-#define MapID_Kamadan_Halloween         818
-#define MapID_Kamadan_Wintersday        819
-#define MapID_Kamadan_Canthan_New_Year  820
 
 static struct thread  bot_thread;
 static std::atomic<bool> running;
 static std::atomic<bool> ready;
 
-
-static int required_map_id = MapID_Kamadan;
+static std::string required_url;
+static int required_map_id = -1;
 static District required_district = DISTRICT_AMERICAN;
 static uint16_t required_district_number = 0;
 
@@ -69,16 +75,43 @@ static CallbackEntry EventType_PartySearchType_entry;
 static CallbackEntry EventType_WorldMapEnter_entry;
 static CallbackEntry EventType_WorldMapLeave_entry;
 
-static uint16_t player_name[20];
-static char player_name_utf8[40];
-static char account_uuid[64];
+static std::string character_name;
+static int map_id;
+static District district;
+static int district_number;
 
-static uint64_t last_successful_curl = 0;
-
-static void send_bot_info();
+static easywsclient::WebSocket::pointer ws;
 
 static std::vector<PartySearchAdvertisement*> party_search_advertisements;
 
+void to_json(nlohmann::json& j, const PartySearchAdvertisement& p) {
+    j = nlohmann::json{
+        {"party_id", p.party_id},
+        {"party_size", p.party_size},
+        {"hero_count", p.hero_count},
+        {"search_type", p.search_type},
+        {"hardmode", p.hardmode},
+        {"district_number", p.district_number},
+        {"language", p.language},
+        {"primary", p.primary},
+        {"secondary", p.secondary},
+        {"level", p.level},
+        {"message", p.message},
+        {"sender", p.sender}
+    };
+}
+
+static void exit_with_status(const char* state, int exit_code)
+{
+    LogCritical("%s (code=%d)", state, exit_code);
+    exit(exit_code);
+}
+
+static std::string convert_uint16_to_string(const uint16_t* buffer, size_t length) {
+    std::wstring wstr(buffer, buffer + length);
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> convert;
+    return convert.to_bytes(wstr);
+}
 
 static void clear_party_search_advertisements() {
     for (auto party : party_search_advertisements) {
@@ -133,22 +166,37 @@ static PartySearchAdvertisement* create_party_search_advertisement(Event* event)
     party->secondary = event->PartySearchAdvertisement.secondary;
     party->level = event->PartySearchAdvertisement.level;
 
-    /*if (event->PartySearchAdvertisement.message.length) {
-        int written = uint16_to_char(event->PartySearchAdvertisement.message.buffer, party->message, ARRAY_SIZE(party->message));
-        assert(written > 0);
+    if (event->PartySearchAdvertisement.message.length) {
+        party->message = convert_uint16_to_string(event->PartySearchAdvertisement.message.buffer, event->PartySearchAdvertisement.message.length);
     }
     else {
-        *party->message = 0;
+        party->message.clear();
     }
+
     if (event->PartySearchAdvertisement.sender.length) {
-        int written = uint16_to_char(event->PartySearchAdvertisement.sender.buffer, party->sender, ARRAY_SIZE(party->sender));
-        assert(written > 0);
+        party->sender = convert_uint16_to_string(event->PartySearchAdvertisement.sender.buffer, event->PartySearchAdvertisement.sender.length);
     }
     else {
-        *party->sender = 0;
-    }*/
+        party->sender.clear();
+    }
 
     return party;
+}
+
+static std::string get_json_payload() {
+    std::vector<PartySearchAdvertisement> ads;
+    for (const auto& ad : party_search_advertisements) {
+        if (!ad) {
+            continue;
+        }
+
+        ads.push_back(*ad);
+    }
+
+    nlohmann::json j;
+    j["map_id"] = map_id;
+    j["parties"] = ads;
+    return j.dump();
 }
 
 static void on_map_left(Event* event, void* params) {
@@ -156,6 +204,9 @@ static void on_map_left(Event* event, void* params) {
 }
 
 static void on_map_entered(Event* event, void* params) {
+    map_id = GetMapId();
+    district = GetDistrict();
+    district_number = GetDistrictNumber();
     ready = true;
 }
 
@@ -180,20 +231,133 @@ static void update_party_search_advertisement(Event* event, void* params) {
             party->hardmode = event->PartySearchAdvertisement.hardmode;
             break;
         case EventType_PartySearchRemoved:
-            
+            remove_party_search_advertisement(party->party_id);
             break;
         }
     }
 }
 
-static void exit_with_status(const char* state, int exit_code)
-{
-    LogCritical("%s (code=%d)", state, exit_code);
-    exit(exit_code);
+static void wait_until_ingame() {
+    LogInfo("Waiting for game load");
+    const int max_tries = 10;
+    for (auto i = 0; i < max_tries; i++) {
+        if (GetIsIngame()) {
+            return;
+        }
+
+        time_sleep_sec(1);
+    }
+    
+    exit_with_status("Failed to get in-game", FAILED_TO_LOAD_GAME);
+}
+
+static void load_character_name() {
+    const auto max_tries = 10;
+    character_name.resize(256, 0);
+    for (auto i = 0; i < max_tries; i++)
+    {
+        GetCharacterName(character_name.data(), 256);
+        if (character_name != "") {
+            return;
+        }
+
+        time_sleep_sec(1);
+    }
+
+    exit_with_status("Failed to load character name", FAILED_TO_LOAD_CHAR_NAME);
+}
+
+static void load_map_info() {
+    map_id = GetMapId();
+    district = GetDistrict();
+    district_number = GetDistrictNumber();
+}
+
+static void load_configuration() {
+    std::ifstream config("config.txt");
+    if (!config.is_open()) {
+        exit_with_status("Failed to load config", FAILED_TO_LOAD_CONFIG);
+    }
+
+    try {
+        std::string line;
+        std::getline(config, line);
+        required_url = line;
+        std::getline(config, line);
+        required_map_id = std::stoi(line);
+        std::getline(config, line);
+        required_district = (District)std::stoi(line);
+        std::getline(config, line);
+        required_district_number = std::stoi(line);
+    }
+    catch(std::exception) {
+        exit_with_status("Failed to load config", FAILED_TO_LOAD_CONFIG);
+    }
+}
+
+static bool proc_state() {
+    if (!GetIsIngame()) {
+        return false;
+    }
+
+    if (map_id != required_map_id ||
+        district != required_district ||
+        district_number != required_district_number) {
+        LogError("Not in correct location. In %d %d %d. Required %d %d %d", map_id, district, district_number, required_map_id, required_district, required_district_number);
+        Travel(required_map_id, required_district, required_district_number);
+        time_sleep_sec(1);
+        return false;
+    }
+
+    return true;
+}
+
+static void send_info() {
+    const auto payload = get_json_payload();
+    LogInfo(payload.c_str());
+    ws->send(payload);
+    ws->poll();
+    time_sleep_sec(5);
+}
+
+static void connect_websocket() {
+    const auto max_connection_attempts = 10;
+    const auto max_tries = 5;
+
+    for (auto i = 0; i < max_connection_attempts; i++) {
+        if (ws) {
+            ws->close();
+        }
+
+        LogInfo("Attempting to connect. Try %d/%d", i, max_connection_attempts);
+        try {
+            ws = easywsclient::WebSocket::from_url(required_url, character_name);
+            
+        }
+        catch (std::exception) {
+        }
+
+        if (!ws) {
+            LogError("Failed to connect");
+            continue;
+        }
+
+        for (auto j = 0; j < max_tries; j++) {
+            if (ws->getReadyState() == easywsclient::WebSocket::OPEN) {
+                return;
+            }
+
+            ws->poll();
+            time_sleep_sec(1);
+        }
+    }
+    
+    exit_with_status("Timed out while attempting to connect", FAILED_TO_CONNECT);
 }
 
 static int main_bot(void* param)
 {
+    time_sleep_sec(5);
     CallbackEntry_Init(&EventType_WorldMapLeave_entry, on_map_left, NULL);
     RegisterEvent(EventType_WorldMapLeave, &EventType_WorldMapLeave_entry);
 
@@ -211,10 +375,28 @@ static int main_bot(void* param)
 
     CallbackEntry_Init(&EventType_PartySearchType_entry, update_party_search_advertisement, NULL);
     RegisterEvent(EventType_PartySearchType, &EventType_PartySearchType_entry);
+    
+    wait_until_ingame();
+
+    load_character_name();
+    
+    load_map_info();
+
+    load_configuration();
+
+    connect_websocket();
 
     while (running) {
+        if (ws->getReadyState() == easywsclient::WebSocket::CLOSED) {
+            connect_websocket();
+        }
+
+        if (!proc_state()) {
+            continue;
+        }
+
+        send_info();
         time_sleep_sec(5);
-        LogInfo("Running...");
     }
 
 cleanup:
@@ -226,15 +408,15 @@ cleanup:
     UnRegisterEvent(&EventType_WorldMapLeave_entry);
 
     clear_party_search_advertisements();
-
+    ws->close();
     raise(SIGTERM);
     return 0;
 }
-DllExport void PluginUnload(PluginObject* obj)
+extern "C" DllExport void PluginUnload(PluginObject * obj)
 {
     running = false;
 }
-DllExport bool PluginEntry(PluginObject* obj)
+extern "C" DllExport bool PluginEntry(PluginObject * obj)
 {
     assert(obj);
     running = true;
@@ -245,7 +427,7 @@ DllExport bool PluginEntry(PluginObject* obj)
     return true;
 }
 
-DllExport void on_panic(const char *msg)
+extern "C" DllExport void on_panic(const char* msg)
 {
     exit_with_status("Error", 1);
 }

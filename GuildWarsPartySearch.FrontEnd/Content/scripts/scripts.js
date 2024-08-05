@@ -6,7 +6,7 @@ let locationMap = new Map();
 let socket;
 let isConnected = false;
 function connect() {
-    socket = new WebSocket('wss://172.205.248.56/party-search/live-feed');
+    socket = new WebSocket('ws://localhost/party-search/live-feed');
 
     socket.onopen = function (event) {
         console.log('Connected to WebSocket server.');
@@ -73,11 +73,11 @@ function updateEntriesDiv() {
 
     locationMap.forEach((searchEntry, combinedKey) => {
         // Adding the combined key as a header
-        htmlContent += `<h3>${searchEntry.map_id} | ${searchEntry.district_region} | ${searchEntry.district_number} | ${searchEntry.district_language}</h3 >`;
+        htmlContent += `<h3>${searchEntry.map_id}</h3 >`;
 
         // Adding each party search entry as a row
         searchEntry.parties.forEach(entry => {
-            htmlContent += `<div>Character Name: ${entry.sender}, Message: ${entry.message}, Party Size: ${entry.party_size}, Hero Count: ${entry.hero_count}, Hard Mode: ${entry.hard_mode}, Search Type: ${entry.search_type}, Primary: ${entry.primary}, Secondary: ${entry.secondary}, Level: ${entry.level}</div>`;
+            htmlContent += `<div>Character Name: ${entry.sender}, Message: ${entry.message}, Party Size: ${entry.party_size}, Hero Count: ${entry.hero_count}, Hard Mode: ${entry.hardmode}, Search Type: ${entry.search_type}, Primary: ${entry.primary}, Secondary: ${entry.secondary}, Level: ${entry.level}</div>`;
         });
     });
 

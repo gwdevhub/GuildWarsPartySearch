@@ -12,15 +12,18 @@ public sealed class ContentRetrievalService : BackgroundService
     private readonly Dictionary<string, DateTime> fileMetadatas = [];
 
     private readonly NamedBlobContainerClient<ContentOptions> namedBlobContainerClient;
+    private readonly EnvironmentOptions environmentOptions;
     private readonly ContentOptions contentOptions;
     private readonly ILogger<ContentRetrievalService> logger;
 
     public ContentRetrievalService(
         NamedBlobContainerClient<ContentOptions> namedBlobContainerClient,
+        IOptions<EnvironmentOptions> environmentOptions,
         IOptions<ContentOptions> contentOptions,
         ILogger<ContentRetrievalService> logger)
     {
         this.namedBlobContainerClient = namedBlobContainerClient.ThrowIfNull();
+        this.environmentOptions = environmentOptions.Value.ThrowIfNull();
         this.contentOptions = contentOptions.Value.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
     }
@@ -46,6 +49,12 @@ public sealed class ContentRetrievalService : BackgroundService
     private async Task UpdateContent(CancellationToken cancellationToken)
     {
         var scopedLogger = logger.CreateScopedLogger(nameof(this.UpdateContent), string.Empty);
+        if (this.environmentOptions.Name == "Local")
+        {
+            scopedLogger.LogDebug("Content retrieval is disabled in local");
+            return;
+        }
+
         scopedLogger.LogDebug("Checking content to retrieve");
         var blobs = this.namedBlobContainerClient.GetBlobsAsync(cancellationToken: cancellationToken);
 

@@ -11,7 +11,7 @@ public sealed class PartySearchEntry
     [JsonPropertyName("district_number")]
     public int DistrictNumber { get; set; }
 
-    [JsonPropertyName("district_language")]
+    [JsonPropertyName("language")]
     public DistrictLanguage? DistrictLanguage { get; set; }
 
     [JsonPropertyName("message")]
@@ -26,7 +26,7 @@ public sealed class PartySearchEntry
     [JsonPropertyName("hero_count")]
     public int HeroCount { get; set; }
 
-    [JsonPropertyName("hard_mode")]
+    [JsonPropertyName("hardmode")]
     public HardModeState? HardMode { get; set; }
 
     [JsonPropertyName("search_type")]

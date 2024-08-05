@@ -73,9 +73,6 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                     this.liveFeedService.PushUpdate(new PartySearch
                     {
                         Map = message?.Map,
-                        DistrictLanguage = message?.DistrictLanguage,
-                        DistrictNumber = message?.DistrictNumber ?? 0,
-                        DistrictRegion = message?.DistrictRegion,
                         PartySearchEntries = message?.PartySearchEntries,
                     }, cancellationToken);
                     return Success;

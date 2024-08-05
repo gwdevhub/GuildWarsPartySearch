@@ -55,29 +55,14 @@ public sealed class PartySearchService : IPartySearchService
         return this.partySearchDatabase.GetAllPartySearches(cancellationToken);
     }
 
-    public async Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Map? map, DistrictRegion? districtRegion, int? districtNumber, DistrictLanguage? districtLanguage, CancellationToken cancellationToken)
+    public async Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Map? map, CancellationToken cancellationToken)
     {
         if (map is null)
         {
             return new GetPartySearchFailure.InvalidMap();
         }
 
-        if (districtRegion is not DistrictRegion validRegion)
-        {
-            return new GetPartySearchFailure.InvalidDistrictRegion();
-        }
-
-        if (districtNumber is not int validNumber)
-        {
-            return new GetPartySearchFailure.InvalidDistrictNumber();
-        }
-
-        if (districtLanguage is not DistrictLanguage validLanguage)
-        {
-            return new GetPartySearchFailure.InvalidDistrictLanguage();
-        }
-
-        var result = await this.partySearchDatabase.GetPartySearches(map, validRegion, validNumber, validLanguage, cancellationToken);
+        var result = await this.partySearchDatabase.GetPartySearches(map, cancellationToken);
         if (result is not List<PartySearchEntry> entries)
         {
             return new GetPartySearchFailure.EntriesNotFound();
@@ -96,16 +81,6 @@ public sealed class PartySearchService : IPartySearchService
         if (request.Map is null)
         {
             return new PostPartySearchFailure.InvalidMap();
-        }
-
-        if (request.DistrictLanguage is not DistrictLanguage validLanguage)
-        {
-            return new PostPartySearchFailure.InvalidDistrictLanguage();
-        }
-
-        if (request.DistrictRegion is not DistrictRegion validRegion)
-        {
-            return new PostPartySearchFailure.InvalidDistrictRegion();
         }
 
         if (request.PartySearchEntries is null)
@@ -144,9 +119,6 @@ public sealed class PartySearchService : IPartySearchService
         //TODO: Implement district validation, party size validation, party max size validation and npcs validation
         var result = await this.partySearchDatabase.SetPartySearches(
             request.Map,
-            validRegion,
-            request.DistrictNumber,
-            validLanguage,
             request.PartySearchEntries,
             cancellationToken);
 
