@@ -43,6 +43,14 @@ extern "C" {
 #define FAILED_TO_CONNECT           5
 
 typedef struct {
+    std::string         web_socket_url;
+    uint32_t            map_id;
+    District            district;
+    uint32_t            district_number;
+    int32_t             connection_retries;
+} BotConfiguration;
+
+typedef struct {
     uint16_t            party_id;
     uint8_t             party_size;
     uint8_t             hero_count;
@@ -57,16 +65,29 @@ typedef struct {
     std::string         sender;
 } PartySearchAdvertisement;
 
+void to_json(nlohmann::json& j, const PartySearchAdvertisement& p) {
+    j = nlohmann::json{
+        {"party_id", p.party_id},
+        {"party_size", p.party_size},
+        {"hero_count", p.hero_count},
+        {"search_type", p.search_type},
+        {"hardmode", p.hardmode},
+        {"district_number", p.district_number},
+        {"language", p.language},
+        {"primary", p.primary},
+        {"secondary", p.secondary},
+        {"level", p.level},
+        {"message", p.message},
+        {"sender", p.sender}
+    };
+}
+
 static struct thread  bot_thread;
 static std::atomic<bool> running;
 static std::atomic<bool> ready;
 
-static std::string required_url;
-static int required_map_id = -1;
-static District required_district = DISTRICT_AMERICAN;
-static uint16_t required_district_number = 0;
-
 static PluginObject* plugin_hook;
+static BotConfiguration bot_configuration;
 
 static CallbackEntry EventType_PartySearchAdvertisement_entry;
 static CallbackEntry EventType_PartySearchRemoved_entry;
@@ -84,21 +105,12 @@ static easywsclient::WebSocket::pointer ws;
 
 static std::vector<PartySearchAdvertisement*> party_search_advertisements;
 
-void to_json(nlohmann::json& j, const PartySearchAdvertisement& p) {
-    j = nlohmann::json{
-        {"party_id", p.party_id},
-        {"party_size", p.party_size},
-        {"hero_count", p.hero_count},
-        {"search_type", p.search_type},
-        {"hardmode", p.hardmode},
-        {"district_number", p.district_number},
-        {"language", p.language},
-        {"primary", p.primary},
-        {"secondary", p.secondary},
-        {"level", p.level},
-        {"message", p.message},
-        {"sender", p.sender}
-    };
+static std::string get_next_argument(int current_index) {
+    if (current_index <= GetArgc()) {
+        return GetArgv()[current_index + 1];
+    }
+
+    return "";
 }
 
 static void exit_with_status(const char* state, int exit_code)
@@ -274,24 +286,41 @@ static void load_map_info() {
 }
 
 static void load_configuration() {
-    std::ifstream config("config.txt");
-    if (!config.is_open()) {
-        exit_with_status("Failed to load config", FAILED_TO_LOAD_CONFIG);
+    try {
+        for (int i = 0; i < GetArgc(); i++) {
+            const std::string arg = GetArgv()[i];
+            if (arg == "-websocket-url") {
+                bot_configuration.web_socket_url = get_next_argument(i);
+                i++;
+            }
+            else if (arg == "-mapid") {
+                bot_configuration.map_id = stoi(get_next_argument(i));
+                i++;
+            }
+            else if (arg == "-district") {
+                bot_configuration.district = static_cast<District>(stoi(get_next_argument(i)));
+                i++;
+            }
+            else if (arg == "-district-number") {
+                bot_configuration.district_number = stoi(get_next_argument(i));
+                i++;
+            }
+            else if (arg == "-connection-retries") {
+                bot_configuration.connection_retries = stoi(get_next_argument(i));
+                i++;
+            }
+        }
+    }
+    catch (std::exception) {
+        exit_with_status("Failed to load configuration", FAILED_TO_LOAD_CONFIG);
     }
 
-    try {
-        std::string line;
-        std::getline(config, line);
-        required_url = line;
-        std::getline(config, line);
-        required_map_id = std::stoi(line);
-        std::getline(config, line);
-        required_district = (District)std::stoi(line);
-        std::getline(config, line);
-        required_district_number = std::stoi(line);
+    if (bot_configuration.web_socket_url == "") {
+        exit_with_status("No websocket url specified. Use -websocket-url", FAILED_TO_LOAD_CONFIG);
     }
-    catch(std::exception) {
-        exit_with_status("Failed to load config", FAILED_TO_LOAD_CONFIG);
+
+    if (bot_configuration.map_id == -1) {
+        exit_with_status("No map specified. Use -mapid", FAILED_TO_LOAD_CONFIG);
     }
 }
 
@@ -300,12 +329,12 @@ static bool proc_state() {
         return false;
     }
 
-    if (map_id != required_map_id ||
-        district != required_district ||
-        district_number != required_district_number) {
-        LogError("Not in correct location. In %d %d %d. Required %d %d %d", map_id, district, district_number, required_map_id, required_district, required_district_number);
-        Travel(required_map_id, required_district, required_district_number);
-        time_sleep_sec(1);
+    if (map_id != bot_configuration.map_id ||
+        district != bot_configuration.district ||
+        district_number != bot_configuration.district_number) {
+        LogError("Not in correct location. In %d %d %d. Required %d %d %d", map_id, district, district_number, bot_configuration.map_id, bot_configuration.district, bot_configuration.district_number);
+        Travel(bot_configuration.map_id, bot_configuration.district, bot_configuration.district_number);
+        time_sleep_sec(10);
         return false;
     }
 
@@ -321,17 +350,15 @@ static void send_info() {
 }
 
 static void connect_websocket() {
-    const auto max_connection_attempts = 10;
     const auto max_tries = 5;
-
-    for (auto i = 0; i < max_connection_attempts; i++) {
+    for (auto i = 0; i < bot_configuration.connection_retries || bot_configuration.connection_retries == 0; i++) {
         if (ws) {
             ws->close();
         }
 
-        LogInfo("Attempting to connect. Try %d/%d", i, max_connection_attempts);
+        LogInfo("Attempting to connect. Try %d/%d", i, bot_configuration.connection_retries);
         try {
-            ws = easywsclient::WebSocket::from_url(required_url, character_name);
+            ws = easywsclient::WebSocket::from_url(bot_configuration.web_socket_url, character_name);
             
         }
         catch (std::exception) {
