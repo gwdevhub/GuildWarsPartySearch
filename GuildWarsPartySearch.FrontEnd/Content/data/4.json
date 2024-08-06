@@ -1,0 +1,83 @@
+{
+  "id": 4,
+  "name": "the Battle Isles",
+  "dims": [ 2048, 1540 ],
+  "regions": [
+    {
+      "name": "the Battle Isles",
+      "areas": [
+        {
+          "name": "Zaishen Menagerie Grounds",
+          "coordinates": [ 1176, 451 ]
+        },
+        {
+          "name": "Forbidden Path",
+          "coordinates": [ 931, 1106 ]
+        },
+        {
+          "name": "Isle of the Nameless",
+          "coordinates": [ 749, 779 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Embark Beach",
+          "type": "outpost",
+          "coordinates": [ 606, 1027 ]
+        },
+        {
+          "name": "Zaishen Menagerie",
+          "type": "outpost",
+          "coordinates": [ 1111, 530 ],
+          "wiki": "Zaishen_Menagerie_(outpost)"
+        },
+        {
+          "name": "Great Temple of Balthazar",
+          "type": "city",
+          "coordinates": [ 672, 887 ]
+        },
+        {
+          "name": "Heroes' Ascent",
+          "type": "arena",
+          "coordinates": [ 1258, 539 ],
+          "wiki": "Heroes'_Ascent_(outpost)"
+        },
+        {
+          "name": "Codex Arena",
+          "type": "arena",
+          "coordinates": [ 1410, 851 ],
+          "wiki": "Codex_Arena_(outpost)"
+        },
+        {
+          "name": "Random Arenas",
+          "type": "arena",
+          "coordinates": [ 1055, 905 ],
+          "wiki": "Random_Arenas_(outpost)"
+        },
+        {
+          "name": "Zaishen Challenge",
+          "type": "zaishen",
+          "coordinates": [ 774, 1051 ],
+          "wiki": "Zaishen_Challenge_(outpost)"
+        },
+        {
+          "name": "Zaishen Elite",
+          "type": "zaishen",
+          "coordinates": [ 1082, 1126 ],
+          "wiki": "Zaishen_Elite_(outpost)"
+        },
+        {
+          "name": "Guild Hall",
+          "type": "guildhall",
+          "coordinates": [ 973, 550 ]
+        },
+        {
+          "name": "Travel",
+          "type": "travel",
+          "coordinates": [ 716, 550 ],
+          "wiki": "Campaign_travel"
+        }
+      ]
+    }
+  ]
+}

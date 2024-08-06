@@ -1,0 +1,940 @@
+{
+  "id": 1,
+  "name": "Tyria",
+  "dims": [ 8176, 9214 ],
+  "center": [ 3960, 4800 ],
+  "regions": [
+    {
+      "name": "Ascalon",
+      "areas": [
+
+        {
+          "name": "Ascalon Foothills",
+          "coordinates": [ 5883, 3900 ]
+        },
+        {
+          "name": "Diessa Lowlands",
+          "coordinates": [ 6201, 4152 ]
+        },
+        {
+          "name": "Dragon's Gullet",
+          "coordinates": [ 6616, 3817 ]
+        },
+        {
+          "name": "Dragon's Gullet",
+          "coordinates": [ 6616, 3817 ]
+        },
+        {
+          "name": "Flame Temple Corridor",
+          "coordinates": [ 6504, 3920 ]
+        },
+        {
+          "name": "The Breach",
+          "coordinates": [ 6669, 4347 ]
+        },
+        {
+          "name": "Eastern Frontier",
+          "coordinates": [ 7505, 4359 ]
+        },
+        {
+          "name": "Pockmark Flats",
+          "coordinates": [ 7549, 4813 ]
+        },
+        {
+          "name": "Regent Valley",
+          "coordinates": [ 7181, 4970 ]
+        },
+        {
+          "name": "Old Ascalon",
+          "coordinates": [ 6873, 4650 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Ascalon City",
+          "type": "city",
+          "coordinates": [ 7104, 4534 ]
+        },
+        {
+          "name": "Ascalon Arena",
+          "type": "arena",
+          "coordinates": [ 7184, 4570 ],
+          "wiki": "Ascalon_Arena_(outpost)"
+        },
+        {
+          "name": "Grendich Courthouse",
+          "type": "outpost",
+          "coordinates": [ 6211, 4004 ]
+        },
+        {
+          "name": "Piken Square",
+          "type": "outpost",
+          "coordinates": [ 6870, 4270 ]
+        },
+        {
+          "name": "Sardelac Sanitarium",
+          "type": "outpost",
+          "coordinates": [ 6813, 4682 ]
+        },
+        {
+          "name": "Serenity Temple",
+          "type": "outpost",
+          "coordinates": [ 7445, 4585 ]
+        },
+        {
+          "name": "Frontier Gate",
+          "type": "outpost",
+          "coordinates": [ 7322, 4302 ]
+        },
+        {
+          "name": "Fort Ranik",
+          "type": "mission",
+          "coordinates": [ 7412, 4863 ],
+          "wiki": "Fort_Ranik_(outpost)"
+        },
+        {
+          "name": "The Great Northern Wall",
+          "type": "mission",
+          "coordinates": [ 7217, 4350 ],
+          "wiki": "The_Great_Northern_Wall_(outpost)"
+        },
+        {
+          "name": "Ruins of Surmia",
+          "type": "mission",
+          "coordinates": [ 7258, 4226 ],
+          "wiki": "Ruins_of_Surmia_(outpost)"
+        },
+        {
+          "name": "Nolani Academy",
+          "type": "mission",
+          "coordinates": [ 5990, 4387 ],
+          "wiki": "Nolani_Academy_(outpost)"
+        }
+      ]
+    },
+    {
+      "name": "Northern Shiverpeaks",
+      "areas": [
+
+        {
+          "name": "Traveler's Vale",
+          "coordinates": [ 5685, 3647 ]
+        },
+        {
+          "name": "Iron Horse Mine",
+          "coordinates": [ 5308, 3421 ]
+        },
+        {
+          "name": "Anvil Rock",
+          "coordinates": [ 4834, 3609 ]
+        },
+        {
+          "name": "Deldrimor Bowl",
+          "coordinates": [ 4530, 4042 ]
+        },
+        {
+          "name": "Griffon's Mouth",
+          "coordinates": [ 4271, 4380 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Yak's Bend",
+          "type": "outpost",
+          "coordinates": [ 5793, 3590 ]
+        },
+        {
+          "name": "Ice Tooth Cave",
+          "type": "outpost",
+          "coordinates": [ 4711, 3505 ]
+        },
+        {
+          "name": "Beacon's Perch",
+          "type": "outpost",
+          "coordinates": [ 4670, 4312 ]
+        },
+        {
+          "name": "Borlis Pass",
+          "type": "mission",
+          "coordinates": [ 5554, 3740 ],
+          "wiki": "Borlis_Pass_(outpost)"
+        },
+        {
+          "name": "The Frost Gate",
+          "type": "mission",
+          "coordinates": [ 5041, 3824 ],
+          "wiki": "The_Frost_Gate_(outpost)"
+        },
+        {
+          "name": "Shiverpeak Arena",
+          "type": "arena",
+          "coordinates": [ 5755, 3514 ],
+          "wiki": "Shiverpeak_Arena_(outpost)"
+        }
+      ]
+    },
+    {
+      "name": "Kryta",
+      "areas": [
+        {
+          "name": "Scoundrel's Rise",
+          "coordinates": [ 4125, 4535 ]
+        },
+        {
+          "name": "North Kryta Province",
+          "coordinates": [ 3843, 4567 ]
+        },
+        {
+          "name": "Lion's Gate",
+          "coordinates": [ 4034, 4882 ]
+        },
+        {
+          "name": "Nebo Terrace",
+          "coordinates": [ 3511, 4392 ]
+        },
+        {
+          "name": "Cursed Lands",
+          "coordinates": [ 3303, 4483 ]
+        },
+        {
+          "name": "The Black Curtain",
+          "coordinates": [ 3007, 4545 ]
+        },
+        {
+          "name": "Talmark Wilderness",
+          "coordinates": [ 2584, 4545 ]
+        },
+        {
+          "name": "Watchtower Coast",
+          "coordinates": [ 3049, 4126 ]
+        },
+        {
+          "name": "Divinity Coast",
+          "coordinates": [ 2649, 4106 ],
+          "wiki": "Divinity_Coast_(explorable_area)"
+        },
+        {
+          "name": "Majesty's Rest",
+          "coordinates": [ 2127, 4443 ]
+        },
+        {
+          "name": "Tears of the Fallen",
+          "coordinates": [ 2498, 4825 ]
+        },
+        {
+          "name": "Kessex Peak",
+          "coordinates": [ 2975, 4958 ]
+        },
+        {
+          "name": "Stingray Strand",
+          "coordinates": [ 2668, 5112 ]
+        },
+        {
+          "name": "Twin Serpent Lakes",
+          "coordinates": [ 2396, 5134 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Lion's Arch",
+          "type": "city",
+          "coordinates": [ 3960, 4800 ]
+        },
+        {
+          "name": "Bergen Hot Springs",
+          "type": "outpost",
+          "coordinates": [ 3592, 4620 ]
+        },
+        {
+          "name": "Beetletun",
+          "type": "outpost",
+          "coordinates": [ 3245, 4262 ]
+        },
+        {
+          "name": "Temple of the Ages",
+          "type": "outpost",
+          "coordinates": [ 2961, 4360 ]
+        },
+        {
+          "name": "Fishermen's Haven",
+          "type": "outpost",
+          "coordinates": [ 2716, 5020 ]
+        },
+        {
+          "name": "Gates of Kryta",
+          "type": "mission",
+          "coordinates": [ 4162, 4650 ],
+          "wiki": "Gates_of_Kryta_(outpost)"
+        },
+        {
+          "name": "D'Alessio Seaboard",
+          "type": "mission",
+          "coordinates": [ 3779, 4881 ],
+          "wiki": "D'Alessio_Seaboard_(outpost)"
+        },
+        {
+          "name": "Divinity Coast",
+          "type": "mission",
+          "coordinates": [ 2774, 4200 ],
+          "wiki": "Divinity_Coast_(outpost)"
+        },
+        {
+          "name": "Riverside Province",
+          "type": "mission",
+          "coordinates": [ 2266, 5414 ],
+          "wiki": "Riverside_Province_(outpost)"
+        },
+        {
+          "name": "Sanctum Cay",
+          "type": "mission",
+          "coordinates": [ 2785, 5282 ],
+          "wiki": "Sanctum_Cay_(outpost)"
+        },
+        {
+          "name": "Travel",
+          "type": "travel",
+          "coordinates": [ 3930, 5120 ],
+          "wiki": "Campaign_travel"
+        },
+        {
+          "name": "Asura Gate",
+          "type": "gate",
+          "coordinates": [ 3915, 4630 ]
+        }
+      ]
+    },
+    {
+      "name": "Maguuma Jungle",
+      "areas": [
+        {
+          "name": "Sage Lands",
+          "coordinates": [ 1611, 4579 ]
+        },
+        {
+          "name": "Mamnoon Lagoon",
+          "coordinates": [ 1254, 4670 ]
+        },
+        {
+          "name": "Silverwood",
+          "coordinates": [ 988, 4861 ]
+        },
+        {
+          "name": "Ettin's Back",
+          "coordinates": [ 1087, 5217 ]
+        },
+        {
+          "name": "Reed Bog",
+          "coordinates": [ 752, 5401 ]
+        },
+        {
+          "name": "The Falls",
+          "coordinates": [ 513, 5529 ]
+        },
+        {
+          "name": "Dry Top",
+          "coordinates": [ 1350, 5375 ]
+        },
+        {
+          "name": "Tangle Root",
+          "coordinates": [ 1597, 5498 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Druid's Overlook",
+          "type": "outpost",
+          "coordinates": [ 1639, 4685 ]
+        },
+        {
+          "name": "Quarrel Falls",
+          "type": "outpost",
+          "coordinates": [ 995, 4917 ]
+        },
+        {
+          "name": "Verntari's Refuge",
+          "type": "outpost",
+          "coordinates": [ 942, 5200 ]
+        },
+        {
+          "name": "Maguuma Stade",
+          "type": "outpost",
+          "coordinates": [ 1649, 5642 ]
+        },
+        {
+          "name": "Henge of Denravi",
+          "type": "city",
+          "coordinates": [ 1706, 5253 ]
+        },
+        {
+          "name": "The Wilds",
+          "type": "mission",
+          "coordinates": [ 1391, 4466 ],
+          "wiki": "The_Wilds_(outpost)"
+        },
+        {
+          "name": "Bloodstone Fen",
+          "type": "mission",
+          "coordinates": [ 818, 4694 ],
+          "wiki": "Bloodstone_Fen_(outpost)"
+        },
+        {
+          "name": "Aurora Glade",
+          "type": "mission",
+          "coordinates": [ 1324, 4998 ],
+          "wiki": "Aurora_Glade_(outpost)"
+        }
+      ]
+    },
+    {
+      "name": "Crystal Desert",
+      "areas": [
+        {
+          "name": "Prophet's Path",
+          "coordinates": [ 6466, 8097 ]
+        },
+        {
+          "name": "Skyward Reach",
+          "coordinates": [ 6866, 8097 ]
+        },
+        {
+          "name": "Salt Flats",
+          "coordinates": [ 6590, 7678 ]
+        },
+        {
+          "name": "Diviner's Ascent",
+          "coordinates": [ 7077, 7626 ]
+        },
+        {
+          "name": "The Scar",
+          "coordinates": [ 7263, 8139 ]
+        },
+        {
+          "name": "Vulture Drifts",
+          "coordinates": [ 6557, 8509 ]
+        },
+        {
+          "name": "The Arid Sea",
+          "coordinates": [ 6978, 8520 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "The Amnoon Oasis",
+          "type": "city",
+          "coordinates": [ 6246, 7837 ]
+        },
+        {
+          "name": "Seeker's Passage",
+          "type": "outpost",
+          "coordinates": [ 6398, 7574 ]
+        },
+        {
+          "name": "Tomb of the Primeval Kings",
+          "type": "outpost",
+          "coordinates": [ 7025, 6983 ]
+        },
+        {
+          "name": "Destiny's Gorge",
+          "type": "outpost",
+          "coordinates": [ 7094, 7935 ]
+        },
+        {
+          "name": "Heroes' Audience",
+          "type": "outpost",
+          "coordinates": [ 6286, 8275 ]
+        },
+        {
+          "name": "The Dragon's Lair",
+          "type": "mission",
+          "coordinates": [ 6992, 7097 ],
+          "wiki": "The_Dragon's_Lair_(outpost)"
+        },
+        {
+          "name": "Elona Reach",
+          "type": "mission",
+          "coordinates": [ 6907, 7657 ],
+          "wiki": "Elona_Reach_(outpost)"
+        },
+        {
+          "name": "Augury Rock",
+          "type": "mission",
+          "coordinates": [ 6714, 8103 ],
+          "wiki": "Augury_Rock_(outpost)"
+        },
+        {
+          "name": "Dunes of Despair",
+          "type": "mission",
+          "coordinates": [ 6516, 8615 ],
+          "wiki": "Dunes_of_Despair_(outpost)"
+        },
+        {
+          "name": "Thirsty River",
+          "type": "mission",
+          "coordinates": [ 7388, 8391 ],
+          "wiki": "Thirsty_River_(outpost)"
+        }
+      ]
+    },
+    {
+      "name": "Ring of Fire Islands",
+      "areas": [
+        {
+          "name": "Lornar's Pass",
+          "coordinates": [ 4766, 4669 ]
+        },
+        {
+          "name": "Dreadnought's Drift",
+          "coordinates": [ 4739, 5118 ]
+        },
+        {
+          "name": "Snake Dance",
+          "coordinates": [ 4721, 5672 ]
+        },
+        {
+          "name": "Grenth's Footprint",
+          "coordinates": [ 5038, 5592 ]
+        },
+        {
+          "name": "Spearhead Peak",
+          "coordinates": [ 5412, 5551 ]
+        },
+        {
+          "name": "Tasca's Demise",
+          "coordinates": [ 5479, 5350 ]
+        },
+        {
+          "name": "Mineral Springs",
+          "coordinates": [ 5739, 5146 ]
+        },
+        {
+          "name": "Talus Chute",
+          "coordinates": [ 5061, 6289 ]
+        },
+        {
+          "name": "Ice Dome",
+          "coordinates": [ 5386, 6046 ]
+        },
+        {
+          "name": "Frozen Forest",
+          "coordinates": [ 5732, 5976 ]
+        },
+        {
+          "name": "Witman's Folly",
+          "coordinates": [ 5410, 6657 ]
+        },
+        {
+          "name": "Ice Floe",
+          "coordinates": [ 6098, 6299 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Droknar's Forge",
+          "type": "city",
+          "coordinates": [ 5175, 6541 ]
+        },
+        {
+          "name": "Camp Rankor",
+          "type": "outpost",
+          "coordinates": [ 4804, 6114 ]
+        },
+        {
+          "name": "Deldrimor War Camp",
+          "type": "outpost",
+          "coordinates": [ 4988, 5666 ]
+        },
+        {
+          "name": "The Granite Citadel",
+          "type": "outpost",
+          "coordinates": [ 5290, 5380 ]
+        },
+        {
+          "name": "Copperhammer Mines",
+          "type": "outpost",
+          "coordinates": [ 5550, 5856 ]
+        },
+        {
+          "name": "Port Sledge",
+          "type": "outpost",
+          "coordinates": [ 5324, 6725 ]
+        },
+        {
+          "name": "Marhan's Grotto",
+          "type": "outpost",
+          "coordinates": [ 6125, 6444 ]
+        },
+        {
+          "name": "Ice Caves of Sorrow",
+          "type": "mission",
+          "coordinates": [ 5322, 6433 ],
+          "wiki": "Ice_Caves_of_Sorrow_(outpost)"
+        },
+        {
+          "name": "Iron Mines of Moladune",
+          "type": "mission",
+          "coordinates": [ 5982, 5848 ],
+          "wiki": "Iron_Mines_of_Moladune_(outpost)"
+        },
+        {
+          "name": "Thunderhead Keep",
+          "type": "mission",
+          "coordinates": [ 6307, 6118 ],
+          "wiki": "Thunderhead_Keep_(outpost)"
+        }
+      ]
+    },
+    {
+      "name": "Ring of Fire Islands",
+      "areas": [
+        {
+          "name": "Perdition Rock",
+          "coordinates": [ 1973, 7650 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Ember Light Camp",
+          "type": "outpost",
+          "coordinates": [ 1980, 7770 ]
+        },
+        {
+          "name": "Ring of Fire",
+          "type": "mission",
+          "coordinates": [ 1781, 7542 ],
+          "wiki": "Ring_of_Fire_(outpost)"
+        },
+        {
+          "name": "Abaddon's Mouth",
+          "type": "mission",
+          "coordinates": [ 1594, 7425 ],
+          "wiki": "Abaddon's_Mouth_(outpost)"
+        },
+        {
+          "name": "Hell's Precipice",
+          "type": "mission",
+          "coordinates": [ 1574, 7625 ],
+          "wiki": "Hell's_Precipice_(outpost)"
+        }
+      ]
+    },
+    {
+      "name": "Far Shiverpeaks",
+      "areas": [
+        {
+          "name": "Ice Cliff Chasms",
+          "coordinates": [ 6309, 2492 ]
+        },
+        {
+          "name": "Battledepths",
+          "coordinates": [ 5957, 2493 ]
+        },
+        {
+          "name": "Hall of Monuments",
+          "coordinates": [ 6230, 2338 ]
+        },
+        {
+          "name": "Norrhart Domains",
+          "coordinates": [ 6081, 1872 ]
+        },
+        {
+          "name": "Bjora Marches",
+          "coordinates": [ 6422, 1407 ]
+        },
+        {
+          "name": "Bjora Marches",
+          "coordinates": [ 6422, 1407 ]
+        },
+        {
+          "name": "Jaga Moraine",
+          "coordinates": [ 5963, 1152 ]
+        },
+        {
+          "name": "Drakkar Lake",
+          "coordinates": [ 5555, 1628 ]
+        },
+        {
+          "name": "Varajar Fells",
+          "coordinates": [ 5433, 2069 ]
+        },
+        {
+          "name": "Verdant Cascades",
+          "coordinates": [ 4805, 2505 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Boreal Station",
+          "type": "outpost",
+          "coordinates": [ 6384, 2717 ]
+        },
+        {
+          "name": "Eye of the North",
+          "type": "outpost",
+          "coordinates": [ 6283, 2405 ],
+          "wiki": "Eye_of_the_North_(outpost)"
+        },
+        {
+          "name": "Gunnar's Hold",
+          "type": "city",
+          "coordinates": [ 6265, 1980 ]
+        },
+        {
+          "name": "Longeye's Ledge",
+          "type": "outpost",
+          "coordinates": [ 6750, 1615 ]
+        },
+        {
+          "name": "Olafstead",
+          "type": "outpost",
+          "coordinates": [ 5442, 2180 ]
+        },
+        {
+          "name": "Sifhalla",
+          "type": "outpost",
+          "coordinates": [ 5666, 1399 ]
+        },
+        {
+          "name": "Umbral Grotto",
+          "type": "outpost",
+          "coordinates": [ 4573, 2420 ]
+        },
+        {
+          "name": "Central Transfer Chamber",
+          "type": "outpost",
+          "coordinates": [ 5918, 3282 ]
+        },
+        {
+          "name": "Fronis Irontoe's Lair",
+          "type": "dungeon",
+          "coordinates": [ 6490, 1932 ]
+        },
+        {
+          "name": "Darkrime Delves",
+          "type": "dungeon",
+          "coordinates": [ 6366, 1196 ]
+        },
+        {
+          "name": "Frostmaw's Burrows",
+          "type": "dungeon",
+          "coordinates": [ 5964, 864 ]
+        },
+        {
+          "name": "Sepulchre of Dragrimmar",
+          "type": "dungeon",
+          "coordinates": [ 5410, 1347 ]
+        },
+        {
+          "name": "Raven's Point",
+          "type": "dungeon",
+          "coordinates": [ 5162, 2000 ]
+        },
+        {
+          "name": "Slavers' Exile",
+          "type": "dungeon",
+          "coordinates": [ 5066, 2615 ]
+        },
+        {
+          "name": "Vloxen Excavations",
+          "type": "dungeon",
+          "coordinates": [ 4520, 2406 ],
+          "label": "<div style='width: 100%; position: absolute; top: -64px;'>Vloxen Excavations</div>"
+        },
+        {
+          "name": "Secret Lair of the Snowmen",
+          "type": "dungeon",
+          "coordinates": [ 5167, 2951 ]
+        },
+        {
+          "name": "Destruction's Depths",
+          "type": "mission_eotn",
+          "coordinates": [ 5957, 2431 ]
+        },
+        {
+          "name": "Curse of the Nornbear",
+          "type": "mission_eotn",
+          "coordinates": [ 5479, 1431 ]
+        },
+        {
+          "name": "Blood Washes Blood",
+          "type": "mission_eotn",
+          "coordinates": [ 6498, 1290 ]
+        },
+        {
+          "name": "A Gate Too Far",
+          "type": "mission_eotn",
+          "coordinates": [ 5162, 1926 ]
+        },
+        {
+          "name": "A Time for Heroes",
+          "type": "mission_eotn",
+          "coordinates": [ 6106, 3398 ]
+        }
+      ]
+    },
+    {
+      "name": "Charr Homelands",
+      "areas": [
+        {
+          "name": "Grothmar Wardowns",
+          "coordinates": [ 6993, 1725 ]
+        },
+        {
+          "name": "Dalada Uplands",
+          "coordinates": [ 7576, 1565 ]
+        },
+        {
+          "name": "Sacnoth Valley",
+          "coordinates": [ 7575, 2079 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Doomlore Shrine",
+          "type": "city",
+          "coordinates": [ 7418, 1405 ]
+        },
+        {
+          "name": "Ooze Pit",
+          "type": "dungeon",
+          "coordinates": [ 7096, 1892 ]
+        },
+        {
+          "name": "Cathedral of Flames",
+          "type": "dungeon",
+          "coordinates": [ 7371, 1374 ],
+          "label": "<div style='width: 100%; position: absolute; top: -64px;'>Cathedral of Flames</div>"
+        },
+        {
+          "name": "Rragar's Menagerie",
+          "type": "dungeon",
+          "coordinates": [ 7378, 2239 ]
+        },
+        {
+          "name": "Catacombs of Kathandrax",
+          "type": "dungeon",
+          "coordinates": [ 7787, 2237 ]
+        },
+        {
+          "name": "Against the Charr",
+          "type": "mission_eotn",
+          "coordinates": [ 7090, 1768 ]
+        },
+        {
+          "name": "Warband of Brothers",
+          "type": "mission_eotn",
+          "coordinates": [ 7371, 1280 ]
+        },
+        {
+          "name": "Assault on the Stronghold",
+          "type": "mission_eotn",
+          "coordinates": [ 7549, 1924 ]
+        }
+
+      ]
+    },
+    {
+      "name": "Tarnished Coast",
+      "areas": [
+        {
+          "name": "Arbor Bay",
+          "coordinates": [ 2619, 6045 ]
+        },
+        {
+          "name": "Riven Earth",
+          "coordinates": [ 2044, 5994 ]
+        },
+        {
+          "name": "Magus Stones",
+          "coordinates": [ 1479, 6236 ]
+        },
+        {
+          "name": "Alcazia Tangle",
+          "coordinates": [ 2051, 6410 ]
+        },
+        {
+          "name": "Sparkfly Swamp",
+          "coordinates": [ 4248, 6426 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Vlox's Falls",
+          "type": "outpost",
+          "coordinates": [ 2793, 5882 ]
+        },
+        {
+          "name": "Tarnished Haven",
+          "type": "outpost",
+          "coordinates": [ 2286, 6540 ]
+        },
+        {
+          "name": "Rata Sum",
+          "type": "city",
+          "coordinates": [ 1650, 6070 ]
+        },
+        {
+          "name": "Gadd's Encampment",
+          "type": "outpost",
+          "coordinates": [ 4110, 6675 ]
+        },
+        {
+          "name": "Shards of Orr",
+          "type": "dungeon",
+          "coordinates": [ 2715, 6253 ]
+        },
+        {
+          "name": "Arachni's Haunt",
+          "type": "dungeon",
+          "coordinates": [ 1351, 6436 ]
+        },
+        {
+          "name": "Oola's Lab",
+          "type": "dungeon",
+          "coordinates": [ 1256, 6151 ]
+        },
+        {
+          "name": "Bloodstone Caves",
+          "type": "dungeon",
+          "coordinates": [ 4351, 6696 ]
+        },
+        {
+          "name": "Bogroot Growths",
+          "type": "dungeon",
+          "coordinates": [ 4358, 6147 ]
+        },
+        {
+          "name": "G.O.L.E.M.",
+          "type": "mission_eotn",
+          "coordinates": [ 1899, 5864 ],
+          "wiki": "Genius_Operated_Living_Enchanted_Manifestation"
+        },
+        {
+          "name": "The Elusive Golemancer",
+          "type": "mission_eotn",
+          "coordinates": [ 1256, 6080 ]
+        },
+        {
+          "name": "Finding the Bloodstone",
+          "type": "mission_eotn",
+          "coordinates": [ 4352, 6766 ]
+        }
+      ]
+    },
+    {
+      "name": "Bonus Mission Pack",
+      "areas": [
+        {
+          "name": "The Flight North",
+          "coordinates": [ 6864, 2468 ]
+        },
+        {
+          "name": "The Rise of the White Mantle",
+          "coordinates": [ 3512, 3928 ]
+        }
+      ],
+      "locations": [
+      ]
+    }
+
+  ]
+}

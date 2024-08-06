@@ -155,7 +155,7 @@ public sealed class Map
     public static readonly Map TheCatacombs = new() { Id = 145, Name = "The Catacombs", WikiUrl = "https://wiki.guildwars.com/wiki/The_Catacombs" };
     public static readonly Map LakesideCounty = new() { Id = 146, Name = "Lakeside County", WikiUrl = "https://wiki.guildwars.com/wiki/Lakeside_County" };
     public static readonly Map TheNorthlands = new() { Id = 147, Name = "The Northlands", WikiUrl = "https://wiki.guildwars.com/wiki/The_Northlands" };
-    public static readonly Map AscalonCityPresearing = new() { Id = 148, Name = "Ascalon City", WikiUrl = "https://wiki.guildwars.com/wiki/Ascalon_City" };
+    public static readonly Map AscalonCityPresearing = new() { Id = 148, Name = "Ascalon City (Pre-searing)", WikiUrl = "https://wiki.guildwars.com/wiki/Ascalon_City" };
     public static readonly Map AscalonAcademy = new() { Id = 149, Name = "Ascalon Academy", WikiUrl = "https://wiki.guildwars.com/wiki/Ascalon_Academy" };
     public static readonly Map AscalonAcademyPvPBattleMission = new() { Id = 150, Name = "Ascalon Academy", WikiUrl = "https://wiki.guildwars.com/wiki/Ascalon_Academy" };
     public static readonly Map AscalonAcademyunk = new() { Id = 151, Name = "Ascalon Academy", WikiUrl = "https://wiki.guildwars.com/wiki/Ascalon_Academy" };
@@ -173,7 +173,7 @@ public sealed class Map
     public static readonly Map TheBarradinEstateOutpost = new() { Id = 163, Name = "The Barradin Estate", WikiUrl = "https://wiki.guildwars.com/wiki/The_Barradin_Estate" };
     public static readonly Map AshfordAbbeyOutpost = new() { Id = 164, Name = "Ashford Abbey", WikiUrl = "https://wiki.guildwars.com/wiki/Ashford_Abbey" };
     public static readonly Map FoiblesFairOutpost = new() { Id = 165, Name = "Foible's Fair", WikiUrl = "https://wiki.guildwars.com/wiki/Foible's_Fair" };
-    public static readonly Map FortRanikPreSearingOutpost = new() { Id = 166, Name = "Fort Ranik", WikiUrl = "https://wiki.guildwars.com/wiki/Fort_Ranik" };
+    public static readonly Map FortRanikPreSearingOutpost = new() { Id = 166, Name = "Fort Ranik (Pre-searing)", WikiUrl = "https://wiki.guildwars.com/wiki/Fort_Ranik" };
     public static readonly Map BurningIsleMission = new() { Id = 167, Name = "Burning Isle", WikiUrl = "https://wiki.guildwars.com/wiki/Burning_Isle" };
     public static readonly Map DruidsIsleMission = new() { Id = 168, Name = "Druids Isle", WikiUrl = "https://wiki.guildwars.com/wiki/Druids_Isle" };
     public static readonly Map FrozenIsleMission = new() { Id = 169, Name = "Frozen Isle", WikiUrl = "https://wiki.guildwars.com/wiki/Frozen_Isle" };

@@ -1,0 +1,128 @@
+{
+  "id": 5,
+  "name": "Realm of Torment",
+  "dims": [ 3200, 2400 ],
+  "center": [ 2013, 1180 ],
+  "regions": [
+    {
+      "name": "Realm of Torment",
+      "areas": [
+        {
+          "name": "Domain of Anguish",
+          "coordinates": [ 1599, 1780 ]
+        },
+        {
+          "name": "Ravenheart Gloom",
+          "coordinates": [ 1673, 1718 ]
+        },
+        {
+          "name": "The Foundry of Failed Creations",
+          "coordinates": [ 1438, 1749 ]
+        },
+        {
+          "name": "The Ebony Citadel of Mallyx",
+          "coordinates": [ 1599, 1813 ]
+        },
+        {
+          "name": "Stygian Veil",
+          "coordinates": [ 1700, 1923 ]
+        },
+        {
+          "name": "City of Torc'qua",
+          "coordinates": [ 1534, 1978 ]
+        },
+        {
+          "name": "Nightfallen Jahai",
+          "coordinates": [ 501, 334 ]
+        },
+        {
+          "name": "Vortex",
+          "coordinates": [ 1604, 758 ]
+        },
+        {
+          "name": "Domain of Fear",
+          "coordinates": [ 2652, 348 ]
+        },
+        {
+          "name": "Domain of Pain",
+          "coordinates": [ 329, 1173 ]
+        },
+        {
+          "name": "Throne of Secrets",
+          "coordinates": [ 1043, 1158 ]
+        },
+        {
+          "name": "Abaddon's Gate",
+          "coordinates": [ 1254, 1142 ]
+        },
+        {
+          "name": "Heart of Abaddon",
+          "coordinates": [ 1407, 1102 ]
+        },
+        {
+          "name": "The Shadow Nexus",
+          "coordinates": [ 2858, 1165 ]
+        },
+        {
+          "name": "Depths of Madness",
+          "coordinates": [ 577, 1931 ]
+        },
+        {
+          "name": "Domain of Secrets",
+          "coordinates": [ 2638, 1930 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Gate of Torment",
+          "type": "city_realm",
+          "coordinates": [ 2013, 1180 ]
+        },
+        {
+          "name": "Gate of Anguish",
+          "type": "gate_of_anguish",
+          "coordinates": [ 2065, 1415 ]
+        },
+        {
+          "name": "Abaddon's Gate",
+          "type": "mission_realm",
+          "coordinates": [ 1365, 1270 ],
+          "wiki": "Abaddon's_Gate_(outpost)"
+        },
+        {
+          "name": "Gate of the Nightfallen Lands",
+          "type": "outpost_realm",
+          "coordinates": [ 1865, 1090 ]
+        },
+        {
+          "name": "Gate of Pain",
+          "type": "mission_realm",
+          "coordinates": [ 1860, 1225 ],
+          "wiki": "Gate_of_Pain_(outpost)"
+        },
+        {
+          "name": "Gate of Fear",
+          "type": "outpost_realm",
+          "coordinates": [ 2126, 1040 ]
+        },
+        {
+          "name": "Gate of Secrets",
+          "type": "outpost_realm",
+          "coordinates": [ 2164, 1305 ]
+        },
+        {
+          "name": "Gate of Madness",
+          "type": "mission_realm",
+          "coordinates": [ 1905, 1365 ],
+          "wiki": "Gate_of_Madness_(outpost)"
+        },
+        {
+          "name": "The Shadow Nexus",
+          "type": "challenge_realm",
+          "coordinates": [ 2820, 1250 ],
+          "wiki": "The_Shadow_Nexus_(outpost)"
+        }
+      ]
+    }
+  ]
+}

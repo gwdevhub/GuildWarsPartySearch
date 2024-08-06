@@ -1,0 +1,228 @@
+﻿body, html {
+    height: 100%;
+    width: 100%;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#mapdiv {
+    /*cursor: crosshair;*/
+}
+
+
+.legal {
+    font-size: 10pt;
+    color: #808080;
+    text-align: left;
+    margin: 5px;
+    height: 150px;
+}
+
+.logo {
+    width: 90%;
+    margin: 5%;
+}
+
+#menu_button {
+    position: absolute;
+    color: #ffffff;
+    right: 20px;
+    top: 20px;
+    z-index: 1000;
+    font-size: 20pt;
+    font-weight: bold;
+}
+
+    #menu_button > a {
+        text-decoration: none;
+        color: #ffffff;
+    }
+
+
+#menu {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 100%;
+    min-height: 100%;
+    width: 300px;
+    z-index: 9999;
+    padding: 0;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.90);
+    opacity: 1;
+    transition: right 0.3s, opacity 0.3s;
+    border-left: solid 1px #808080;
+    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.9);
+    color: #ffffff;
+    overflow-y: auto;
+}
+
+    #menu a {
+        color: #ffffff;
+        text-decoration: none;
+    }
+
+    #menu.hidden {
+        right: -300px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+.maplist {
+    border-top: solid 1px #808080;
+}
+
+    .maplist div {
+        line-height: 32px;
+        height: 32px;
+        padding: 5px;
+        margin: 0;
+        border-bottom: solid 1px #808080;
+    }
+
+        .maplist div:hover {
+            background: #1d1d1d;
+        }
+
+        .maplist div.disabled {
+            color: #808080;
+            user-select: none
+        }
+
+        .maplist div img {
+            float: left;
+        }
+
+
+        .maplist div.disabled img {
+            filter: grayscale(50%);
+            opacity: 0.5;
+        }
+
+
+
+.mapLink.selected, .mapLink.selected:hover {
+    background: rgba(64, 64, 64, 0.90);
+}
+/*
+    *
+    * Markers
+    *
+*/
+.marker .holder {
+    cursor: default;
+    font-family: 'Segoe UI', sans-serif;
+    display: block;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+/*
+    *
+    * Areas
+    *
+*/
+
+
+.marker_area .holder {
+    min-width: 200px;
+    min-height: 32px;
+    width: 200px;
+    height: 32px;
+    font-size: 12pt;
+    line-height: 32px;
+    color: #ffeedd;
+    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black, 0px 0px 2px black;
+}
+
+    .marker_area .holder > a {
+        color: #ffeedd;
+    }
+
+
+
+/*
+    *
+    * Outposts
+    *
+*/
+
+.marker_location {
+    font-size: 14pt;
+    color: #ffeebb;
+    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black, 0px 0px 2px black;
+}
+
+    .marker_location .label {
+        position: absolute;
+        max-width: 200px;
+        min-width: 200px;
+        width: 200px;
+        text-align: center;
+        bottom: -8px;
+    }
+
+    .marker_location .holder > a {
+        color: #ffeebb;
+    }
+
+    .marker_location.small .label {
+        transform: translateX(calc(-50% + 32px));
+    }
+
+    .marker_location.medium .label {
+        transform: translateX(calc(-50% + 48px));
+    }
+
+    .marker_location.large .label {
+        transform: translateX(calc(-50% + 96px));
+        bottom: 2px;
+    }
+
+.label {
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+}
+
+
+.icon {
+    cursor: pointer;
+    display: inline-block;
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+    transition: opacity 0.5s, transform 0.5s;
+}
+
+    .icon.scaled_70 {
+        transform: scale(0.7,0.7);
+    }
+
+
+    .icon.scaled_40 {
+        transform: scale(0.4,0.4);
+    }
+
+    .icon.hidden {
+        transform: scale(0.5,0.5);
+        display: none;
+    }
+
+.label.hidden {
+    display: none;
+    pointer-events: none;
+}
+
+.seethru{
+    opacity: 0.3
+}

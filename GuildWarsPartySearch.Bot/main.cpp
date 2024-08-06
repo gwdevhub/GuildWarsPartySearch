@@ -85,6 +85,7 @@ void to_json(nlohmann::json& j, const PartySearchAdvertisement& p) {
 static struct thread  bot_thread;
 static std::atomic<bool> running;
 static std::atomic<bool> ready;
+static std::string last_payload;
 
 static PluginObject* plugin_hook;
 static BotConfiguration bot_configuration;
@@ -343,6 +344,12 @@ static bool proc_state() {
 
 static void send_info() {
     const auto payload = get_json_payload();
+    if (payload == last_payload) {
+        return;
+    }
+
+    // Pretty lazy way to detect changes
+    last_payload = payload;
     LogInfo(payload.c_str());
     ws->send(payload);
     ws->poll();
@@ -423,7 +430,7 @@ static int main_bot(void* param)
         }
 
         send_info();
-        time_sleep_sec(5);
+        time_sleep_sec(1);
     }
 
 cleanup:

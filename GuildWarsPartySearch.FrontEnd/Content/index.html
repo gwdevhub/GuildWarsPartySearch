@@ -1,46 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Our Site!</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Guild Wars Party Search</title>
+
+    <meta charset="UTF-8" />
+    <meta name="description" content="Guild Wars Party Search" />
+    <meta name="keywords" content="guild wars, gw, gw1, map, tyria, kryta, elona, ascalon, that_shaman, that shaman, shaman, guildwarspartysearch, gwdevhub" />
+
+    <meta property="og:title" content="Guild Wars 1 Interactive Map" />
+    <meta property="og:image" content="https://www.thatshaman.com/tools/gw1map/cards/square.jpg" />
+    <meta property="og:type" content="website" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Maitree&display=swap" rel="stylesheet">
+    <link href="stylesheet.css?v=20200516001" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.2.3/leaflet.draw.css" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-        }
-
-        header {
-            font-size: 2em;
-            margin-bottom: 20px;
-        }
-
-        .content {
-            margin-bottom: 20px;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .button:hover {
-            background-color: #0056b3;
-        }
     </style>
 </head>
 <body>
-    <script src="scripts/scripts.js"></script>
-    <header>Welcome to GuildWarsPartySearch!</header>
-    <div id="status"></div>
-    <div class="content">
-        <p>Let's get the party started!</p>
+    <div id="menu_button">
+        <a href="javascript:toggleMenu()"><div><img src="resources/hamburger.png" /></div></a>
     </div>
-    <div id="entries"></div>
+    <div id="menu" class="hidden">
+        <a href="javascript:toggleMenu()"><img src="resources/logo.png" class="logo" /></a>
+        <div class="maplist">
+            <a href="javascript:loadMap(0)"><div class="mapLink" data-id="0"><img src="resources/icons/outpost.png" /> Ascalon (pre-Searing)</div></a>
+            <a href="javascript:loadMap(1)"><div class="mapLink" data-id="1"><img src="resources/icons/outpost.png" /> Tyria</div></a>
+            <a href="javascript:loadMap(2)"><div class="mapLink" data-id="2"><img src="resources/icons/outpost.png" /> Cantha</div></a>
+            <a href="javascript:loadMap(3)"><div class="mapLink" data-id="3"><img src="resources/icons/outpost.png" /> Elona</div></a>
+            <a href="javascript:loadMap(4)"><div class="mapLink" data-id="4"><img src="resources/icons/outpost.png" /> the Battle Isles</div></a>
+            <a href="javascript:loadMap(5)"><div class="mapLink" data-id="5"><img src="resources/icons/outpost.png" /> Realm of Torment</div></a>
+        </div>
+        <div class="legal">
+            <p>
+                Guild Wars Party Search tool by <a href="https://opencollective.com/gwdevhub_collective" target="_blank">gwdevhub</a>
+            </p>
+            <p>
+                <a href="https://www.guildwars.com" target="_blank">Guild Wars</a> Interactive map by <a href="https://www.thatshaman.com" target="_blank">that_shaman</a>
+            </p>
+            <p>
+                NCSOFT, the interlocking NC logo, ArenaNet, Guild Wars, Guild Wars Factions, Guild Wars Nightfall, Guild Wars: Eye of the North, Guild Wars 2, and all associated logos and designs are trademarks or registered trademarks of NCSOFT Corporation. All other trademarks are the property of their respective owners.
+            </p>
+        </div>
+    </div>
+    <div id="mapdiv" class="zoomed" style="width: 100vw; height: 100vh; background-color: #000000;"></div>
+    <script src="app.js?v=20200516001"></script>
 </body>
 </html>
