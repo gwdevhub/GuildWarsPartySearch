@@ -208,6 +208,7 @@ static std::string get_json_payload() {
 
     nlohmann::json j;
     j["map_id"] = map_id;
+    j["district"] = district;
     j["parties"] = ads;
     return j.dump();
 }
@@ -348,11 +349,16 @@ static void send_info() {
         return;
     }
 
-    // Pretty lazy way to detect changes
-    last_payload = payload;
     LogInfo(payload.c_str());
     ws->send(payload);
     ws->poll();
+    if (ws->getReadyState() != easywsclient::WebSocket::OPEN) {
+        LogInfo("Disconnected while attempting to send payload");
+        return;
+    }
+
+    // Pretty lazy way to detect changes
+    last_payload = payload;
     time_sleep_sec(5);
 }
 
@@ -365,7 +371,8 @@ static void connect_websocket() {
 
         LogInfo("Attempting to connect. Try %d/%d", i, bot_configuration.connection_retries);
         try {
-            ws = easywsclient::WebSocket::from_url(bot_configuration.web_socket_url, character_name);
+            const auto user_agent = std::format("{}-{}-{}", character_name.c_str(), bot_configuration.map_id, static_cast<uint32_t>(bot_configuration.district));
+            ws = easywsclient::WebSocket::from_url(bot_configuration.web_socket_url, user_agent);
             
         }
         catch (std::exception) {
@@ -391,7 +398,6 @@ static void connect_websocket() {
 
 static int main_bot(void* param)
 {
-    time_sleep_sec(5);
     CallbackEntry_Init(&EventType_WorldMapLeave_entry, on_map_left, NULL);
     RegisterEvent(EventType_WorldMapLeave, &EventType_WorldMapLeave_entry);
 

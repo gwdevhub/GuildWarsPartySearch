@@ -13,6 +13,8 @@ public sealed class PartySearchTableEntity : ITableEntity
 
     public int DistrictLanguage { get; set; }
 
+    public int District { get; set; }
+
     public int MapId { get; set; }
 
     public int PartyId { get; set; }

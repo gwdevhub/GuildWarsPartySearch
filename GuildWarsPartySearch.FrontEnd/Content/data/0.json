@@ -34,7 +34,6 @@
           "type": "outpost",
           "coordinates": [ 1072, 690 ],
           "wiki": "Ascalon_City_(pre-Searing)",
-          "mapName": "Ascalon City (Pre-searing)",
           "mapId": 148
         },
         {
@@ -42,28 +41,24 @@
           "type": "outpost",
           "coordinates": [ 1420, 1034 ],
           "wiki": "Fort_Ranik_(pre-Searing)",
-          "mapName": "Fort Ranik (Pre-searing)",
           "mapId": 166
         },
         {
           "name": "Ashford Abbey",
           "type": "outpost",
           "coordinates": [ 830, 856 ],
-          "mapName": "Ashford Abbey",
           "mapId": 164
         },
         {
           "name": "The Barradin Estate",
           "type": "outpost",
           "coordinates": [ 512, 784 ],
-          "mapName": "The Barradin Estate",
           "mapId": 163
         },
         {
           "name": "Foible's Fair",
           "type": "outpost",
           "coordinates": [ 696, 1082 ],
-          "mapName": "Foible's Fair",
           "mapId": 165
         }
       ]

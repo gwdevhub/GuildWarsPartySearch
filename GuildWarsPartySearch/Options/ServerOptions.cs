@@ -7,6 +7,9 @@ public sealed class ServerOptions
     [JsonPropertyName(nameof(Certificate))]
     public string? Certificate { get; set; }
 
+    [JsonPropertyName(nameof(CertificatePassword))]
+    public string? CertificatePassword { get; set; }
+
     [JsonPropertyName(nameof(ApiKey))]
     public string? ApiKey { get; set; }
 

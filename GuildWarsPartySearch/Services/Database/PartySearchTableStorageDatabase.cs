@@ -65,13 +65,13 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
         }
     }
 
-    public async Task<bool> SetPartySearches(Map map, List<PartySearchEntry> partySearch, CancellationToken cancellationToken)
+    public async Task<bool> SetPartySearches(Map map, int district, List<PartySearchEntry> partySearch, CancellationToken cancellationToken)
     {
-        var partitionKey = BuildPartitionKey(map);
+        var partitionKey = BuildPartitionKey(map, district);
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SetPartySearches), partitionKey);
         try
         {
-            var existingEntries = await this.GetPartySearches(map, cancellationToken);
+            var existingEntries = await this.GetPartySearches(map, district, cancellationToken);
             var entries = partySearch.Select(e =>
             {
                 var rowKey = e.Sender ?? string.Empty;
@@ -81,6 +81,7 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
                     RowKey = rowKey,
                     DistrictLanguage = (int?)e.DistrictLanguage ?? 0,
                     DistrictNumber = e.DistrictNumber,
+                    District = district,
                     Message = e.Message,
                     Sender = e.Sender,
                     PartyId = e.PartyId,
@@ -123,6 +124,7 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
                             e.HardMode != (int)(existingEntry?.HardMode ?? 0) ||
                             e.Level != existingEntry?.Level ||
                             e.Message != existingEntry.Message ||
+                            e.District != existingEntry.District ||
                             e.DistrictLanguage != (int)(existingEntry?.DistrictLanguage ?? DistrictLanguage.English) ||
                             e.DistrictNumber != existingEntry?.DistrictNumber;
                 })
@@ -148,9 +150,9 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
         }
     }
 
-    public async Task<List<PartySearchEntry>?> GetPartySearches(Map map, CancellationToken cancellationToken)
+    public async Task<List<PartySearchEntry>?> GetPartySearches(Map map, int district, CancellationToken cancellationToken)
     {
-        var partitionKey = BuildPartitionKey(map);
+        var partitionKey = BuildPartitionKey(map, district);
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearches), partitionKey);
         try
         {
@@ -173,7 +175,7 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
 
     private async Task<List<Server.Models.PartySearch>> QuerySearches(string query, CancellationToken cancellationToken)
     {
-        var responseList = new Dictionary<string, (Map, List<PartySearchEntry>)>();
+        var responseList = new Dictionary<string, ((Map, int), List<PartySearchEntry>)>();
         var response = this.client.QueryAsync<PartySearchTableEntity>(query, cancellationToken: cancellationToken);
         await foreach (var entry in response)
         {
@@ -181,7 +183,7 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
             {
                 _ = Map.TryParse(entry.MapId!, out var map);
                 var districtLanguage = (DistrictLanguage)entry.DistrictLanguage;
-                tuple = (map, new List<PartySearchEntry>());
+                tuple = ((map, entry.District), new List<PartySearchEntry>());
                 responseList[entry.PartitionKey] = tuple;
             }
 
@@ -200,19 +202,21 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
                 SearchType = entry.SearchType,
                 Primary = primary,
                 Secondary = secondary,
-                Level = entry.Level
+                Level = entry.Level,
+                District = entry.District
             });
         }
 
         return responseList.Values.Select(tuple => new Server.Models.PartySearch
         {
-            Map = tuple.Item1,
+            Map = tuple.Item1.Item1,
+            District = tuple.Item1.Item2,
             PartySearchEntries = tuple.Item2
         }).ToList();
     }
 
-    private static string BuildPartitionKey(Map map)
+    private static string BuildPartitionKey(Map map, int district)
     {
-        return $"{map.Id}";
+        return $"{map.Id}-{district}";
     }
 }

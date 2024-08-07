@@ -15,5 +15,5 @@ public interface IPartySearchService
 
     Task<Result<PostPartySearchRequest, PostPartySearchFailure>> PostPartySearch(PostPartySearchRequest? request, CancellationToken cancellationToken);
 
-    Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Map? map, CancellationToken cancellationToken);
+    Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Map? map, int? district, CancellationToken cancellationToken);
 }

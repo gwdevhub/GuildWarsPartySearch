@@ -8,6 +8,9 @@ public sealed class PartySearchEntry
     [JsonPropertyName("party_id")]
     public int PartyId { get; set; }
 
+    [JsonPropertyName("district")]
+    public int District { get; set; }
+
     [JsonPropertyName("district_number")]
     public int DistrictNumber { get; set; }
 

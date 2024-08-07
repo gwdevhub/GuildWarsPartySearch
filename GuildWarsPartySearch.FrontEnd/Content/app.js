@@ -1,8 +1,34 @@
 ﻿var map;
 var mapData = {};
 var loading = true;
+var initialized = false;
 
 var continent = 1;
+
+var districts = [
+    "Current",
+    "International",
+    "American",
+    "Europe - English",
+    "Europe - French",
+    "Europe - German",
+    "Europe - German",
+    "Europe - Italian",
+    "Europe - Spanish",
+    "Europe - Polish",
+    "Europe - Russian",
+    "Asia - Korean",
+    "Asia - Chinese",
+    "Asia - Japanese"
+];
+
+var searchTypes = [
+    "Hunting",
+    "Mission",
+    "Quest",
+    "Trade",
+    "Guild"
+];
 
 var markerSize = {
     "dungeon": "small",
@@ -41,8 +67,81 @@ var markerSize = {
     "vortex": "large"
 };
 
-var locationMap = new Map();
+let locationMap = new Map();
+let maps = [];
+let professions = [];
 
+function getEntriesForMapId(searches, mapId) {
+    let entries = new Map();
+
+    searches.forEach((value, key) => {
+        if (key.startsWith(mapId + '-')) {
+            entries.set(key, value);
+        }
+    });
+
+    return entries;
+}
+
+function aggregatePartySearches(searches) {
+    const aggregated = {};
+
+    searches.forEach(value => {
+        const mapId = value.map_id;
+        const district = value.district;
+
+        // Ensure the first level (mapId) exists
+        if (!aggregated[mapId]) {
+            aggregated[mapId] = {};
+        }
+
+        // Ensure the second level (district) exists
+        if (!aggregated[mapId][district]) {
+            aggregated[mapId][district] = [];
+        }
+
+        // Assuming value is an array of party searches
+        value.parties.forEach(partySearch => {
+            if (!aggregated[mapId][district][partySearch.search_type]) {
+                aggregated[mapId][district][partySearch.search_type] = []
+            }
+
+            aggregated[mapId][district][partySearch.search_type].push(partySearch);
+        });
+    });
+
+    return aggregated;
+}
+
+async function fetchObj(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error('Failed to fetch' + url + ". Response: " + response.statusText);
+    }
+    const mapsData = await response.json();
+    return mapsData;
+}
+
+async function initializeData() {
+    try {
+        maps = await fetchObj("/models/maps");
+    } catch (error) {
+        console.error('Failed to load maps:', error);
+    }
+
+    try {
+        professions = await fetchObj("/models/professions");
+    } catch (error) {
+        console.error('Failed to load professions:', error);
+    }
+
+    initialized = true;
+}
+
+function getDecodedHash() {
+    const hash = window.location.hash.substring(1);
+    return decodeURIComponent(hash);
+}
 
 function updateHash() {
     var zoom = map.getZoom();
@@ -55,6 +154,22 @@ function getURLParameter(name) {
     return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search) || [null, ''])[1].replace(/\+/g, '%20')) || null;
 }
 
+function toggleMenu() {
+    document.querySelector("#menu").classList.toggle("hidden");
+}
+
+function showMenu() {
+    if (document.querySelector("#menu").classList.contains("hidden")) {
+        toggleMenu();
+    }
+}
+
+function hideMenu() {
+    if (!document.querySelector("#menu").classList.contains("hidden")) {
+        toggleMenu();
+    }
+}
+
 var urlCoordinates = {
     v: getURLParameter("v"),
     x: getURLParameter("x"),
@@ -63,9 +178,56 @@ var urlCoordinates = {
     c: getURLParameter("c")
 };
 
+function buildPartyList() {
+    let filter = getDecodedHash();
+    let searches = locationMap;
+    if (filter) {
+        let mapObj = maps.find(map => map.name === filter);
+        searches = getEntriesForMapId(searches, mapObj.id.toString());
+    }
 
-function toggleMenu() {
-    document.querySelector("#menu").classList.toggle("hidden");
+    let aggregatedPartySearches = aggregatePartySearches(searches);
+    let container = document.querySelector(".partyList");
+    container.innerHTML = "";
+    for (const mapId in aggregatedPartySearches) {
+        // '{"party_id":8,"district_number":2,"language":0,"message":"","sender":"Seraph Stormcaller","party_size":1,"hero_count":0,"hardmode":0,"search_type":1,"primary":6,"secondary":5,"level":20}'
+        let mapObj = maps.find(map => map.id.toString() === mapId);
+        let outerDiv = `<div><div class="mapName">${mapObj.name}</div>`;
+        for (const district in aggregatedPartySearches[mapId]) {
+            outerDiv += `<div class="district">${districts[district]}</div>`;
+            for (const searchType in aggregatedPartySearches[mapId][district]) {
+                outerDiv += `<div class="searchType">${searchTypes[searchType]}</div >`;
+                for (const partyId in aggregatedPartySearches[mapId][district][searchType]) {
+                    const party = aggregatedPartySearches[mapId][district][searchType][partyId];
+                    const primary = professions[party.primary.toString()];
+                    const secondary = professions[party.secondary.toString()];
+                    outerDiv += `<div class="partySearch">${primary.alias}/${secondary.alias}${party.level} ${party.sender}</div>`;
+                }
+            }
+        }
+
+        outerDiv += `</div>`;
+        container.innerHTML += outerDiv;
+    }
+}
+
+function mapClicked(map) {
+    if (map.mapId) {
+        let partySearches = getEntriesForMapId(locationMap, map.mapId.toString());
+        let found = false;
+        partySearches.forEach(partySearch => {
+            if (partySearch.parties.length > 0) {
+                let mapObj = maps.find(m => m.id === map.mapId);
+                window.location.hash = mapObj.name;
+                found = true;
+            }
+        });
+
+        if (found) {
+            buildPartyList();
+            showMenu();
+        }
+    }
 }
 
 function unproject(coord) {
@@ -77,7 +239,7 @@ function project(coord) {
 }
 
 function loadMap(mapIndex) {
-
+    hideMenu();
     continent = mapIndex;
     document.querySelector("#menu").classList.add("hidden");
 
@@ -159,6 +321,7 @@ function loadMap(mapIndex) {
             }
 
             zoomEnd();
+            updateEntriesDiv();
         });
 }
 
@@ -230,7 +393,7 @@ function areaLabel(data) {
     return L.marker(unproject(data.coordinates), {
         icon: L.divIcon({
             iconSize: null,
-            className: "marker marker_area seethru",
+            className: "marker marker_area seethru unclickable",
             html: "<div class='holder'><span class='label'>" + data.name + "</span></div>"
         }),
         options: {
@@ -256,18 +419,17 @@ function locationMarker(data) {
     return L.marker(unproject(data.coordinates), {
         icon: L.divIcon({
             iconSize: null,
-            className: "marker marker_location " + markerSize[data.type] + (data.mapName === undefined ? " seethru" : ""),
+            className: "marker marker_location " + markerSize[data.type] + " seethru",
             html: "<div" + divId + " class='holder'><img class='icon' src='resources/icons/" + data.type + ".png'/><div class='label'>" + label + "</div></div>"
         }),
         options: {
             wiki: wiki,
-            mapName: data.mapName
+            mapId: data.mapId
         }
     }).on('click', function (e) {
 
-        if (map.getZoom() > 1 &&
-            e.target.options.options.mapName) {
-            window.open(window.location.origin + "/party-search/maps/" + e.target.options.options.mapName);
+        if (map.getZoom() > 1) {
+            mapClicked(e.target.options.options);
         }
     });
 }
@@ -278,28 +440,42 @@ if (urlCoordinates.c !== null) {
 
 function updateEntriesDiv() {
     let allInnerDivs = document.querySelectorAll(".marker.marker_location .holder[id]");
-    allInnerDivs.forEach(function (label) {
-        let parentMarker = label.closest('.marker.marker_location');
+    allInnerDivs.forEach(function (innerDiv) {
+        let parentMarker = innerDiv.closest('.marker.marker_location');
         if (parentMarker) {
             parentMarker.classList.add('seethru');
+            parentMarker.classList.add('unclickable');
         }
     });
 
     locationMap.keys().forEach(function (key) {
-        let matchingInnerDivs = Array.prototype.filter.call(allInnerDivs, function (innerDiv) {
-            return innerDiv.id === key;
-        });
         if (locationMap.get(key).parties.length > 0) {
+            let matchingInnerDivs = Array.prototype.filter.call(allInnerDivs, function (innerDiv) {
+                return innerDiv.id && key.startsWith(innerDiv.id);
+            });
             matchingInnerDivs.forEach(function (innerDiv) {
                 let parentMarker = innerDiv.closest('.marker.marker_location');
                 if (parentMarker) {
                     parentMarker.classList.remove('seethru');
+                    parentMarker.classList.remove('unclickable');
                 }
             });
         }
     });
 }
 
+function waitForInitialization() {
+    return new Promise((resolve) => {
+        const checkInitialization = () => {
+            if (initialized) {
+                resolve();
+            } else {
+                setTimeout(checkInitialization, 100); // Check again after 100ms
+            }
+        };
+        checkInitialization();
+    });
+}
 
 function connectToLiveFeed() {
     const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/party-search/live-feed';
@@ -309,12 +485,14 @@ function connectToLiveFeed() {
     function openWebSocket() {
         socket = new WebSocket(wsUrl);
 
-        socket.onopen = function (event) {
+        socket.onopen = async function (event) {
             console.log('WebSocket connection established:', event);
             retryDelay = 1000;
+            await initializeData();
+            showMenu();
         };
 
-        socket.onmessage = function (event) {
+        socket.onmessage = async function (event) {
             console.log('WebSocket message received:', event);
             if (event.data === 'pong') {
                 console.log('Pong received from server.');
@@ -322,11 +500,13 @@ function connectToLiveFeed() {
                 let obj = JSON.parse(event.data);
                 console.log(obj);
                 obj.Searches.forEach(searchEntry => {
-                    let combinedKey = `${searchEntry.map_id}`;
+                    let combinedKey = `${searchEntry.map_id}-${searchEntry.district}`;
                     locationMap.set(combinedKey, searchEntry);
                 });
 
+                await waitForInitialization();
                 updateEntriesDiv();
+                buildPartyList();
             }
         };
 

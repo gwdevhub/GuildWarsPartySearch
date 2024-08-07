@@ -55,14 +55,19 @@ public sealed class PartySearchService : IPartySearchService
         return this.partySearchDatabase.GetAllPartySearches(cancellationToken);
     }
 
-    public async Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Map? map, CancellationToken cancellationToken)
+    public async Task<Result<List<PartySearchEntry>, GetPartySearchFailure>> GetPartySearch(Map? map, int? district, CancellationToken cancellationToken)
     {
         if (map is null)
         {
             return new GetPartySearchFailure.InvalidMap();
         }
 
-        var result = await this.partySearchDatabase.GetPartySearches(map, cancellationToken);
+        if (district is null)
+        {
+            return new GetPartySearchFailure.InvalidDistrictRegion();
+        }
+
+        var result = await this.partySearchDatabase.GetPartySearches(map, district.Cast<int>(), cancellationToken);
         if (result is not List<PartySearchEntry> entries)
         {
             return new GetPartySearchFailure.EntriesNotFound();
@@ -81,6 +86,11 @@ public sealed class PartySearchService : IPartySearchService
         if (request.Map is null)
         {
             return new PostPartySearchFailure.InvalidMap();
+        }
+
+        if (request.District is null)
+        {
+            return new PostPartySearchFailure.InvalidDistrictRegion();
         }
 
         if (request.PartySearchEntries is null)
@@ -119,6 +129,7 @@ public sealed class PartySearchService : IPartySearchService
         //TODO: Implement district validation, party size validation, party max size validation and npcs validation
         var result = await this.partySearchDatabase.SetPartySearches(
             request.Map,
+            request.District.Cast<int>(),
             request.PartySearchEntries,
             cancellationToken);
 
