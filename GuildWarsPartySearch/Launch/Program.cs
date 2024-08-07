@@ -39,14 +39,6 @@ public class Program
         builder.Configuration.AddConfiguration(config);
         builder.WebHost.ConfigureKestrel(kestrelOptions =>
         {
-            kestrelOptions.Listen(IPAddress.Any, 443, listenOptions =>
-            {
-                var serverOptions = builder.Configuration.GetRequiredSection(nameof(ServerOptions)).Get<ServerOptions>();
-                var certificateBytes = Convert.FromBase64String(serverOptions?.Certificate!);
-                var certificate = new X509Certificate2(certificateBytes, serverOptions?.CertificatePassword);
-                listenOptions.UseHttps(certificate);
-            });
-
             kestrelOptions.Listen(IPAddress.Any, 80, listenOptions =>
             {
             });
