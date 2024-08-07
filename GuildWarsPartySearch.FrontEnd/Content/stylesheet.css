@@ -92,35 +92,37 @@ body {
     overflow-y: auto;
     border-bottom: solid 1px #808080;
 }
-    .partyList div {
-        padding-top: 5px;
-        padding-bottom: 5px;
-        padding-right: 5px;
+
+    .partyList div .mapRow {
+        border-bottom: solid 1px #808080;
+        font-size: 10pt;
+        padding-left: 15px;
+        cursor: pointer;
+        height: 30px;
+        line-height: 30px;
     }
 
-        .partyList div .mapName {
-            border-bottom: solid 1px #808080;
-            font-size: 10pt;
-            padding-left: 15px;
+        .partyList div .mapRow:hover {
+            background: #1d1d1d;
         }
 
-        .partyList div .district {
-            border-bottom: solid 1px #808080;
-            font-size: 9pt;
-            padding-left: 25px;
-        }
+    .partyList div .district {
+        border-bottom: solid 1px #808080;
+        font-size: 9pt;
+        padding-left: 25px;
+    }
 
-        .partyList div .searchType {
-            border-bottom: solid 1px #808080;
-            font-size: 8pt;
-            padding-left: 35px;
-        }
+    .partyList div .searchType {
+        border-bottom: solid 1px #808080;
+        font-size: 8pt;
+        padding-left: 35px;
+    }
 
-        .partyList div .partySearch {
-            border-bottom: solid 1px #808080;
-            font-size: 8pt;
-            padding-left: 45px;
-        }
+    .partyList div .partySearch {
+        border-bottom: solid 1px #808080;
+        font-size: 8pt;
+        padding-left: 45px;
+    }
 
 .maplist {
     flex: 0 0 auto;
@@ -268,7 +270,6 @@ body {
     }
 
 .label.hidden {
-    display: none;
     pointer-events: none;
 }
 
@@ -276,6 +277,86 @@ body {
     opacity: 0.3;
 }
 
+.hidden {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
 .unclickable{
     cursor: initial !important;
 }
+
+.centered {
+    text-align: center;
+}
+
+.small {
+    font-size: 8pt;
+}
+
+#popupWindow {
+    position: absolute;
+    right: 25%;
+    top: 25%;
+    height: 50%;
+    min-height: 50%;
+    max-height: 50%;
+    width: 50%;
+    z-index: 10000;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.90);
+    opacity: 1;
+    transition: opacity 0.3s;
+    display: block;
+    color: #ffffff;
+    overflow-y: auto;
+    overflow-x: auto;
+    border: solid 1px #808080;
+}
+
+    #popupWindow.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    #popupWindow .closeButton {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 2px 8px 2px 8px;
+        background: #00000000;
+        cursor: pointer;
+    }
+
+        #popupWindow .closeButton:hover {
+            background: #1d1d1d;
+        }
+
+    #popupWindow .table{
+        display: table;
+        width: 100%;
+    }
+
+    #popupWindow .table .row{
+        display: table-row;
+        margin-left: 5px;
+    }
+
+    #popupWindow .divider {
+        font-size: 12pt;
+        margin: 5px;
+    }
+
+    #popupWindow .table .row .header{
+        display: table-cell;
+        text-align: center;
+        font-size: 11pt;
+    }
+
+    #popupWindow .table .row .cell {
+            display: table-cell;
+            text-align: center;
+            font-size: 10pt;
+    }

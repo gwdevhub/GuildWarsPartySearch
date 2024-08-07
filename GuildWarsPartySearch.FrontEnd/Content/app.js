@@ -71,6 +71,19 @@ let locationMap = new Map();
 let maps = [];
 let professions = [];
 
+// Set up event delegation once
+document.querySelector('.partyList').addEventListener('click', function (event) {
+    if (event.target.classList.contains('mapRow')) {
+        let mapId = event.target.getAttribute('data-map-id');
+        let mapObj = maps.find(map => map.id.toString() === mapId);
+        if (!mapObj) {
+            return;
+        }
+
+        mapRowClicked(mapObj);
+    }
+});
+
 function getEntriesForMapId(searches, mapId) {
     let entries = new Map();
 
@@ -83,30 +96,38 @@ function getEntriesForMapId(searches, mapId) {
     return entries;
 }
 
-function aggregatePartySearches(searches) {
+function aggregateSearchesByCity(searches) {
     const aggregated = {};
 
     searches.forEach(value => {
         const mapId = value.map_id;
-        const district = value.district;
-
-        // Ensure the first level (mapId) exists
         if (!aggregated[mapId]) {
-            aggregated[mapId] = {};
+            aggregated[mapId] = [];
         }
 
-        // Ensure the second level (district) exists
-        if (!aggregated[mapId][district]) {
-            aggregated[mapId][district] = [];
-        }
-
-        // Assuming value is an array of party searches
         value.parties.forEach(partySearch => {
-            if (!aggregated[mapId][district][partySearch.search_type]) {
-                aggregated[mapId][district][partySearch.search_type] = []
+            aggregated[mapId].push(partySearch);
+        });
+    });
+
+    return aggregated;
+}
+
+function aggregateSearchesByMapAndType(searches) {
+    const aggregated = {};
+
+    searches.forEach(value => {
+        const mapId = value.map_id;
+        if (!aggregated[mapId]) {
+            aggregated[mapId] = [];
+        }
+
+        value.parties.forEach(partySearch => {
+            if (!aggregated[mapId][partySearch.search_type]) {
+                aggregated[mapId][partySearch.search_type] = [];
             }
 
-            aggregated[mapId][district][partySearch.search_type].push(partySearch);
+            aggregated[mapId][partySearch.search_type].push(partySearch);
         });
     });
 
@@ -179,36 +200,131 @@ var urlCoordinates = {
 };
 
 function buildPartyList() {
-    let filter = getDecodedHash();
-    let searches = locationMap;
-    if (filter) {
-        let mapObj = maps.find(map => map.name === filter);
-        searches = getEntriesForMapId(searches, mapObj.id.toString());
-    }
-
-    let aggregatedPartySearches = aggregatePartySearches(searches);
+    let aggregatedPartySearches = aggregateSearchesByCity(locationMap);
     let container = document.querySelector(".partyList");
     container.innerHTML = "";
     for (const mapId in aggregatedPartySearches) {
         // '{"party_id":8,"district_number":2,"language":0,"message":"","sender":"Seraph Stormcaller","party_size":1,"hero_count":0,"hardmode":0,"search_type":1,"primary":6,"secondary":5,"level":20}'
         let mapObj = maps.find(map => map.id.toString() === mapId);
-        let outerDiv = `<div><div class="mapName">${mapObj.name}</div>`;
-        for (const district in aggregatedPartySearches[mapId]) {
-            outerDiv += `<div class="district">${districts[district]}</div>`;
-            for (const searchType in aggregatedPartySearches[mapId][district]) {
-                outerDiv += `<div class="searchType">${searchTypes[searchType]}</div >`;
-                for (const partyId in aggregatedPartySearches[mapId][district][searchType]) {
-                    const party = aggregatedPartySearches[mapId][district][searchType][partyId];
-                    const primary = professions[party.primary.toString()];
-                    const secondary = professions[party.secondary.toString()];
-                    outerDiv += `<div class="partySearch">${primary.alias}/${secondary.alias}${party.level} ${party.sender}</div>`;
-                }
-            }
-        }
+        let outerDiv = `<div><div class="mapRow" data-map-id="${mapId}")>${mapObj.name} - ${aggregatedPartySearches[mapId.toString()].length}</div>`;
 
         outerDiv += `</div>`;
         container.innerHTML += outerDiv;
     }
+}
+
+function mapRowClicked(mapObj) {
+    showPopupWindow();
+    buildPartyWindow(mapObj.id);
+}
+
+function hidePartyWindowRows(rowType) {
+    const tbody = document.querySelector("#popupWindowTable tbody");
+    const existingRows = tbody.querySelectorAll(`.${rowType}`);
+    existingRows.forEach(row => row.remove());
+    const pivotRow = document.getElementById(`${rowType}`);
+    if (!pivotRow.classList.contains('hidden')) {
+        pivotRow.classList.add('hidden');
+    }
+}
+
+function populatePartyWindowRows(rowType, partySearchesArray) {
+    const tbody = document.querySelector("#popupWindowTable tbody");
+    const existingRows = tbody.querySelectorAll(`.${rowType}`);
+    existingRows.forEach(row => row.remove());
+    const pivotRow = document.getElementById(`${rowType}`);
+    if (pivotRow.classList.contains('hidden')) {
+        pivotRow.classList.remove('hidden');
+    }
+    let desiredIndex = Array.from(tbody.children).indexOf(pivotRow) + 1;
+    for (var partySearchId in partySearchesArray) {
+        let partySearch = partySearchesArray[partySearchId];
+        let newRow = document.createElement('tr');
+        newRow.className = rowType + " row small centered";
+
+        let leaderCell = document.createElement('td');
+        leaderCell.textContent = partySearch.sender || 'N/A';
+        newRow.appendChild(leaderCell);
+
+        let regionCell = document.createElement('td');
+        regionCell.textContent = districts[partySearch.district] || 'N/A';
+        newRow.appendChild(regionCell);
+
+        let sizeCell = document.createElement('td');
+        sizeCell.textContent = partySearch.party_size || 'N/A';
+        newRow.appendChild(sizeCell);
+
+        let districtCell = document.createElement('td');
+        districtCell.textContent = partySearch.district_number || 'N/A';
+        newRow.appendChild(districtCell);
+
+        let descriptionCell = document.createElement('td');
+        descriptionCell.textContent = partySearch.message || 'N/A';
+        newRow.appendChild(descriptionCell);
+
+        tbody.insertBefore(newRow, tbody.children[desiredIndex]);
+        desiredIndex++;
+    }
+}
+
+function buildPartyWindow(mapId) {
+    let map = maps.find(m => m.id == mapId);
+    if (!map) {
+        return;
+    }
+
+    let aggregatedPartySearches = aggregateSearchesByMapAndType(locationMap);
+    if (!aggregatedPartySearches[map.id.toString()]) {
+        return;
+    }
+
+    let popupWindowTitle = document.querySelector("#popupWindowTitle");
+    popupWindowTitle.textContent = `Party Search - ${map.name}`;
+    if (aggregatedPartySearches[map.id.toString()] &&
+        aggregatedPartySearches[map.id.toString()][0] &&
+        aggregatedPartySearches[map.id.toString()][0].length > 0) {
+        populatePartyWindowRows("huntingRow", aggregatedPartySearches[map.id.toString()][0]);
+    }
+    else {
+        hidePartyWindowRows("huntingRow");
+    }
+
+    if (aggregatedPartySearches[map.id.toString()] &&
+        aggregatedPartySearches[map.id.toString()][1] &&
+        aggregatedPartySearches[map.id.toString()][1].length > 0) {
+        populatePartyWindowRows("missionRow", aggregatedPartySearches[map.id.toString()][1]);
+    }
+    else {
+        hidePartyWindowRows("missionRow");
+    }
+
+    if (aggregatedPartySearches[map.id.toString()] &&
+        aggregatedPartySearches[map.id.toString()][2] &&
+        aggregatedPartySearches[map.id.toString()][2].length > 0) {
+        populatePartyWindowRows("questRow", aggregatedPartySearches[map.id.toString()][2]);
+    }
+    else {
+        hidePartyWindowRows("questRow");
+    }
+
+    if (aggregatedPartySearches[map.id.toString()] &&
+        aggregatedPartySearches[map.id.toString()][3] &&
+        aggregatedPartySearches[map.id.toString()][3].length > 0) {
+        populatePartyWindowRows("tradeRow", aggregatedPartySearches[map.id.toString()][3]);
+    }
+    else {
+        hidePartyWindowRows("tradeRow");
+    }
+
+    if (aggregatedPartySearches[map.id.toString()] &&
+        aggregatedPartySearches[map.id.toString()][4] &&
+        aggregatedPartySearches[map.id.toString()][4].length > 0) {
+        populatePartyWindowRows("guildRow", aggregatedPartySearches[map.id.toString()][4]);
+    }
+    else {
+        hidePartyWindowRows("guildRow");
+    }
+
 }
 
 function mapClicked(map) {
@@ -224,8 +340,8 @@ function mapClicked(map) {
         });
 
         if (found) {
-            buildPartyList();
-            showMenu();
+            buildPartyWindow(map.mapId.toString());
+            showPopupWindow();
         }
     }
 }
@@ -274,8 +390,7 @@ function loadMap(mapIndex) {
                 crs: L.CRS.Simple,
                 attributionControl: false
             }).on('click', function (e) {
-                //let p = project(e.latlng);
-                //console.log("[" + p.x + "," + p.y + "]");
+
             }).on('zoomend', function () {
                 zoomEnd();
             }).on('moveend zoomend', function () {
@@ -285,7 +400,8 @@ function loadMap(mapIndex) {
                     updateHash();
                 }
             }).on('click focus movestart', function () {
-                document.querySelector("#menu").classList.add("hidden");
+                hideMenu();
+                hidePopupWindow();
             });
 
 
@@ -321,7 +437,7 @@ function loadMap(mapIndex) {
             }
 
             zoomEnd();
-            updateEntriesDiv();
+            updateMarkers();
         });
 }
 
@@ -438,7 +554,7 @@ if (urlCoordinates.c !== null) {
     continent = urlCoordinates.c;
 }
 
-function updateEntriesDiv() {
+function updateMarkers() {
     let allInnerDivs = document.querySelectorAll(".marker.marker_location .holder[id]");
     allInnerDivs.forEach(function (innerDiv) {
         let parentMarker = innerDiv.closest('.marker.marker_location');
@@ -505,7 +621,7 @@ function connectToLiveFeed() {
                 });
 
                 await waitForInitialization();
-                updateEntriesDiv();
+                updateMarkers();
                 buildPartyList();
             }
         };
@@ -525,6 +641,22 @@ function connectToLiveFeed() {
     }
 
     openWebSocket();
+}
+
+function togglePopupWindow(){
+    document.querySelector("#popupWindow").classList.toggle("hidden");
+}
+
+function hidePopupWindow(){
+    if (!document.querySelector("#popupWindow").classList.contains("hidden")) {
+        togglePopupWindow();
+    }
+}
+
+function showPopupWindow(){
+    if (document.querySelector("#popupWindow").classList.contains("hidden")) {
+        togglePopupWindow();
+    }
 }
 
 loadMap(continent);

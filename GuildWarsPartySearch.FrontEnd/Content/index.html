@@ -54,7 +54,41 @@
             </p>
         </div>
     </div>
-    <div id="mapdiv" class="zoomed" style="width: 100vw; height: 100vh; background-color: #000000;"></div>
+    <div id="mapdiv" class="zoomed" style="width: 100vw; height: 100vh; background-color: #ffffff;"></div>
+    <div id="popupWindow" class="hidden">
+        <div id="popupWindowTitle" class="divider">Party Search</div>
+        <div class="closeButton" onclick="hidePopupWindow()">x</div>
+        <table id="popupWindowTable" class="table">
+            <thead>
+                <tr class="row">
+                    <th class="header">Party Leader</th>
+                    <th class="header">Region</th>
+                    <th class="header">Size</th>
+                    <th class="header">District</th>
+                    <th class="header">Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="divider row" id="missionRow">
+                    <td colspan="4">Mission</td>
+                </tr>
+                <tr class="divider row" id="questRow">
+                    <td colspan="4">Quest</td>
+                </tr>
+                <tr class="divider row" id="huntingRow">
+                    <td colspan="4">Hunting</td>
+                </tr>
+                <tr class="divider row" id="guildRow">
+                    <td colspan="4">Guild</td>
+                </tr>
+                <tr class="divider row" id="tradeRow">
+                    <td colspan="4">Trade</td>
+                </tr>
+                <tr class="divider" id="endRow">
+                </tr>
+            </tbody>
+        </table>
+    </div>
     <script src="app.js?v=20200516001"></script>
 </body>
 </html>
