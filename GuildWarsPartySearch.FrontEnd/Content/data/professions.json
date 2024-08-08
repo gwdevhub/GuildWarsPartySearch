@@ -1,0 +1,57 @@
+[
+    {
+        "id": 0,
+        "name": "None",
+        "alias": "Any"
+    },
+    {
+        "id": 1,
+        "name": "Warrior",
+        "alias": "W"
+    },
+    {
+        "id": 2,
+        "name": "Ranger",
+        "alias": "R"
+    },
+    {
+        "id": 3,
+        "name": "Monk",
+        "alias": "Mo"
+    },
+    {
+        "id": 4,
+        "name": "Necromancer",
+        "alias": "N"
+    },
+    {
+        "id": 5,
+        "name": "Mesmer",
+        "alias": "Me"
+    },
+    {
+        "id": 6,
+        "name": "Elementalist",
+        "alias": "E"
+    },
+    {
+        "id": 7,
+        "name": "Assassin",
+        "alias": "A"
+    },
+    {
+        "id": 8,
+        "name": "Ritualist",
+        "alias": "Rt"
+    },
+    {
+        "id": 9,
+        "name": "Paragon",
+        "alias": "P"
+    },
+    {
+        "id": 10,
+        "name": "Dervish",
+        "alias": "D"
+    }
+]
