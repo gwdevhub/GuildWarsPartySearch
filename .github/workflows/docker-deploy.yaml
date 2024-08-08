@@ -57,7 +57,9 @@ jobs:
 
     - name: Build docker image
       run: |
-        docker build -t guildwarspartysearch.server GuildWarsPartySearch\.
+        cd GuildWarsPartySearch
+        docker build -t guildwarspartysearch.server .
+        cd ..
         docker save -o guildwarspartysearch.server.tar guildwarspartysearch.server
 
     - name: Deploy Docker image to host
