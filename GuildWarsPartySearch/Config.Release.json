@@ -11,12 +11,12 @@
       {
         "Endpoint": "*",
         "Period": "10m",
-        "Limit": 100
+        "Limit": 10000
       },
       {
         "Endpoint": "*",
         "Period": "12h",
-        "Limit": 3000
+        "Limit": 300000
       }
     ]
   },
@@ -36,11 +36,9 @@
     "Name": "Release"
   },
   "ServerOptions": {
-    "ApiKey": "[APIKEY]",
-    "Certificate": "[CERTIFICATE_BASE64]",
-    "CertificatePassword": "[CERTIFICATE_PASSWORD]",
     "InactivityTimeout": "0:0:15",
-    "HeartbeatFrequency": "0:0:1"
+    "HeartbeatFrequency": "0:0:1",
+    "Port": 80
   },
   "StorageAccountOptions": {
     "Name": "guildwarspartysearch"

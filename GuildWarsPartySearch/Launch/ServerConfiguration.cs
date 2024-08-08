@@ -42,7 +42,7 @@ public static class ServerConfiguration
     public static IConfigurationBuilder SetupConfiguration(this IConfigurationBuilder builder)
     {
         builder.ThrowIfNull()
-            .SetBasePath(Directory.GetCurrentDirectory())
+            .SetBasePath(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? throw new InvalidOperationException("Unable to figure out base directory"))
             .AddJsonFile("Config.json", true)
             .AddEnvironmentVariables();
 

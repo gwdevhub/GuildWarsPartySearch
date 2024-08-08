@@ -36,11 +36,9 @@
     "Name": "Debug"
   },
   "ServerOptions": {
-    "ApiKey": "[APIKEY]",
-    "Certificate": "[CERTIFICATE_BASE64]",
-    "CertificatePassword": "[CERTIFICATE_PASSWORD]",
     "InactivityTimeout": "0:0:5",
-    "HeartbeatFrequency": "0:0:1"
+    "HeartbeatFrequency": "0:0:1",
+    "Port": 80
   },
   "StorageAccountOptions": {
     "Name": "guildwarspartysearch"

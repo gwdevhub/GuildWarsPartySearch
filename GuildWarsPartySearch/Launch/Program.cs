@@ -39,7 +39,8 @@ public class Program
         builder.Configuration.AddConfiguration(config);
         builder.WebHost.ConfigureKestrel(kestrelOptions =>
         {
-            kestrelOptions.Listen(IPAddress.Any, 80, listenOptions =>
+            var options = builder.Configuration.GetRequiredSection(nameof(ServerOptions)).Get<ServerOptions>();
+            kestrelOptions.Listen(IPAddress.Any, options?.Port ?? 80, listenOptions =>
             {
             });
         });
