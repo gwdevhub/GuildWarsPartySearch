@@ -1,8 +1,6 @@
-﻿using GuildWarsPartySearch.Server.Options.Azure;
+﻿namespace GuildWarsPartySearch.Server.Options;
 
-namespace GuildWarsPartySearch.Server.Options;
-
-public class PartySearchTableOptions : IAzureTableStorageOptions
+public class PartySearchDatabaseOptions
 {
     public string TableName { get; set; } = default!;
 }

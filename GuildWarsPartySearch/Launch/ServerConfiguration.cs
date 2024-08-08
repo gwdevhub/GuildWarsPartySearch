@@ -5,10 +5,11 @@ using GuildWarsPartySearch.Server.Filters;
 using GuildWarsPartySearch.Server.Options;
 using GuildWarsPartySearch.Server.Services.BotStatus;
 using GuildWarsPartySearch.Server.Services.CharName;
-using GuildWarsPartySearch.Server.Services.Content;
 using GuildWarsPartySearch.Server.Services.Database;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Options;
 using System.Core.Extensions;
 using System.Extensions;
 using System.Text.Json.Serialization;
@@ -28,10 +29,6 @@ public static class ServerConfiguration
 
     public static WebApplicationBuilder SetupHostedServices(this WebApplicationBuilder builder)
     {
-        builder.ThrowIfNull()
-            .Services
-            .AddHostedService<ContentRetrievalService>();
-
         return builder;
     }
 
@@ -57,31 +54,35 @@ public static class ServerConfiguration
     public static WebApplicationBuilder SetupOptions(this WebApplicationBuilder builder)
     {
         return builder.ThrowIfNull()
-            .ConfigureAzureClientSecretCredentials<AzureCredentialsOptions>()
             .ConfigureExtended<EnvironmentOptions>()
             .ConfigureExtended<ContentOptions>()
-            .ConfigureExtended<PartySearchTableOptions>()
-            .ConfigureExtended<StorageAccountOptions>()
-            .ConfigureExtended<IpWhitelistTableOptions>()
+            .ConfigureExtended<PartySearchDatabaseOptions>()
             .ConfigureExtended<ServerOptions>()
-            .ConfigureExtended<TelemetryOptions>();
+            .ConfigureExtended<IpWhitelistOptions>()
+            .ConfigureExtended<SQLiteDatabaseOptions>();
     }
 
     public static IServiceCollection SetupServices(this IServiceCollection services)
     {
         services.ThrowIfNull();
-
+        services.AddSingleton<ILiveFeedService, LiveFeedService>();
+        services.AddSingleton<IBotStatusService, BotStatusService>();
+        services.AddSingleton<IIpWhitelistDatabase, IpWhitelistConfigDatabase>();
+        services.AddSingleton(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<SQLiteDatabaseOptions>>();
+            var absolutePath = Path.Combine(
+                Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? throw new InvalidOperationException("Unable to figure out base directory"), options.Value.Path);
+            SQLitePCL.raw.SetProvider(new SQLitePCL.SQLite3Provider_e_sqlite3());
+            var connection = new SqliteConnection($"Data Source={absolutePath}");
+            connection.Open();
+            return connection;
+        });
+        services.AddSingleton<IPartySearchDatabase, PartySearchSqliteDatabase>();
         services.AddScoped<UserAgentRequired>();
         services.AddScoped<IpWhitelistFilter>();
         services.AddScoped<IPartySearchService, PartySearchService>();
         services.AddScoped<ICharNameValidator, CharNameValidator>();
-        services.AddSingleton<IPartySearchDatabase, PartySearchTableStorageDatabase>();
-        services.AddSingleton<IIpWhitelistDatabase, IpWhitelistTableStorageDatabase>();
-        services.AddSingleton<ILiveFeedService, LiveFeedService>();
-        services.AddSingleton<IBotStatusService, BotStatusService>();
-        services.AddSingletonTableClient<PartySearchTableOptions>();
-        services.AddSingletonTableClient<IpWhitelistTableOptions>();
-        services.AddSingletonBlobContainerClient<ContentOptions>();
         return services;
     }
 

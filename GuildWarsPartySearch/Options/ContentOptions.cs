@@ -1,16 +1,9 @@
 ﻿using System.Text.Json.Serialization;
-using GuildWarsPartySearch.Server.Options.Azure;
 
 namespace GuildWarsPartySearch.Server.Options;
 
-public sealed class ContentOptions : IAzureBlobStorageOptions
+public sealed class ContentOptions
 {
-    [JsonPropertyName(nameof(UpdateFrequency))]
-    public TimeSpan UpdateFrequency { get; set; } = TimeSpan.FromMinutes(5);
-
     [JsonPropertyName(nameof(StagingFolder))]
     public string StagingFolder { get; set; } = "Content";
-
-    [JsonPropertyName(nameof(ContainerName))]
-    public string ContainerName { get; set; } = default!;
 }

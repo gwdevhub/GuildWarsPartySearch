@@ -14,24 +14,19 @@
     "HeartbeatFrequency": "0:0:1",
     "Port": 80
   },
-  "StorageAccountOptions": {
-    "Name": "guildwarspartysearch"
+  "SQLiteDatabaseOptions": {
+    "Path": "partysearches.db"
   },
-  "PartySearchTableOptions": {
+  "PartySearchDatabaseOptions": {
     "TableName": "searches"
   },
-  "IpWhitelistTableOptions": {
-    "TableName": "ipfiltering",
-    "CacheDuration": "0:15:0"
+  "IpWhitelistOptions": {
+    "Addresses": [
+      "127.0.0.1",
+      "localhost"
+    ]
   },
   "ContentOptions": {
-    "ContainerName": "content",
-    "UpdateFrequency": "0:5:0",
     "StagingFolder": "Content"
-  },
-  "AzureCredentialsOptions": {
-    "ClientSecret": "[AZURE_CLIENT_SECRET]",
-    "ClientId": "[AZURE_CLIENT_ID]",
-    "TenantId": "[AZURE_TENANT_ID]"
   }
 }

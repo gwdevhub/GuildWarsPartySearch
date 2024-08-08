@@ -1,6 +1,5 @@
 ﻿using GuildWarsPartySearch.Server.Services.Database;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Primitives;
 using System.Core.Extensions;
 using System.Extensions;
 
