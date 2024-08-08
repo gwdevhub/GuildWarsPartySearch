@@ -207,8 +207,8 @@ static std::string get_json_payload() {
     }
 
     nlohmann::json j;
-    j["map_id"] = map_id;
-    j["district"] = district;
+    j["map_id"] = bot_configuration.map_id;
+    j["district"] = bot_configuration.district;
     j["parties"] = ads;
     return j.dump();
 }

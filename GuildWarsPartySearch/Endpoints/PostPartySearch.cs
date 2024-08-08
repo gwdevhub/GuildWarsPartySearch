@@ -81,7 +81,12 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                     {
                         Map = message?.Map,
                         District = message?.District ?? 0,
-                        PartySearchEntries = message?.PartySearchEntries,
+                        PartySearchEntries = message?.PartySearchEntries?.Select(e =>
+                        {
+                            // Patch the input to match the original district
+                            e.District = message.District ?? 0;
+                            return e;
+                        }).ToList(),
                     }, cancellationToken);
                     return Success;
                 },

@@ -904,8 +904,9 @@ async function buildPartyList() {
 }
 
 function mapRowClicked(mapObj) {
+    window.location.hash = mapObj.name;
     showPopupWindow();
-    buildPartyWindow(mapObj.id);
+    buildPartyWindow();
 }
 
 function hidePartyWindowRows(rowType) {
@@ -957,13 +958,19 @@ function populatePartyWindowRows(rowType, partySearchesArray) {
     }
 }
 
-function buildPartyWindow(mapId) {
-    let map = maps.find(m => m.id == mapId);
+function buildPartyWindow() {
+    let mapName = window.location.hash;
+    if (!mapName) {
+        return;
+    }
+
+    mapName = decodeURIComponent(mapName.substring(1));
+    const map = maps.find(m => m.name === mapName);
     if (!map) {
         return;
     }
 
-    let aggregatedPartySearches = aggregateSearchesByMapAndType(locationMap);
+    const aggregatedPartySearches = aggregateSearchesByMapAndType(locationMap);
     if (!aggregatedPartySearches[map.id.toString()]) {
         return;
     }
@@ -1023,14 +1030,18 @@ function mapClicked(map) {
         let found = false;
         partySearches.forEach(partySearch => {
             if (partySearch.parties.length > 0) {
-                let mapObj = maps.find(m => m.id === map.mapId);
-                window.location.hash = mapObj.name;
                 found = true;
             }
         });
 
         if (found) {
-            buildPartyWindow(map.mapId.toString());
+            const mapObj = maps.find(m => m.id.toString() === map.mapId.toString());
+            if (!mapObj) {
+                return;
+            }
+
+            window.location.hash = mapObj.name;
+            buildPartyWindow();
             showPopupWindow();
         }
     }
@@ -1299,6 +1310,7 @@ function connectToLiveFeed() {
 
                 updateMarkers();
                 buildPartyList();
+                buildPartyWindow();
             }
         };
 
@@ -1326,6 +1338,7 @@ function togglePopupWindow(){
 function hidePopupWindow(){
     if (!document.querySelector("#popupWindow").classList.contains("hidden")) {
         togglePopupWindow();
+        window.location.hash = "";
     }
 }
 
