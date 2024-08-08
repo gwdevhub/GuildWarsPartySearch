@@ -13,6 +13,7 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
 {
     private readonly NamedTableClient<PartySearchTableOptions> client;
     private readonly ILogger<PartySearchTableStorageDatabase> logger;
+    private readonly ValueCache<List<Server.Models.PartySearch>> allPartiesCache;
 
     public PartySearchTableStorageDatabase(
         NamedTableClient<PartySearchTableOptions> namedTableClient,
@@ -20,6 +21,7 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
     {
         this.client = namedTableClient.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
+        this.allPartiesCache = new ValueCache<List<Server.Models.PartySearch>>(this.GetAllPartySearchesInternal, TimeSpan.MaxValue);
     }
 
     public async Task<List<Server.Models.PartySearch>> GetAllPartySearches(CancellationToken cancellationToken)
@@ -27,7 +29,7 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetAllPartySearches), string.Empty);
         try
         {
-            var response = await this.QuerySearches(string.Empty, cancellationToken);
+            var response = await this.allPartiesCache.GetValue();
             return response;
         }
         catch (Exception e)
@@ -42,7 +44,9 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByMap), string.Empty);
         try
         {
-            return await this.QuerySearches($"{nameof(PartySearchTableEntity.MapId)} eq {map.Id}", cancellationToken);
+            return (await this.allPartiesCache.GetValue())
+                .Where(p => map.Id == p.Map?.Id)
+                .ToList();
         }
         catch(Exception e)
         {
@@ -56,7 +60,9 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearchesByCharName), string.Empty);
         try
         {
-            return await this.QuerySearches($"{nameof(PartySearchTableEntity.Sender)} eq '{charName.Replace("'", "''")}'", cancellationToken);
+            return (await this.allPartiesCache.GetValue())
+                .Where(p => p.PartySearchEntries?.Any(e => e.Sender == charName) is true)
+                .ToList();
         }
         catch(Exception e)
         {
@@ -141,6 +147,8 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
                 scopedLogger.LogInformation($"[{response.Status}] {response.ReasonPhrase}");
             }
 
+            // Refresh local cache
+            await this.allPartiesCache.ForceCacheRefresh();
             return responses.Value.None(r => r.IsError);
         }
         catch (Exception e)
@@ -156,14 +164,10 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPartySearches), partitionKey);
         try
         {
-            var response = await this.QuerySearches($"PartitionKey eq '{partitionKey.Replace("'", "''")}'", cancellationToken);
-            var partition = response.FirstOrDefault();
-            if (partition is null)
-            {
-                return default;
-            }
-
-            return partition.PartySearchEntries;
+            return (await this.allPartiesCache.GetValue())
+                .Where(p => map.Id == p.Map?.Id && district == p.District)
+                .SelectMany(p => p.PartySearchEntries ?? [])
+                .ToList();
         }
         catch (Exception e)
         {
@@ -171,6 +175,22 @@ public sealed class PartySearchTableStorageDatabase : IPartySearchDatabase
         }
 
         return default;
+    }
+
+    private async Task<List<Server.Models.PartySearch>> GetAllPartySearchesInternal()
+    {
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetAllPartySearchesInternal), string.Empty);
+        try
+        {
+            scopedLogger.LogInformation("Refreshing party search cache");
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            return await this.QuerySearches(string.Empty, cts.Token);
+        }
+        catch(Exception ex)
+        {
+            scopedLogger.LogError(ex, "Failed to refresh cache");
+            throw;
+        }
     }
 
     private async Task<List<Server.Models.PartySearch>> QuerySearches(string query, CancellationToken cancellationToken)

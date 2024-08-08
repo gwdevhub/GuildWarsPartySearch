@@ -86,14 +86,14 @@ public static class ServerConfiguration
         services.AddScoped<UserAgentRequired>();
         services.AddScoped<IpWhitelistFilter>();
         services.AddScoped<IServerLifetimeService, ServerLifetimeService>();
-        services.AddScoped<IPartySearchDatabase, PartySearchTableStorageDatabase>();
-        services.AddScoped<IIpWhitelistDatabase, IpWhitelistTableStorageDatabase>();
         services.AddScoped<IPartySearchService, PartySearchService>();
         services.AddScoped<ICharNameValidator, CharNameValidator>();
+        services.AddSingleton<IPartySearchDatabase, PartySearchTableStorageDatabase>();
+        services.AddSingleton<IIpWhitelistDatabase, IpWhitelistTableStorageDatabase>();
         services.AddSingleton<ILiveFeedService, LiveFeedService>();
         services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
         services.AddSingleton<IBotStatusService, BotStatusService>();
-        services.AddScopedTableClient<PartySearchTableOptions>();
+        services.AddSingletonTableClient<PartySearchTableOptions>();
         services.AddSingletonTableClient<IpWhitelistTableOptions>();
         services.AddSingletonBlobContainerClient<ContentOptions>();
         return services;

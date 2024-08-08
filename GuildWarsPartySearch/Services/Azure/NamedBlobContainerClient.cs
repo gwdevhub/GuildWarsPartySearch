@@ -2,7 +2,6 @@
 using Azure.Core;
 using Azure.Storage;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using GuildWarsPartySearch.Server.Options.Azure;
 
 namespace GuildWarsPartySearch.Server.Services.Azure;

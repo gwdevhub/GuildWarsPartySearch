@@ -2,14 +2,10 @@
 using Azure.Core;
 using Azure.Data.Tables;
 using Azure.Data.Tables.Models;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Newtonsoft.Json;
-using System.Collections.Concurrent;
 using System.Core.Extensions;
 using System.Diagnostics;
 using System.Extensions;
 using System.Linq.Expressions;
-using System.Logging;
 
 namespace GuildWarsPartySearch.Server.Services.Azure;
 
