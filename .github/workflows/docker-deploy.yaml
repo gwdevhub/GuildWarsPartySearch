@@ -41,6 +41,7 @@ jobs:
     - name: Build server
       run: |
         dotnet publish .\GuildWarsPartySearch\GuildWarsPartySearch.Server.csproj -c Release -r linux-x64 -o .\GuildWarsPartySearch\Publish\
+        Copy-Item -Path .\GuildWarsPartySearch.FrontEnd\Content\ .\GuildWarsPartySearch\Publish\Content\ -Recurse
         Copy-Item -Path .\GuildWarsPartySearch\Config.Release.json -Destination GuildWarsPartySearch\Publish\Config.json
       shell: pwsh
 

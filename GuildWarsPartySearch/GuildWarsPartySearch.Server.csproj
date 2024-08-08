@@ -30,8 +30,8 @@
     <Copy SourceFiles="Config.$(Configuration).json" DestinationFiles="$(OutputPath)Config.json" />
   </Target>
 
-  <Target Name="CopyContentFiles" BeforeTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Local'">
-    <Message Importance="high" Text="Configuration is Local. Copying content files from ../GuildWarsPartySearch.FrontEnd/Content to $(OutputPath)Content" />
+  <Target Name="CopyContentFiles" BeforeTargets="PostBuildEvent">
+    <Message Importance="high" Text="Copying content files from ../GuildWarsPartySearch.FrontEnd/Content to $(OutputPath)Content" />
     <CreateItem Include="../GuildWarsPartySearch.FrontEnd/Content\**\*.*">
       <Output TaskParameter="Include" ItemName="ContentFiles" />
     </CreateItem>
