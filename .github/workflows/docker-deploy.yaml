@@ -24,20 +24,6 @@ jobs:
     - name: Install sshpass
       run: sudo apt-get update && sudo apt-get install -y sshpass
 
-    # - name: Create Docker Environment File
-    #   shell: pwsh
-    #   run: |
-    #     cd GuildWarsPartySearch
-    #     $envFilePath = "envfile"
-    #     $envContent = @(
-    #         "ApplicationInsights__InstrumentationKey=${{ secrets.AZURE_INSIGHTS_INSTRUMENTATIONKEY }}",
-    #         "AzureCredentialsOptions__ClientSecret=${{ secrets.AZURE_CLIENT_SECRET }}",
-    #         "AzureCredentialsOptions__ClientId=${{ secrets.AZURE_CLIENT_ID }}",
-    #         "AzureCredentialsOptions__TenantId=${{ secrets.AZURE_TENANT_ID }}"
-    #     )
-    #     $envContent | Set-Content -Path $envFilePath
-    #     Write-Host "Environment file created: $envFilePath"
-
     - name: Build server
       run: |
         dotnet publish .\GuildWarsPartySearch\GuildWarsPartySearch.Server.csproj -c Release -r linux-x64 -o Publish\
@@ -48,10 +34,10 @@ jobs:
     - name: Replace secrets in configuration
       shell: pwsh
       run: |
-        $jsonContent = Get-Content -Raw -Path GuildWarsPartySearch\Publish\Config.json | ConvertFrom-Json
-        $jsonContent.AzureCredentialsOptions.ClientSecret = "${{ secrets.AZURE_CLIENT_SECRET }}"
-        $jsonContent.AzureCredentialsOptions.ClientId = "${{ secrets.AZURE_CLIENT_ID }}"
-        $jsonContent.AzureCredentialsOptions.TenantId = "${{ secrets.AZURE_TENANT_ID }}"
+        $jsonContent = Get-Content -Raw -Path Publish\Config.json | ConvertFrom-Json
+        $trimmedIps = "${{ secrets.COMMA_SEPARATED_IPS }}" -split ',' | ForEach-Object { $_.Trim() }
+        $newAddressesArray = $jsonContent.IpWhitelistOptions.Addresses + $trimmedIps
+        $jsonContent.IpWhitelistOptions.Addresses = $newAddressesArray
         $updatedJsonContent = $jsonContent | ConvertTo-Json -Depth 32
         Set-Content -Path Publish\Config.json -Value $updatedJsonContent
 
