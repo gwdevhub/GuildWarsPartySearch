@@ -9,6 +9,7 @@ namespace GuildWarsPartySearch.Server.Filters;
 public class IpWhitelistFilter : IAsyncActionFilter
 {
     private const string XForwardedForHeaderKey = "X-Forwarded-For";
+    private const string CFConnectingIPHeaderKey = "CF-Connecting-IP";
 
     private readonly IIpWhitelistDatabase database;
     private readonly ILogger<IpWhitelistFilter> logger;
@@ -28,14 +29,20 @@ public class IpWhitelistFilter : IAsyncActionFilter
         var ipAddresses = await this.database.GetWhitelistedAddresses(context.HttpContext.RequestAborted);
         
         scopedLogger.LogDebug($"Received request");
-        if (context.HttpContext.Request.Headers.TryGetValue(XForwardedForHeaderKey, out var values))
+        if (context.HttpContext.Request.Headers.TryGetValue(XForwardedForHeaderKey, out var xForwardedForValues))
         {
-            scopedLogger.LogDebug($"X-Forwarded-For {string.Join(',', values.Select(s => s))}");
+            scopedLogger.LogDebug($"X-Forwarded-For {string.Join(',', xForwardedForValues.Select(s => s))}");
+        }
+
+        if (context.HttpContext.Request.Headers.TryGetValue(CFConnectingIPHeaderKey, out var cfConnectingIpValues))
+        {
+            scopedLogger.LogDebug($"CF-Connecting-IP {string.Join(',', cfConnectingIpValues.Select(s => s))}");
         }
 
         if (ipAddresses.None(whiteListed => 
             whiteListed == address ||
-            values.Contains(whiteListed)))
+            xForwardedForValues.Contains(whiteListed) ||
+            cfConnectingIpValues.Contains(whiteListed)))
         {
             context.Result = new ForbiddenResponseActionResult("Forbidden");
             return;
