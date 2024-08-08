@@ -1,5 +1,4 @@
 ﻿using GuildWarsPartySearch.Server.Models.Endpoints;
-using Microsoft.AspNetCore.Mvc;
 using System.Core.Extensions;
 using System.Net.WebSockets;
 using System.Text;
@@ -9,15 +8,17 @@ namespace GuildWarsPartySearch.Server.Services.Feed;
 
 public sealed class LiveFeedService : ILiveFeedService
 {
-    private static readonly List<WebSocket> Clients = [];
-
+    private readonly SemaphoreSlim semaphore = new(1);
+    private readonly List<WebSocket> clients = [];
     private readonly JsonSerializerOptions jsonSerializerOptions;
     private readonly ILogger<LiveFeedService> logger;
 
     public LiveFeedService(
+        IHostApplicationLifetime lifetime,
         JsonSerializerOptions jsonSerializerOptions,
         ILogger<LiveFeedService> logger)
     {
+        lifetime.ApplicationStopping.Register(this.ShutDownConnections);
         this.jsonSerializerOptions = jsonSerializerOptions.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
     }
@@ -50,33 +51,35 @@ public sealed class LiveFeedService : ILiveFeedService
         RemoveClientInternal(client);
     }
 
-    private static void AddClientInternal(WebSocket client)
+    private void AddClientInternal(WebSocket client)
     {
-        while (!Monitor.TryEnter(Clients)) { }
-        
-        Clients.Add(client);
-        
-        Monitor.Exit(Clients);
+        this.semaphore.Wait();
+        this.clients.Add(client);
+        this.semaphore.Release();
     }
 
-    private static void RemoveClientInternal(WebSocket client)
+    private void RemoveClientInternal(WebSocket client)
     {
-        while (!Monitor.TryEnter(Clients)) { }
-
-        Clients.Remove(client);
-
-        Monitor.Exit(Clients);
+        this.semaphore.Wait();
+        this.clients.Remove(client);
+        this.semaphore.Release();
     }
 
-    private static async Task ExecuteOnClientsInternal(Func<WebSocket, Task> action)
+    private async Task ExecuteOnClientsInternal(Func<WebSocket, Task> action)
     {
-        while (!Monitor.TryEnter(Clients)) { }
+        await this.semaphore.WaitAsync();
+        await Task.WhenAll(this.clients.Select(client => action(client)));
+        this.semaphore.Release();
+    }
 
-        foreach (var client in Clients)
+    private void ShutDownConnections()
+    {
+        this.semaphore.Wait();
+        foreach(var client in this.clients)
         {
-            await action(client);
+            client.Abort();
         }
 
-        Monitor.Exit(Clients);
+        this.semaphore.Release();
     }
 }

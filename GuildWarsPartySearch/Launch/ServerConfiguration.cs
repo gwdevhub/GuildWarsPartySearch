@@ -1,5 +1,4 @@
-﻿using AspNetCoreRateLimit;
-using GuildWarsPartySearch.Common.Converters;
+﻿using GuildWarsPartySearch.Common.Converters;
 using GuildWarsPartySearch.Server.Endpoints;
 using GuildWarsPartySearch.Server.Extensions;
 using GuildWarsPartySearch.Server.Filters;
@@ -9,10 +8,7 @@ using GuildWarsPartySearch.Server.Services.CharName;
 using GuildWarsPartySearch.Server.Services.Content;
 using GuildWarsPartySearch.Server.Services.Database;
 using GuildWarsPartySearch.Server.Services.Feed;
-using GuildWarsPartySearch.Server.Services.Lifetime;
 using GuildWarsPartySearch.Server.Services.PartySearch;
-using GuildWarsPartySearch.Server.Telemetry;
-using Microsoft.ApplicationInsights.Extensibility;
 using System.Core.Extensions;
 using System.Extensions;
 using System.Text.Json.Serialization;
@@ -42,8 +38,8 @@ public static class ServerConfiguration
     public static IConfigurationBuilder SetupConfiguration(this IConfigurationBuilder builder)
     {
         builder.ThrowIfNull()
-            .SetBasePath(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? throw new InvalidOperationException("Unable to figure out base directory"))
-            .AddJsonFile("Config.json", true)
+            .SetBasePath(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? throw new InvalidOperationException("Unable to figure out base directory"))
+            .AddJsonFile("Config.json", false)
             .AddEnvironmentVariables();
 
         return builder;
@@ -53,7 +49,6 @@ public static class ServerConfiguration
     {
         builder.ThrowIfNull()
             .ClearProviders()
-            .AddApplicationInsights()
             .AddConsole();
 
         return builder;
@@ -69,8 +64,6 @@ public static class ServerConfiguration
             .ConfigureExtended<StorageAccountOptions>()
             .ConfigureExtended<IpWhitelistTableOptions>()
             .ConfigureExtended<ServerOptions>()
-            .ConfigureExtended<IpRateLimitOptions>()
-            .ConfigureExtended<IpRateLimitPolicies>()
             .ConfigureExtended<TelemetryOptions>();
     }
 
@@ -78,20 +71,13 @@ public static class ServerConfiguration
     {
         services.ThrowIfNull();
 
-        services.AddApplicationInsightsTelemetry();
-        services.AddSingleton<ITelemetryInitializer, Mark4xxAsSuccessfulTelemetryInitializer>();
-        services.AddApplicationInsightsTelemetryProcessor<WebSocketTelemetryProcessor>();
-        services.AddMemoryCache();
-        services.AddInMemoryRateLimiting();
         services.AddScoped<UserAgentRequired>();
         services.AddScoped<IpWhitelistFilter>();
-        services.AddScoped<IServerLifetimeService, ServerLifetimeService>();
         services.AddScoped<IPartySearchService, PartySearchService>();
         services.AddScoped<ICharNameValidator, CharNameValidator>();
         services.AddSingleton<IPartySearchDatabase, PartySearchTableStorageDatabase>();
         services.AddSingleton<IIpWhitelistDatabase, IpWhitelistTableStorageDatabase>();
         services.AddSingleton<ILiveFeedService, LiveFeedService>();
-        services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
         services.AddSingleton<IBotStatusService, BotStatusService>();
         services.AddSingletonTableClient<PartySearchTableOptions>();
         services.AddSingletonTableClient<IpWhitelistTableOptions>();

@@ -1,10 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using AspNetCoreRateLimit;
 using GuildWarsPartySearch.Server.Options;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 using System.Net;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
 namespace GuildWarsPartySearch.Server.Launch;
@@ -46,7 +44,9 @@ public class Program
         });
 
         var contentOptions = builder.Configuration.GetRequiredSection(nameof(ContentOptions)).Get<ContentOptions>()!;
-        var contentDirectory = new DirectoryInfo(contentOptions.StagingFolder);
+        var contentDirectory = new DirectoryInfo(
+            Path.Combine(
+                Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? throw new InvalidOperationException("Unable to get content staging folder"), contentOptions.StagingFolder));
         if (!contentDirectory.Exists)
         {
             contentDirectory.Create();
@@ -54,7 +54,6 @@ public class Program
 
         var app = builder.Build();
         app.UseSwagger()
-           .UseIpRateLimiting()
            .UseWebSockets()
            .UseRouting()
            .UseEndpoints(endpoints =>

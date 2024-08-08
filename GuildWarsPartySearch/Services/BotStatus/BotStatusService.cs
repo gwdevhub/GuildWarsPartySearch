@@ -14,8 +14,10 @@ public sealed class BotStatusService : IBotStatusService
     private readonly ILogger<BotStatusService> logger;
 
     public BotStatusService(
+        IHostApplicationLifetime lifetime,
         ILogger<BotStatusService> logger)
     {
+        lifetime.ApplicationStopping.Register(this.ShutDownConnections);
         this.logger = logger.ThrowIfNull();
     }
 
@@ -94,5 +96,13 @@ public sealed class BotStatusService : IBotStatusService
 
         scopedLogger.LogDebug("Removed bot");
         return Task.FromResult(true);
+    }
+
+    private void ShutDownConnections()
+    {
+        foreach (var bot in this.connectedBots)
+        {
+            bot.Value.WebSocket.Abort();
+        }
     }
 }

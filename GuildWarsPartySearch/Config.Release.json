@@ -1,35 +1,9 @@
 {
-  "IpRateLimitOptions": {
-    "EnableEndpointRateLimiting": false,
-    "StackBlockedRequests": false,
-    "GeneralRules": [
-      {
-        "Endpoint": "*",
-        "Period": "1s",
-        "Limit": 20
-      },
-      {
-        "Endpoint": "*",
-        "Period": "10m",
-        "Limit": 10000
-      },
-      {
-        "Endpoint": "*",
-        "Period": "12h",
-        "Limit": 300000
-      }
-    ]
-  },
   "Logging": {
     "LogLevel": {
       "Default": "Debug",
       "Microsoft": "Warning",
       "Microsoft.Hosting.Lifetime": "Information"
-    },
-    "ApplicationInsights": {
-      "LogLevel": {
-        "Default": "Information"
-      }
     }
   },
   "EnvironmentOptions": {
@@ -54,17 +28,6 @@
     "ContainerName": "content",
     "UpdateFrequency": "0:1:0",
     "StagingFolder": "Content"
-  },
-  "ApplicationInsights": {
-    "InstrumentationKey": "[AZURE_INSIGHTS_INSTRUMENTATIONKEY]"
-  },
-  "TelemetryOptions": {
-    "SuccessfulStatusCodes": [
-      401,
-      403,
-      404,
-      429
-    ]
   },
   "AzureCredentialsOptions": {
     "ClientSecret": "[AZURE_CLIENT_SECRET]",
