@@ -36,6 +36,8 @@ extern "C" {
 #include <json.hpp>
 #include <easywsclient.hpp>
 
+#include "gw-helper.c"
+
 #define FAILED_TO_START             1
 #define FAILED_TO_LOAD_GAME         2
 #define FAILED_TO_LOAD_CHAR_NAME    3
@@ -44,7 +46,7 @@ extern "C" {
 
 struct BotConfiguration {
     std::string         web_socket_url = "ws://217.160.162.89/party-search/update";
-    uint32_t            map_id = 0;
+    uint32_t            map_id = 857; // Embark beach
     District            district = District::DISTRICT_AMERICAN;
     uint32_t            district_number = 0;
     int32_t             connection_retries = 10;
@@ -326,19 +328,45 @@ static void load_configuration() {
     }
 }
 
+static bool in_correct_outpost() {
+    if (!GetIsIngame())
+        return false;
+    if (!bot_configuration.map_id)
+        return true;
+    const auto map_id = GetMapId();
+    if (!map_id)
+        return false;
+
+    return ((!bot_configuration.map_id || map_id == bot_configuration.map_id) &&
+        district == bot_configuration.district &&
+        (!bot_configuration.district_number || district_number == bot_configuration.district_number));
+}
+
+static bool ensure_correct_outpost() {
+    if (in_correct_outpost())
+        return true;
+    LogInfo("Zoning into outpost");
+    int res = 0;
+    size_t retries = 4;
+    for (size_t i = 0; i < retries && !in_correct_outpost(); i++) {
+        LogInfo("Travel attempt %d of %d", i + 1, retries);
+        res = travel_wait(bot_configuration.map_id, bot_configuration.district, bot_configuration.district_number);
+        if (res == 38) {
+            retries = 50; // District full, more retries
+        }
+    }
+    if (!in_correct_outpost()) {
+        exit_with_status("Couldn't travel to outpost", 1);
+    }
+    LogInfo("I should be in outpost %d %d %d", GetMapId(), GetDistrict(), GetDistrictNumber());
+}
+
 static bool proc_state() {
     if (!GetIsIngame()) {
         return false;
     }
-
-    if (map_id != bot_configuration.map_id ||
-        district != bot_configuration.district ||
-        district_number != bot_configuration.district_number) {
-        LogError("Not in correct location. In %d %d %d. Required %d %d %d", map_id, district, district_number, bot_configuration.map_id, bot_configuration.district, bot_configuration.district_number);
-        Travel(bot_configuration.map_id, bot_configuration.district, bot_configuration.district_number);
-        time_sleep_sec(10);
+    if (!ensure_correct_outpost())
         return false;
-    }
 
     return true;
 }
