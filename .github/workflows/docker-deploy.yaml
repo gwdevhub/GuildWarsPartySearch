@@ -53,7 +53,7 @@ jobs:
         $jsonContent.AzureCredentialsOptions.ClientId = "${{ secrets.AZURE_CLIENT_ID }}"
         $jsonContent.AzureCredentialsOptions.TenantId = "${{ secrets.AZURE_TENANT_ID }}"
         $updatedJsonContent = $jsonContent | ConvertTo-Json -Depth 32
-        Set-Content -Path GuildWarsPartySearch\Publish\Config.json -Value $updatedJsonContent
+        Set-Content -Path Publish\Config.json -Value $updatedJsonContent
 
     - name: Build docker image
       run: |
