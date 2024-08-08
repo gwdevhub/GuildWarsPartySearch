@@ -66,6 +66,13 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ExecuteAsync), string.Empty);
         try
         {
+            if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
+                userAgentValue is not string userAgent)
+            {
+                throw new InvalidOperationException("Unable to extract user agent on client disconnect");
+            }
+
+            await this.botStatusService.RecordBotActivity(userAgent);
             var result = await this.partySearchService.PostPartySearch(message, cancellationToken);
             var response = result.Switch<PostPartySearchResponse>(
                 onSuccess: _ =>

@@ -882,14 +882,21 @@ var urlCoordinates = {
     c: getURLParameter("c")
 };
 
-function buildPartyList() {
+async function buildPartyList() {
+    const response = await fetch('/status/map-activity');
+    const data = await response.json();
     let aggregatedPartySearches = aggregateSearchesByCity(locationMap);
     let container = document.querySelector(".partyList");
     container.innerHTML = "";
     for (const mapId in aggregatedPartySearches) {
-        // '{"party_id":8,"district_number":2,"language":0,"message":"","sender":"Seraph Stormcaller","party_size":1,"hero_count":0,"hardmode":0,"search_type":1,"primary":6,"secondary":5,"level":20}'
-        let mapObj = maps.find(map => map.id.toString() === mapId);
-        let outerDiv = `<div><div class="mapRow" data-map-id="${mapId}")>${mapObj.name} - ${aggregatedPartySearches[mapId.toString()].length}</div>`;
+        const activity = data.find(a => a.mapId.toString() === mapId.toString());
+        if (!activity) {
+            continue;
+        }
+
+        const formattedUpdate = moment(activity.lastUpdate).format('HH:mm:ss');
+        const mapObj = maps.find(map => map.id.toString() === mapId);
+        let outerDiv = `<div><div class="mapRow" data-map-id="${mapId}")>${mapObj.name} - ${aggregatedPartySearches[mapId.toString()].length} - ${formattedUpdate}</div>`;
 
         outerDiv += `</div>`;
         container.innerHTML += outerDiv;
@@ -1237,7 +1244,10 @@ if (urlCoordinates.c !== null) {
     continent = urlCoordinates.c;
 }
 
-function updateMarkers() {
+async function updateMarkers() {
+    const response = await fetch('/status/map-activity');
+    const data = await response.json();
+
     let allInnerDivs = document.querySelectorAll(".marker.marker_location .holder[id]");
     allInnerDivs.forEach(function (innerDiv) {
         let parentMarker = innerDiv.closest('.marker.marker_location');
@@ -1247,19 +1257,17 @@ function updateMarkers() {
         }
     });
 
-    locationMap.keys().forEach(function (key) {
-        if (locationMap.get(key).parties.length > 0) {
-            let matchingInnerDivs = Array.prototype.filter.call(allInnerDivs, function (innerDiv) {
-                return innerDiv.id && key.startsWith(innerDiv.id);
-            });
-            matchingInnerDivs.forEach(function (innerDiv) {
-                let parentMarker = innerDiv.closest('.marker.marker_location');
-                if (parentMarker) {
-                    parentMarker.classList.remove('seethru');
-                    parentMarker.classList.remove('unclickable');
-                }
-            });
-        }
+    data.forEach(function (activity) {
+        let matchingInnerDivs = Array.prototype.filter.call(allInnerDivs, function (innerDiv) {
+            return innerDiv.id && innerDiv.id === activity.mapId.toString();
+        });
+        matchingInnerDivs.forEach(function (innerDiv) {
+            let parentMarker = innerDiv.closest('.marker.marker_location');
+            if (parentMarker) {
+                parentMarker.classList.remove('seethru');
+                parentMarker.classList.remove('unclickable');
+            }
+        });
     });
 }
 
