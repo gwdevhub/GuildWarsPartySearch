@@ -6,17 +6,17 @@
       {
         "Endpoint": "*",
         "Period": "1s",
-        "Limit": 20
+        "Limit": 2000
       },
       {
         "Endpoint": "*",
         "Period": "10m",
-        "Limit": 10000
+        "Limit": 100000
       },
       {
         "Endpoint": "*",
         "Period": "12h",
-        "Limit": 300000
+        "Limit": 3000000
       }
     ]
   },
