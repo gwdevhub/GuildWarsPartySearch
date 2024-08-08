@@ -40,9 +40,9 @@ jobs:
 
     - name: Build server
       run: |
-        dotnet publish .\GuildWarsPartySearch\GuildWarsPartySearch.Server.csproj -c Release -r linux-x64 -o .\GuildWarsPartySearch\Publish\
-        Copy-Item -Path .\GuildWarsPartySearch.FrontEnd\Content\ .\GuildWarsPartySearch\Publish\Content\ -Recurse
-        Copy-Item -Path .\GuildWarsPartySearch\Config.Release.json -Destination GuildWarsPartySearch\Publish\Config.json
+        dotnet publish .\GuildWarsPartySearch\GuildWarsPartySearch.Server.csproj -c Release -r linux-x64 -o Publish\
+        Copy-Item -Path .\GuildWarsPartySearch.FrontEnd\Content\ Publish\Content\ -Recurse
+        Copy-Item -Path .\GuildWarsPartySearch\Config.Release.json -Destination Publish\Config.json
       shell: pwsh
 
     - name: Replace secrets in configuration
@@ -57,9 +57,8 @@ jobs:
 
     - name: Build docker image
       run: |
-        cd GuildWarsPartySearch
         echo "Building docker image"
-        docker build -t guildwarspartysearch.server .
+        docker build -t guildwarspartysearch.server -f Dockerfile-Server .
         cd ..
         echo "Exporting docker image"
         docker save -o guildwarspartysearch.server.tar guildwarspartysearch.server
