@@ -42,13 +42,13 @@ extern "C" {
 #define FAILED_TO_LOAD_CONFIG       4
 #define FAILED_TO_CONNECT           5
 
-typedef struct {
-    std::string         web_socket_url;
-    uint32_t            map_id;
-    District            district;
-    uint32_t            district_number;
-    int32_t             connection_retries;
-} BotConfiguration;
+struct BotConfiguration {
+    std::string         web_socket_url = "ws://217.160.162.89/party-search/update";
+    uint32_t            map_id = 0;
+    District            district = District::DISTRICT_AMERICAN;
+    uint32_t            district_number = 0;
+    int32_t             connection_retries = 10;
+};
 
 typedef struct {
     uint16_t            party_id;
