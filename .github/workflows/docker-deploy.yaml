@@ -12,18 +12,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # steps:
-    # - name: Check out the repository
-    #   uses: actions/checkout@v2
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v2
 
-    # - name: Install .NET Core
-    #   uses: actions/setup-dotnet@v3
-    #   with:
-    #     dotnet-version: '8.x'
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.x'
 
-    # - name: Log in to Docker Hub
-    #   run: |
-    #     docker login --username "${{ secrets.DOCKERHUB_USERNAME }}" --password "${{ secrets.DOCKERHUB_PASSWORD }}"
+    - name: Install sshpass
+      run: sudo apt-get update && sudo apt-get install -y sshpass
 
     # - name: Create Docker Environment File
     #   shell: pwsh
@@ -31,8 +30,6 @@ jobs:
     #     cd GuildWarsPartySearch
     #     $envFilePath = "envfile"
     #     $envContent = @(
-    #         "ServerOptions__ApiKey=${{ secrets.APIKEY }}",
-    #         "ServerOptions__Certificate=${{ secrets.CERTIFICATE_BASE64 }}",
     #         "ApplicationInsights__InstrumentationKey=${{ secrets.AZURE_INSIGHTS_INSTRUMENTATIONKEY }}",
     #         "AzureCredentialsOptions__ClientSecret=${{ secrets.AZURE_CLIENT_SECRET }}",
     #         "AzureCredentialsOptions__ClientId=${{ secrets.AZURE_CLIENT_ID }}",
@@ -41,28 +38,29 @@ jobs:
     #     $envContent | Set-Content -Path $envFilePath
     #     Write-Host "Environment file created: $envFilePath"
 
-    # - name: Build and push Docker image
-    #   run: |
-    #     cd GuildWarsPartySearch
-    #     .\BuildDockerImage.ps1
-    #     docker push alex4991/guildwarspartysearch.server
-    #   shell: pwsh
+    - name: Build server
+      run: |
+        dotnet publish .\GuildWarsPartySearch\GuildWarsPartySearch.Server.csproj -c Release -r linux-x64 -o .\GuildWarsPartySearch\Publish\
+        Copy-Item -Path .\GuildWarsPartySearch\Config.Release.json -Destination GuildWarsPartySearch\Publish\Config.json
+      shell: pwsh
 
-    # - name: Create Private Key File
-    #   run: |
-    #     cd GuildWarsPartySearch
-    #     $privateKeyContent = "${{ secrets.HOST_KEY }}"
-    #     Set-Content -Path private.key -Value $privateKeyContent
-    #   shell: pwsh
+    - name: Replace secrets in configuration
+      shell: pwsh
+      run: |
+        $jsonContent = Get-Content -Raw -Path GuildWarsPartySearch\Publish\Config.json | ConvertFrom-Json
+        $jsonContent.ApplicationInsights.InstrumentationKey = "${{ secrets.AZURE_INSIGHTS_INSTRUMENTATIONKEY }}"
+        $jsonContent.AzureCredentialsOptions.ClientSecret = "${{ secrets.AZURE_CLIENT_SECRET }}"
+        $jsonContent.AzureCredentialsOptions.ClientId = "${{ secrets.AZURE_CLIENT_ID }}"
+        $jsonContent.AzureCredentialsOptions.TenantId = "${{ secrets.AZURE_TENANT_ID }}"
+        $updatedJsonContent = $jsonContent | ConvertTo-Json -Depth 32
+        Set-Content -Path GuildWarsPartySearch\Publish\Config.json -Value $updatedJsonContent
 
-    # - name: Set Private Key permissions
-    #   run: |
-    #     cd GuildWarsPartySearch
-    #     chmod 400 private.key
-    #   shell: bash
+    - name: Build docker image
+      run: |
+        docker build -t guildwarspartysearch.server .\GuildWarsPartySearch\.
+        docker save -o guildwarspartysearch.server.tar guildwarspartysearch.server
 
-    # - name: Deploy Docker image to host
-    #   shell: pwsh
-    #   run: |
-    #     cd GuildWarsPartySearch
-    #     .\DeployToVM.ps1 -KeyFile private.key -User ${{ secrets.HOST_USER }} -Address ${{ secrets.HOST_ADDRESS }} -PathToEnvFileFolder .
+    - name: Deploy Docker image to host
+      shell: pwsh
+      run: |
+        sshpass -p '${{ secrets.HOST_PASS }}' scp guildwarspartysearch.server.tar ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/staging/
