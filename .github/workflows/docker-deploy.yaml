@@ -48,7 +48,6 @@ jobs:
       shell: pwsh
       run: |
         $jsonContent = Get-Content -Raw -Path GuildWarsPartySearch\Publish\Config.json | ConvertFrom-Json
-        $jsonContent.ApplicationInsights.InstrumentationKey = "${{ secrets.AZURE_INSIGHTS_INSTRUMENTATIONKEY }}"
         $jsonContent.AzureCredentialsOptions.ClientSecret = "${{ secrets.AZURE_CLIENT_SECRET }}"
         $jsonContent.AzureCredentialsOptions.ClientId = "${{ secrets.AZURE_CLIENT_ID }}"
         $jsonContent.AzureCredentialsOptions.TenantId = "${{ secrets.AZURE_TENANT_ID }}"
