@@ -49,6 +49,7 @@ jobs:
         echo "Exporting docker image"
         docker save -o guildwarspartysearch.server.tar guildwarspartysearch.server
         echo "Exported docker image"
+        ls
 
     - name: Deploy Docker image to host
       shell: pwsh
