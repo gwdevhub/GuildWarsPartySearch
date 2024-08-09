@@ -18,14 +18,17 @@ jobs:
     - name: Install sshpass
       run: sudo apt-get update && sudo apt-get install -y sshpass
 
+    - name: Archive content
+      run: tar -cvf Content.tar GuildWarsPartySearch.FrontEnd/Content
+
     - name: Deploy content to host
       shell: pwsh
       run: |
-        echo "Setting up staging folder"
-        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "mkdir -p /home/guildwarspartysearch/staging/Content"
         echo "Uploading content"
-        sshpass -p "${{ secrets.HOST_PASS }}" scp -v -r -o StrictHostKeyChecking=no GuildWarsPartySearch.FrontEnd/Content/ ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging
-        echo "Copying content into container"
-        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker cp /home/guildwarspartysearch/staging/Content/ partysearch:/app/Content/"
-        echo "Cleaning up"
-        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "rm -rf /home/guildwarspartysearch/staging/Content"
+        sshpass -p "${{ secrets.HOST_PASS }}" scp -o StrictHostKeyChecking=no Content.tar ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging
+        echo "Extracting content"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "tar -xvf /home/guildwarspartysearch/staging/Content.tar -c /home/guildwarspartysearch/staging/Content"
+        # echo "Copying content into container"
+        # sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker cp /home/guildwarspartysearch/staging/Content/ partysearch:/app/Content/"
+        # echo "Cleaning up"
+        # sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "rm -rf /home/guildwarspartysearch/staging/Content"
