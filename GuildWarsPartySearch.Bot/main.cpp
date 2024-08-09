@@ -2,6 +2,10 @@
 #define __STDC__ 1
 #endif
 
+#ifndef _Static_assert
+#define _Static_assert static_assert
+#endif
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <math.h>
 #include <locale.h>
@@ -224,7 +228,7 @@ static void on_map_entered(Event* event, void* params) {
     district = GetDistrict();
     district_number = GetDistrictNumber();
     *character_name = 0;
-    GetCharacterName(character_name, _countof(character_name));
+    GetCharacterName(character_name, sizeof(character_name)  / sizeof(*character_name));
     ready = true;
 }
 
@@ -375,17 +379,17 @@ static void connect_websocket() {
     if (ws && ws->getReadyState() == easywsclient::WebSocket::OPEN)
         return;
 
+    assert(*character_name && map_id);
+    char user_agent[255];
+    assert(snprintf(user_agent, sizeof(user_agent) / sizeof(*user_agent), "%s-%d-%d", character_name, map_id, static_cast<uint32_t>(district)) > 0);
+
     const auto connect_retries = 10;
 
     for (auto i = 0; i < connect_retries; i++) {
         disconnect_websocket();
 
         LogInfo("Attempting to connect. Try %d/%d", i + 1, connect_retries);
-        
-        assert(*character_name && map_id);
-        const auto user_agent = std::format("{}-{}-{}", character_name, map_id, static_cast<uint32_t>(district));
         ws = easywsclient::WebSocket::from_url(bot_configuration.web_socket_url, user_agent);
-
         if (!ws)
             continue;
         // Wait for websocket to open

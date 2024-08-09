@@ -151,56 +151,6 @@ static float get_distance_to_agent(ApiAgent* agent) {
     return dist2(agent->position, me.position);
 }
 
-static uint32_t get_quote(ApiItem* item, msec_t timeout_ms) {
-    AsyncState state;
-    uint32_t price = 0;
-    async_get_quote(&state, item->item_id,&price, timeout_ms);
-    while (!async_check(&state)) {
-        time_sleep_ms(16);
-    }
-    if (state.result != ASYNC_RESULT_OK) {
-        LogInfo("Failed to get quote for item %d - result code %d", item->item_id, state.result);
-    }
-    return price;
-}
-static bool go_to_npc(ApiAgent* agent, msec_t timeout_ms) {
-    if (!(agent && agent->agent_id))
-        return false;
-    msec_t elapsed = 0;
-    msec_t next_movement_check = 3000;
-    Vec2f my_position;
-    if (!get_my_position(&my_position)) {
-        LogError("Failed to get my position");
-        return false;
-    }
-    AsyncState state;
-    async_go_to_npc(&state, agent->agent_id, timeout_ms);
-
-
-    while (!async_check(&state)) {
-        elapsed += 16;
-        time_sleep_ms((int)elapsed);
-        if (elapsed > next_movement_check) { 
-            Vec2f new_position;
-            if (!get_my_position(&new_position)) {
-                LogError("Failed to get my position");
-                async_cancel(&state);
-                return false;
-            }
-            if (new_position.x == my_position.x && new_position.y == my_position.y) {
-                LogDebug("Stopped moving, possibly blocked by a roaming npc; re-triggering go_to_npc");
-                async_cancel(&state);
-                return go_to_npc(agent, timeout_ms - elapsed);
-            }
-            my_position = new_position;
-            next_movement_check += 500;
-        }
-    }
-    if (state.result != ASYNC_RESULT_OK) {
-        LogInfo("Failed to go to npc %d - result code %d", agent->agent_id, state.result);
-    }
-    return state.result == ASYNC_RESULT_OK;
-}
 static int irand(int min, int max)
 {
     assert(0 < (max - min) < RAND_MAX);
