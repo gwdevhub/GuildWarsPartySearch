@@ -24,7 +24,7 @@ jobs:
         echo "Setting up staging folder"
         sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "mkdir -p /home/guildwarspartysearch/staging/Content"
         echo "Uploading content"
-        sshpass -p "${{ secrets.HOST_PASS }}" scp -P -r -o StrictHostKeyChecking=no GuildWarsPartySearch.FrontEnd/Content/ ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging
+        sshpass -p "${{ secrets.HOST_PASS }}" scp -v -r -o StrictHostKeyChecking=no GuildWarsPartySearch.FrontEnd/Content/ ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging
         echo "Copying content into container"
         sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker cp /home/guildwarspartysearch/staging/Content/ partysearch:/app/Content/"
         echo "Cleaning up"
