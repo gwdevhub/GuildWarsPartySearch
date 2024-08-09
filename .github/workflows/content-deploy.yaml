@@ -15,8 +15,17 @@ jobs:
     - name: Check out the repository
       uses: actions/checkout@v2
 
-    - name: Build and push content
-      run: |
-        cd GuildWarsPartySearch.FrontEnd
-        .\BuildAndUploadContent.ps1 -ContainerName content -SourceFolderPath Content -ClientId "${{ secrets.AZURE_CLIENT_ID }}" -ClientSecret "${{ secrets.AZURE_CLIENT_SECRET }}" -TenantId "${{ secrets.AZURE_TENANT_ID }}" -StorageAccountName "guildwarspartysearch"
+    - name: Install sshpass
+      run: sudo apt-get update && sudo apt-get install -y sshpass
+
+    - name: Deploy content to host
       shell: pwsh
+      run: |
+        echo "Setting up staging folder"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "mkdir -p /home/guildwarspartysearch/staging/Content"
+        echo "Uploading content"
+        sshpass -p "${{ secrets.HOST_PASS }}" scp -r -o StrictHostKeyChecking=no GuildWarsPartySearch.FrontEnd/Content/ ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging/Content
+        echo "Copying content into container"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker cp /home/guildwarspartysearch/staging/Content/ partysearch:/app/Content/"
+        echo "Cleaning up"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "rm -rf /home/guildwarspartysearch/staging/Content"
