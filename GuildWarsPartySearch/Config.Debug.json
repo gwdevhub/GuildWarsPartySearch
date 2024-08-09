@@ -20,6 +20,9 @@
   "PartySearchDatabaseOptions": {
     "TableName": "searches"
   },
+  "BotHistoryDatabaseOptions": {
+    "TableName": "botactivity"
+  },
   "IpWhitelistOptions": {
     "Addresses": [
       "127.0.0.1",

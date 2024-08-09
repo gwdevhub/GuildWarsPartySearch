@@ -59,6 +59,7 @@ public static class ServerConfiguration
             .ConfigureExtended<PartySearchDatabaseOptions>()
             .ConfigureExtended<ServerOptions>()
             .ConfigureExtended<IpWhitelistOptions>()
+            .ConfigureExtended<BotHistoryDatabaseOptions>()
             .ConfigureExtended<SQLiteDatabaseOptions>();
     }
 
@@ -79,6 +80,7 @@ public static class ServerConfiguration
             return connection;
         });
         services.AddSingleton<IPartySearchDatabase, PartySearchSqliteDatabase>();
+        services.AddSingleton<IBotHistoryDatabase, BotHistorySqliteDatabase>();
         services.AddScoped<UserAgentRequired>();
         services.AddScoped<IpWhitelistFilter>();
         services.AddScoped<IPartySearchService, PartySearchService>();

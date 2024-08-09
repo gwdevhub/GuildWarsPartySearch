@@ -40,7 +40,7 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
             return;
         }
 
-        if (!await this.botStatusService.AddBot(userAgent, this.WebSocket!))
+        if (!await this.botStatusService.AddBot(userAgent, this.WebSocket!, cancellationToken))
         {
             await this.WebSocket!.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation, $"Failed to add bot with id {userAgent}", cancellationToken);
             return;
@@ -55,7 +55,7 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
             throw new InvalidOperationException("Unable to extract user agent on client disconnect");
         }
 
-        if (!await this.botStatusService.RemoveBot(userAgent))
+        if (!await this.botStatusService.RemoveBot(userAgent, CancellationToken.None))
         {
             throw new InvalidOperationException($"Failed to remove bot with id {userAgent}");
         }
@@ -72,7 +72,7 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                 throw new InvalidOperationException("Unable to extract user agent on client disconnect");
             }
 
-            await this.botStatusService.RecordBotActivity(userAgent);
+            await this.botStatusService.RecordBotUpdateActivity(userAgent, this.Context.RequestAborted);
             var result = await this.partySearchService.PostPartySearch(message, cancellationToken);
             var response = result.Switch<PostPartySearchResponse>(
                 onSuccess: _ =>

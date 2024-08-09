@@ -3,7 +3,7 @@ using System.Net.WebSockets;
 
 namespace GuildWarsPartySearch.Server.Services.BotStatus.Models;
 
-internal class Bot
+public sealed class Bot
 {
     public string Name { get; init; } = default!;
     public Map Map { get; init; } = default!;
