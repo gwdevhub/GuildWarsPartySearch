@@ -2,6 +2,7 @@
 using GuildWarsPartySearch.Server.Models.Endpoints;
 using GuildWarsPartySearch.Server.Services.BotStatus.Models;
 using GuildWarsPartySearch.Server.Services.Database;
+using GuildWarsPartySearch.Server.Services.Feed;
 using System.Collections.Concurrent;
 using System.Core.Extensions;
 using System.Extensions;
@@ -13,14 +14,17 @@ public sealed class BotStatusService : IBotStatusService
 {
     private readonly ConcurrentDictionary<string, Bot> connectedBots = [];
 
+    private readonly ILiveFeedService liveFeedService;
     private readonly IBotHistoryDatabase database;
     private readonly ILogger<BotStatusService> logger;
 
     public BotStatusService(
+        ILiveFeedService liveFeedService,
         IBotHistoryDatabase botHistoryDatabase,
         IHostApplicationLifetime lifetime,
         ILogger<BotStatusService> logger)
     {
+        this.liveFeedService = liveFeedService.ThrowIfNull();
         this.database = botHistoryDatabase.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
 
@@ -182,6 +186,12 @@ public sealed class BotStatusService : IBotStatusService
         }
 
         await this.database.RecordBotActivity(bot, Database.Models.BotActivity.ActivityType.Disconnect, cancellationToken);
+        await this.liveFeedService.PushUpdate(new Server.Models.PartySearch
+        {
+            District = bot.District,
+            Map = bot.Map,
+            PartySearchEntries = []
+        }, cancellationToken);
         scopedLogger.LogDebug("Removed bot");
         return true;
     }
