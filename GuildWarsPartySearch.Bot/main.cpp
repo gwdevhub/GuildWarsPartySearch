@@ -29,6 +29,7 @@ extern "C" {
 #include <atomic>
 #include <time.h>
 #include <codecvt>
+#include <time.h>
 
 #ifdef array
 #undef array
@@ -86,8 +87,8 @@ void to_json(nlohmann::json& j, const PartySearchAdvertisement& p) {
 
 static struct thread  bot_thread;
 static std::atomic<bool> running;
-static std::atomic<bool> ready;
 static std::string last_payload;
+static std::chrono::steady_clock::time_point last_connection_alive = std::chrono::steady_clock::now();
 
 District district = District::DISTRICT_CURRENT;
 int district_number = -1;
@@ -225,7 +226,6 @@ static void on_map_entered(Event* event, void* params) {
     district_number = GetDistrictNumber();
     *character_name = 0;
     GetCharacterName(character_name, _countof(character_name));
-    ready = true;
 }
 
 static void add_party_search_advertisement(Event* event, void* params) {
@@ -355,6 +355,7 @@ static void send_info() {
     }
 
     // Pretty lazy way to detect changes
+    last_connection_alive = std::chrono::steady_clock::now();
     last_payload = payload;
     time_sleep_sec(5);
 }
@@ -372,11 +373,24 @@ static void disconnect_websocket() {
     ws = NULL;
 }
 static void connect_websocket() {
-    if (ws && ws->getReadyState() == easywsclient::WebSocket::OPEN)
-        return;
+    if (ws && ws->getReadyState() == easywsclient::WebSocket::OPEN) {
+        if (std::chrono::steady_clock::now() - last_connection_alive > std::chrono::seconds(5)) {
+            ws->poll();
+            if (ws && ws->getReadyState() == easywsclient::WebSocket::OPEN) {
+                return;
+            }
+            else {
+                LogError("Disconnected from server");
+            }
+        }
+        else {
+            return;
+        }
+    }
+
+    
 
     const auto connect_retries = 10;
-
     for (auto i = 0; i < connect_retries; i++) {
         disconnect_websocket();
 
@@ -386,13 +400,18 @@ static void connect_websocket() {
         const auto user_agent = std::format("{}-{}-{}", character_name, map_id, static_cast<uint32_t>(district));
         ws = easywsclient::WebSocket::from_url(bot_configuration.web_socket_url, user_agent);
 
-        if (!ws)
+        if (!ws) {
+            time_sleep_sec(1);
             continue;
+        }
         // Wait for websocket to open
         for (auto j = 0; j < 5000; j+=50) {
             ws->poll();
-            if (ws->getReadyState() == easywsclient::WebSocket::OPEN)
+            if (ws->getReadyState() == easywsclient::WebSocket::OPEN) {
+                last_connection_alive = std::chrono::steady_clock::now();
                 break;
+            }
+                
             time_sleep_ms(50);
         }
         break;
