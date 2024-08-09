@@ -48,9 +48,9 @@ jobs:
         echo "Setting up staging folder"
         sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "mkdir -p /home/guildwarspartysearch/staging"
         echo "Uploading image"
-        sshpass -p "${{ secrets.HOST_PASS }}" scp -o StrictHostKeyChecking=no guildwarspartysearch.server.tar ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging
+        sshpass -p "${{ secrets.HOST_PASS }}" scp -P -o StrictHostKeyChecking=no guildwarspartysearch.server.tar ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging
         echo "Uploading configuration"
-        sshpass -p "${{ secrets.HOST_PASS }}" scp -o StrictHostKeyChecking=no Config.json ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging
+        sshpass -p "${{ secrets.HOST_PASS }}" scp -P -o StrictHostKeyChecking=no Config.json ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging
         echo "Stopping running contianer"
         sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker stop partysearch"
         echo "Backing up database"
