@@ -27,7 +27,7 @@ jobs:
     - name: Replace secrets in configuration
       shell: pwsh
       run: |
-        $jsonContent = Get-Content -Raw -Path Publish\Config.json | ConvertFrom-Json
+        $jsonContent = Get-Content -Raw -Path GuildWarsPartySearch\Config.Release.json | ConvertFrom-Json
         $trimmedIps = "${{ secrets.COMMA_SEPARATED_IPS }}" -split ',' | ForEach-Object { $_.Trim() }
         $newAddressesArray = $jsonContent.IpWhitelistOptions.Addresses + $trimmedIps
         $jsonContent.IpWhitelistOptions.Addresses = $newAddressesArray
