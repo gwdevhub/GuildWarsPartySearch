@@ -782,7 +782,9 @@ var markerSize = {
     "vortex": "large"
 };
 
-let locationMap = new Map();
+var leafletData = [];
+var initialized = false;
+var locationMap = new Map();
 
 // Set up event delegation once
 document.querySelector('.partyList').addEventListener('click', function (event) {
@@ -796,6 +798,21 @@ document.querySelector('.partyList').addEventListener('click', function (event) 
         mapRowClicked(mapObj);
     }
 });
+
+async function loadLeafletData() {
+    var response = await fetch("data/0.json");
+    leafletData.push(await response.json());
+    response = await fetch("data/1.json");
+    leafletData.push(await response.json());
+    response = await fetch("data/2.json");
+    leafletData.push(await response.json());
+    response = await fetch("data/3.json");
+    leafletData.push(await response.json());
+    response = await fetch("data/4.json");
+    leafletData.push(await response.json());
+    response = await fetch("data/5.json");
+    leafletData.push(await response.json());
+}
 
 function getEntriesForMapId(searches, mapId) {
     let entries = new Map();
@@ -894,18 +911,44 @@ async function buildPartyList() {
             continue;
         }
 
-        const formattedUpdate = moment(activity.lastUpdate).format('HH:mm:ss');
         const mapObj = maps.find(map => map.id.toString() === mapId);
-        let outerDiv = `<div><div class="mapRow" data-map-id="${mapId}")>${mapObj.name} - ${aggregatedPartySearches[mapId.toString()].length} - ${formattedUpdate}</div>`;
+        let outerDiv = `<div><div class="mapRow" data-map-id="${mapId}")>${mapObj.name} - ${aggregatedPartySearches[mapId.toString()].length}</div>`;
 
         outerDiv += `</div>`;
         container.innerHTML += outerDiv;
     }
 }
 
+function navigateToMap(mapObj) {
+    leafletData.forEach(continentData => {
+        if (!continentData.regions) {
+            return;
+        }
+
+        continentData.regions.forEach(region => {
+            if (!region.locations) {
+                return;
+            }
+
+            region.locations.forEach(location => {
+                if (location.mapId &&
+                    location.mapId === mapObj.id) {
+                    var url = new URL(window.location.href);
+                    url.searchParams.set("x", location.coordinates[0]);
+                    url.searchParams.set("y", location.coordinates[1]);
+                    url.searchParams.set("c", continentData.id);
+                    url.searchParams.set("z", "4");
+                    window.location = url;
+                }
+            });
+        });
+    });
+}
+
 function mapRowClicked(mapObj) {
     window.location.hash = mapObj.name;
-    showPopupWindow();
+    navigateToMap(mapObj);
+    showPartyWindow();
     buildPartyWindow();
 }
 
@@ -916,6 +959,7 @@ function hidePartyWindowRows(rowType) {
     const pivotRow = document.getElementById(`${rowType}`);
     if (!pivotRow.classList.contains('hidden')) {
         pivotRow.classList.add('hidden');
+        pivotRow.classList.add('collapsed');
     }
 }
 
@@ -926,6 +970,7 @@ function populatePartyWindowRows(rowType, partySearchesArray) {
     const pivotRow = document.getElementById(`${rowType}`);
     if (pivotRow.classList.contains('hidden')) {
         pivotRow.classList.remove('hidden');
+        pivotRow.classList.remove('collapsed');
     }
     let desiredIndex = Array.from(tbody.children).indexOf(pivotRow) + 1;
     for (var partySearchId in partySearchesArray) {
@@ -958,7 +1003,7 @@ function populatePartyWindowRows(rowType, partySearchesArray) {
     }
 }
 
-function buildPartyWindow() {
+async function buildPartyWindow() {
     let mapName = window.location.hash;
     if (!mapName) {
         return;
@@ -970,6 +1015,7 @@ function buildPartyWindow() {
         return;
     }
 
+    await waitForInitialized();
     const aggregatedPartySearches = aggregateSearchesByMapAndType(locationMap);
     if (!aggregatedPartySearches[map.id.toString()]) {
         return;
@@ -1042,7 +1088,7 @@ function mapClicked(map) {
 
             window.location.hash = mapObj.name;
             buildPartyWindow();
-            showPopupWindow();
+            showPartyWindow();
         }
     }
 }
@@ -1091,7 +1137,7 @@ function loadMap(mapIndex) {
                 crs: L.CRS.Simple,
                 attributionControl: false
             }).on('click', function (e) {
-
+                hidePartyWindow();
             }).on('zoomend', function () {
                 zoomEnd();
             }).on('moveend zoomend', function () {
@@ -1102,7 +1148,6 @@ function loadMap(mapIndex) {
                 }
             }).on('click focus movestart', function () {
                 hideMenu();
-                hidePopupWindow();
             });
 
 
@@ -1308,6 +1353,7 @@ function connectToLiveFeed() {
                     locationMap.set(combinedKey, searchEntry);
                 });
 
+                initialized = true;
                 updateMarkers();
                 buildPartyList();
                 buildPartyWindow();
@@ -1331,22 +1377,46 @@ function connectToLiveFeed() {
     openWebSocket();
 }
 
-function togglePopupWindow(){
+async function waitForInitialized() {
+    while (!initialized) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
+}
+
+function togglePartyWindow(){
     document.querySelector("#popupWindow").classList.toggle("hidden");
 }
 
-function hidePopupWindow(){
+function hidePartyWindow(){
     if (!document.querySelector("#popupWindow").classList.contains("hidden")) {
-        togglePopupWindow();
+        togglePartyWindow();
         window.location.hash = "";
     }
 }
 
-function showPopupWindow(){
+function showPartyWindow(){
     if (document.querySelector("#popupWindow").classList.contains("hidden")) {
-        togglePopupWindow();
+        togglePartyWindow();
     }
 }
 
+function checkNavigation() {
+    let mapName = window.location.hash;
+    if (!mapName) {
+        return;
+    }
+
+    mapName = decodeURIComponent(mapName.substring(1));
+    const map = maps.find(m => m.name === mapName);
+    if (!map) {
+        return;
+    }
+
+    buildPartyWindow();
+    showPartyWindow();
+}
+
+checkNavigation();
+loadLeafletData();
 loadMap(continent);
 connectToLiveFeed();
