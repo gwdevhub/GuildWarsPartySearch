@@ -6,6 +6,7 @@ on:
     paths:
       - "GuildWarsPartySearch.Common/**"
       - "GuildWarsPartySearch/**"
+      - "Dockerfile-Server"
       - ".github/workflows/docker-deploy.yaml"
 
 jobs:
