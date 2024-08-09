@@ -273,9 +273,11 @@ static void wait_until_ingame() {
 }
 
 static void load_configuration() {
+    int i = 0;
+    std::string arg;
     try {
-        for (int i = 0; i < GetArgc(); i++) {
-            const std::string arg = GetArgv()[i];
+        for (i = 0; i < GetArgc(); i++) {
+            arg = GetArgv()[i];
             if (arg == "-websocket-url") {
                 bot_configuration.web_socket_url = get_next_argument(i);
                 i++;
@@ -299,6 +301,7 @@ static void load_configuration() {
         }
     }
     catch (std::exception) {
+        printf("Failed to process arg:%s\n", arg.c_str());
         exit_with_status("Failed to load configuration", FAILED_TO_LOAD_CONFIG);
     }
 
@@ -436,6 +439,9 @@ static int main_bot(void* param)
         wait_until_ingame();
         ensure_correct_outpost();
         connect_websocket();
+        if (ws) {
+            ws->poll();
+        }
         send_info();
         time_sleep_sec(1);
     }
@@ -449,7 +455,7 @@ cleanup:
     UnRegisterEvent(&EventType_WorldMapLeave_entry);
 
     clear_party_search_advertisements();
-    ws->close();
+    disconnect_websocket();
     raise(SIGTERM);
     return 0;
 }
