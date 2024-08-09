@@ -30,6 +30,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dockerfiles", "Dockerfiles", "{7F3BB655-7DC0-41BB-BC28-34039267C833}"
 	ProjectSection(SolutionItems) = preProject
+		Dockerfile-Bot = Dockerfile-Bot
 		Dockerfile-Server = Dockerfile-Server
 	EndProjectSection
 EndProject
