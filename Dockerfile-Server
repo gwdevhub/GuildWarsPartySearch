@@ -5,12 +5,11 @@ RUN apt-get update && apt-get install -y git && apt-get clean
 
 WORKDIR /build
 
-RUN git clone https://github.com/gwdevhub/GuildWarsPartySearch
-
-RUN cd GuildWarsPartySearch && \
+RUN git clone https://github.com/gwdevhub/GuildWarsPartySearch && \
+	cd GuildWarsPartySearch && \
 	dotnet publish GuildWarsPartySearch/GuildWarsPartySearch.Server.csproj -c Production -r linux-x64 -o Publish && \
 	cp -r GuildWarsPartySearch.FrontEnd/Content Publish/Content && \
-	cp GuildWarsPartySearch/Config.Release.json Publish/Config.json
+	cp GuildWarsPartySearch/Config.Production.json Publish/Config.json
 
 # Stage 2: Run
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
