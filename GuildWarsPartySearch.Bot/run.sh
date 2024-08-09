@@ -29,4 +29,12 @@ if [ ! -f $CLIENT_EXE ]; then
 source build.sh
 fi
 
-"$CLIENT_EXE" -email "$EMAIL" -character "$CHARACTER" -district "$DISTRICT" -mapid "$MAP_ID" -password "$PASSWORD" -l "$LOG_FILE" -file-game-version "$BUILD_VERSION_FILE" "$PLUGIN_EXE" 
+"$CLIENT_EXE" \
+-email "$EMAIL" \
+-character "$CHARACTER" \
+-district "$DISTRICT" \
+-mapid "$MAP_ID" \
+-password "$PASSWORD" \
+-l "$LOG_FILE" \
+-file-game-version "$BUILD_VERSION_FILE" \
+"$PLUGIN_EXE" 2>&1

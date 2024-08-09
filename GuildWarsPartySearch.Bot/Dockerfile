@@ -11,4 +11,3 @@ RUN apk update && apk add \
 WORKDIR /app
 
 CMD ["sh", "-c", "while :; do sleep 2073600; done"]
-#CMD ["sh", "-c", "check_and_update_gw_keys.sh && build.sh && run.sh"]
