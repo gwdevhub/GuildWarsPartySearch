@@ -31,4 +31,4 @@ jobs:
         echo "Copying content into container"
         sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker cp /home/guildwarspartysearch/staging/Content/ partysearch:/app"
         echo "Cleaning up"
-        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "rm -rf /home/guildwarspartysearch/staging/Content"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "rm -rf /home/guildwarspartysearch/staging/Content && rm -f /home/guildwarspartysearch/staging/Content.tar"
