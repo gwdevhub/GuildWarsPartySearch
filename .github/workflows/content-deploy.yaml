@@ -26,8 +26,8 @@ jobs:
       run: |
         echo "Uploading content"
         sshpass -p "${{ secrets.HOST_PASS }}" scp -o StrictHostKeyChecking=no Content.tar ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging
-        echo "Extracting content"
-        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "tar -xvf /home/guildwarspartysearch/staging/Content.tar -c /home/guildwarspartysearch/staging/Content"
+        #echo "Extracting content"
+        #sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "tar -xvf /home/guildwarspartysearch/staging/Content.tar -c /home/guildwarspartysearch/staging/Content"
         # echo "Copying content into container"
         # sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker cp /home/guildwarspartysearch/staging/Content/ partysearch:/app/Content/"
         # echo "Cleaning up"
