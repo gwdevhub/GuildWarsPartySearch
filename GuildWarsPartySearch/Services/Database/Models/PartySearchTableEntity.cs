@@ -1,14 +1,7 @@
-﻿using Azure;
-using Azure.Data.Tables;
+﻿namespace GuildWarsPartySearch.Server.Services.Database.Models;
 
-namespace GuildWarsPartySearch.Server.Services.Database.Models;
-
-public sealed class PartySearchTableEntity : ITableEntity
+public sealed class PartySearchTableEntity
 {
-    public string PartitionKey { get; set; } = default!;
-
-    public string RowKey { get; set; } = default!;
-
     public int DistrictNumber { get; set; }
 
     public int DistrictLanguage { get; set; }
@@ -37,7 +30,5 @@ public sealed class PartySearchTableEntity : ITableEntity
 
     public int Level { get; set; }
 
-    public DateTimeOffset? Timestamp { get; set; }
-
-    public ETag ETag { get; set; }
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }

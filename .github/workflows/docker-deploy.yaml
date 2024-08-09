@@ -6,6 +6,7 @@ on:
     paths:
       - "GuildWarsPartySearch.Common/**"
       - "GuildWarsPartySearch/**"
+      - "Dockerfile-Server"
       - ".github/workflows/docker-deploy.yaml"
 
 jobs:
@@ -24,22 +25,15 @@ jobs:
     - name: Install sshpass
       run: sudo apt-get update && sudo apt-get install -y sshpass
 
-    - name: Build server
-      run: |
-        dotnet publish .\GuildWarsPartySearch\GuildWarsPartySearch.Server.csproj -c Release -r linux-x64 -o Publish\
-        Copy-Item -Path .\GuildWarsPartySearch.FrontEnd\Content\ Publish\Content\ -Recurse
-        Copy-Item -Path .\GuildWarsPartySearch\Config.Release.json -Destination Publish\Config.json
-      shell: pwsh
-
     - name: Replace secrets in configuration
       shell: pwsh
       run: |
-        $jsonContent = Get-Content -Raw -Path Publish\Config.json | ConvertFrom-Json
+        $jsonContent = Get-Content -Raw -Path GuildWarsPartySearch\Config.Production.json | ConvertFrom-Json
         $trimmedIps = "${{ secrets.COMMA_SEPARATED_IPS }}" -split ',' | ForEach-Object { $_.Trim() }
         $newAddressesArray = $jsonContent.IpWhitelistOptions.Addresses + $trimmedIps
         $jsonContent.IpWhitelistOptions.Addresses = $newAddressesArray
         $updatedJsonContent = $jsonContent | ConvertTo-Json -Depth 32
-        Set-Content -Path Publish\Config.json -Value $updatedJsonContent
+        Set-Content -Path Config.json -Value $updatedJsonContent
 
     - name: Build docker image
       run: |
@@ -56,11 +50,23 @@ jobs:
         sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "mkdir -p /home/guildwarspartysearch/staging"
         echo "Uploading image"
         sshpass -p "${{ secrets.HOST_PASS }}" scp -o StrictHostKeyChecking=no guildwarspartysearch.server.tar ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging
+        echo "Uploading configuration"
+        sshpass -p "${{ secrets.HOST_PASS }}" scp -o StrictHostKeyChecking=no Config.json ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }}:/home/guildwarspartysearch/staging
+        echo "Stopping running contianer"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker stop partysearch"
+        echo "Backing up database"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker cp partysearch:/app/partysearches.db /home/guildwarspartysearch/staging/partysearches.db"
         echo "Stopping and removing old containers"
-        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker rmi -f guildwarspartysearch.server:latest"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker rm partysearch && docker rmi -f guildwarspartysearch.server:latest"
         echo "Loading new image"
         sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker load -i /home/guildwarspartysearch/staging/guildwarspartysearch.server.tar"
-        echo "Running new image"
-        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker run -d --name partysearch -p 8080:80 guildwarspartysearch.server:latest"
+        echo "Creating container"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker create --name partysearch -p 8080:80 guildwarspartysearch.server:latest"
+        echo "Copying configuration into container"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker cp /home/guildwarspartysearch/staging/Config.json partysearch:/app/Config.json"
+        echo "Copying database backup into container"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker cp /home/guildwarspartysearch/staging/partysearches.db partysearch:/app/partysearches.db"
+        echo "Starting container"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "docker start partysearch"
         echo "Cleaning up"
-        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "rm -f /home/guildwarspartysearch/staging/guildwarspartysearch.server.tar"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "rm -f /home/guildwarspartysearch/staging/guildwarspartysearch.server.tar && rm -f /home/guildwarspartysearch/staging/Config.json"

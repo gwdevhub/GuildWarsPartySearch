@@ -102,7 +102,7 @@ public class PartySearchSqliteDatabase : IPartySearchDatabase
                     Primary = e.Primary?.Id ?? 0,
                     Secondary = e.Secondary?.Id ?? 0,
                     SearchType = e.SearchType,
-                    Timestamp = DateTimeOffset.UtcNow
+                    Timestamp = DateTime.UtcNow
                 };
             });
 
@@ -179,7 +179,7 @@ public class PartySearchSqliteDatabase : IPartySearchDatabase
                     command.Parameters.AddWithValue("$primary", e.Primary);
                     command.Parameters.AddWithValue("$secondary", e.Secondary);
                     command.Parameters.AddWithValue("$level", e.Level);
-                    command.Parameters.AddWithValue("$timestamp", e.Timestamp.HasValue ? e.Timestamp.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ") : DBNull.Value);
+                    command.Parameters.AddWithValue("$timestamp", e.Timestamp.ToString("yyyy-MM-ddTHH:mm:ss.fffffffZ"));
                     return command;
                 }));
             if (actions.None())

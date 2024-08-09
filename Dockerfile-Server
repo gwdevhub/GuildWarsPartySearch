@@ -1,12 +1,21 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# Stage 1: Build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
-# Set the working directory inside the container
+RUN apt-get update && apt-get install -y git && apt-get clean
+
+WORKDIR /build
+
+RUN git clone https://github.com/gwdevhub/GuildWarsPartySearch && \
+	cd GuildWarsPartySearch && \
+	dotnet publish GuildWarsPartySearch/GuildWarsPartySearch.Server.csproj -c Production -r linux-x64 -o Publish && \
+	cp -r GuildWarsPartySearch.FrontEnd/Content Publish/Content && \
+	cp GuildWarsPartySearch/Config.Production.json Publish/Config.json
+
+# Stage 2: Run
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+
 WORKDIR /app
 
-EXPOSE 80 443
+COPY --from=build ./build/GuildWarsPartySearch/Publish .
 
-# Copy the build output to the working directory
-COPY Publish/ .
-
-# Command to run the executable
 ENTRYPOINT ["dotnet", "GuildWarsPartySearch.Server.dll"]

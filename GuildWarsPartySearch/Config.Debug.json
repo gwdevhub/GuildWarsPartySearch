@@ -7,7 +7,7 @@
     }
   },
   "EnvironmentOptions": {
-    "Name": "Debug"
+    "Name": "Development"
   },
   "ServerOptions": {
     "InactivityTimeout": "0:0:5",
@@ -19,6 +19,9 @@
   },
   "PartySearchDatabaseOptions": {
     "TableName": "searches"
+  },
+  "BotHistoryDatabaseOptions": {
+    "TableName": "botactivity"
   },
   "IpWhitelistOptions": {
     "Addresses": [
