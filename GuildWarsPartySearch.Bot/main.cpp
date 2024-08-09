@@ -89,6 +89,11 @@ static std::atomic<bool> running;
 static std::atomic<bool> ready;
 static std::string last_payload;
 
+District district = District::DISTRICT_CURRENT;
+int district_number = -1;
+uint32_t map_id = 0;
+char character_name[42] = { 0 };
+
 static PluginObject* plugin_hook;
 static BotConfiguration bot_configuration;
 
@@ -98,11 +103,6 @@ static CallbackEntry EventType_PartySearchSize_entry;
 static CallbackEntry EventType_PartySearchType_entry;
 static CallbackEntry EventType_WorldMapEnter_entry;
 static CallbackEntry EventType_WorldMapLeave_entry;
-
-static std::string character_name;
-static int map_id;
-static District district;
-static int district_number;
 
 static easywsclient::WebSocket::pointer ws;
 
@@ -207,10 +207,10 @@ static std::string get_json_payload() {
 
         ads.push_back(*ad);
     }
-
+    assert(map_id != 0);
     nlohmann::json j;
-    j["map_id"] = bot_configuration.map_id;
-    j["district"] = bot_configuration.district;
+    j["map_id"] = map_id;
+    j["district"] = district;
     j["parties"] = ads;
     return j.dump();
 }
@@ -223,6 +223,8 @@ static void on_map_entered(Event* event, void* params) {
     map_id = GetMapId();
     district = GetDistrict();
     district_number = GetDistrictNumber();
+    *character_name = 0;
+    GetCharacterName(character_name, _countof(character_name));
     ready = true;
 }
 
@@ -254,39 +256,16 @@ static void update_party_search_advertisement(Event* event, void* params) {
 }
 
 static void wait_until_ingame() {
-    LogInfo("Waiting for game load");
+    //LogInfo("Waiting for game load");
     const int max_tries = 10;
-    for (auto i = 0; i < max_tries; i++) {
+    for (auto i = 0; i < 10000; i+=50) {
         if (GetIsIngame()) {
             return;
         }
-
-        time_sleep_sec(1);
+        time_sleep_ms(50);
     }
     
     exit_with_status("Failed to get in-game", FAILED_TO_LOAD_GAME);
-}
-
-static void load_character_name() {
-    const auto max_tries = 10;
-    character_name.resize(256, 0);
-    for (auto i = 0; i < max_tries; i++)
-    {
-        GetCharacterName(character_name.data(), 256);
-        if (character_name != "") {
-            return;
-        }
-
-        time_sleep_sec(1);
-    }
-
-    exit_with_status("Failed to load character name", FAILED_TO_LOAD_CHAR_NAME);
-}
-
-static void load_map_info() {
-    map_id = GetMapId();
-    district = GetDistrict();
-    district_number = GetDistrictNumber();
 }
 
 static void load_configuration() {
@@ -333,21 +312,21 @@ static bool in_correct_outpost() {
         return false;
     if (!bot_configuration.map_id)
         return true;
-    const auto map_id = GetMapId();
     if (!map_id)
         return false;
 
     return ((!bot_configuration.map_id || map_id == bot_configuration.map_id) &&
-        district == bot_configuration.district &&
+        (bot_configuration.district == District::DISTRICT_CURRENT || district == bot_configuration.district) &&
         (!bot_configuration.district_number || district_number == bot_configuration.district_number));
 }
 
-static bool ensure_correct_outpost() {
+static void ensure_correct_outpost() {
     if (in_correct_outpost())
-        return true;
+        return;
     LogInfo("Zoning into outpost");
     int res = 0;
     size_t retries = 4;
+    assert(bot_configuration.map_id);
     for (size_t i = 0; i < retries && !in_correct_outpost(); i++) {
         LogInfo("Travel attempt %d of %d", i + 1, retries);
         res = travel_wait(bot_configuration.map_id, bot_configuration.district, bot_configuration.district_number);
@@ -359,16 +338,6 @@ static bool ensure_correct_outpost() {
         exit_with_status("Couldn't travel to outpost", 1);
     }
     LogInfo("I should be in outpost %d %d %d", GetMapId(), GetDistrict(), GetDistrictNumber());
-}
-
-static bool proc_state() {
-    if (!GetIsIngame()) {
-        return false;
-    }
-    if (!ensure_correct_outpost())
-        return false;
-
-    return true;
 }
 
 static void send_info() {
@@ -390,36 +359,46 @@ static void send_info() {
     time_sleep_sec(5);
 }
 
-static void connect_websocket() {
-    const auto max_tries = 5;
-    for (auto i = 0; i < bot_configuration.connection_retries || bot_configuration.connection_retries == 0; i++) {
-        if (ws) {
-            ws->close();
-        }
-
-        LogInfo("Attempting to connect. Try %d/%d", i, bot_configuration.connection_retries);
-        try {
-            const auto user_agent = std::format("{}-{}-{}", character_name.c_str(), bot_configuration.map_id, static_cast<uint32_t>(bot_configuration.district));
-            ws = easywsclient::WebSocket::from_url(bot_configuration.web_socket_url, user_agent);
-            
-        }
-        catch (std::exception) {
-        }
-
-        if (!ws) {
-            LogError("Failed to connect");
-            continue;
-        }
-
-        for (auto j = 0; j < max_tries; j++) {
-            if (ws->getReadyState() == easywsclient::WebSocket::OPEN) {
-                return;
-            }
-
-            ws->poll();
-            time_sleep_sec(1);
-        }
+static void disconnect_websocket() {
+    if (!ws) return;
+    ws->close();
+    // Wait for websocket to close
+    for (auto j = 0; j < 5000; j+=50) {
+        ws->poll();
+        if (ws->getReadyState() == easywsclient::WebSocket::CLOSED)
+            break;
+        time_sleep_ms(50);
     }
+    ws = NULL;
+}
+static void connect_websocket() {
+    if (ws && ws->getReadyState() == easywsclient::WebSocket::OPEN)
+        return;
+
+    const auto connect_retries = 10;
+
+    for (auto i = 0; i < connect_retries; i++) {
+        disconnect_websocket();
+
+        LogInfo("Attempting to connect. Try %d/%d", i + 1, connect_retries);
+        
+        assert(*character_name && map_id);
+        const auto user_agent = std::format("{}-{}-{}", character_name, map_id, static_cast<uint32_t>(district));
+        ws = easywsclient::WebSocket::from_url(bot_configuration.web_socket_url, user_agent);
+
+        if (!ws)
+            continue;
+        // Wait for websocket to open
+        for (auto j = 0; j < 5000; j+=50) {
+            ws->poll();
+            if (ws->getReadyState() == easywsclient::WebSocket::OPEN)
+                break;
+            time_sleep_ms(50);
+        }
+        break;
+    }
+    if (ws && ws->getReadyState() == easywsclient::WebSocket::OPEN)
+        return;
     
     exit_with_status("Timed out while attempting to connect", FAILED_TO_CONNECT);
 }
@@ -429,6 +408,7 @@ static int main_bot(void* param)
     CallbackEntry_Init(&EventType_WorldMapLeave_entry, on_map_left, NULL);
     RegisterEvent(EventType_WorldMapLeave, &EventType_WorldMapLeave_entry);
 
+    on_map_entered(NULL, NULL);
     CallbackEntry_Init(&EventType_WorldMapEnter_entry, on_map_entered, NULL);
     RegisterEvent(EventType_WorldMapEnter, &EventType_WorldMapEnter_entry);
 
@@ -446,23 +426,12 @@ static int main_bot(void* param)
     
     wait_until_ingame();
 
-    load_character_name();
-    
-    load_map_info();
-
     load_configuration();
 
-    connect_websocket();
-
     while (running) {
-        if (ws->getReadyState() == easywsclient::WebSocket::CLOSED) {
-            connect_websocket();
-        }
-
-        if (!proc_state()) {
-            continue;
-        }
-
+        wait_until_ingame();
+        ensure_correct_outpost();
+        connect_websocket();
         send_info();
         time_sleep_sec(1);
     }
