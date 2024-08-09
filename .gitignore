@@ -364,3 +364,8 @@ FodyWeavers.xsd
 /GuildWarsPartySearch/Config.Local.json
 /build*
 /GuildWarsPartySearch/envfile
+/GuildWarsPartySearch.Bot/build
+/GuildWarsPartySearch.Bot/linuxbuild
+/GuildWarsPartySearch.Bot/data
+/GuildWarsPartySearch.Bot/logs
+config.sh
