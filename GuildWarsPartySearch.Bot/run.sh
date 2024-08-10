@@ -29,16 +29,6 @@ if [ ! -f $CLIENT_EXE ]; then
 source build.sh
 fi
 
-echo $CLIENT_EXE
-echo $EMAIL
-echo $PASSWORD
-echo $CHARACTER
-echo $DISTRICT
-echo $MAP_ID
-echo $LOG_FILE
-echo $BUILD_VERSION_FILE
-echo $PLUGIN_EXE
-
 RUN_CMD=$(cat <<EOF
 "$CLIENT_EXE" \
 -email "$EMAIL" \
@@ -46,6 +36,7 @@ RUN_CMD=$(cat <<EOF
 -district "$DISTRICT" \
 -mapid "$MAP_ID" \
 -password "$PASSWORD" \
+-websocket-url "$WEBSOCKET_URL" \
 -l "$LOG_FILE" \
 -file-game-version "$BUILD_VERSION_FILE" \
 "$PLUGIN_EXE"

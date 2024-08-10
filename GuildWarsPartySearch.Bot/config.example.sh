@@ -14,3 +14,5 @@ CHARACTER=""
 MAP_ID="148"
 # Composite district enum to use (e.g. 1 = AMERICAN) - check source code!
 DISTRICT="1"
+# Endpoint to send party searches to
+WEBSOCKET_URL="ws://hostname/party-search/update"
