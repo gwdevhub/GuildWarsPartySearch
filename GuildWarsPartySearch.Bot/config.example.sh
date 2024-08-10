@@ -5,10 +5,12 @@
 #----------------
 
 # Email address for your Guild Wars account
-EMAIL=""    
+EMAIL=""
 # Password for your Guild Wars account
-PASSWORD="" 
+PASSWORD=""
+# Character name to travel to listen for party searches
+CHARACTER=""
 # Map ID to travel to listen for party searches
-MAP_ID="148" 
+MAP_ID="148"
 # Composite district enum to use (e.g. 1 = AMERICAN) - check source code!
-DISTRICT="1" 
+DISTRICT="1"
