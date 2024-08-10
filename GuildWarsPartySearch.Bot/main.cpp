@@ -398,7 +398,13 @@ static easywsclient::WebSocket::pointer connect_websocket() {
 
     assert(*account_uuid && map_id);
     char user_agent[255];
-    assert(snprintf(user_agent, ARRAY_SIZE(user_agent), "%s-%d-%d", account_uuid, map_id, static_cast<uint32_t>(district)) > 0);
+    char uuid_less_hyphens[ARRAY_SIZE(account_uuid)] = { 0 };
+    size_t added = 0;
+    for (size_t i = 0; i < ARRAY_SIZE(account_uuid); i++) {
+        if (account_uuid[i] != '-')
+            uuid_less_hyphens[added++] = account_uuid[i];
+    }
+    assert(snprintf(user_agent, ARRAY_SIZE(user_agent), "%s-%d-%d", uuid_less_hyphens, map_id, static_cast<uint32_t>(district)) > 0);
 
     const auto connect_retries = 10;
 
