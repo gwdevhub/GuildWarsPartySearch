@@ -2,5 +2,5 @@
 
 public sealed class BotHistoryDatabaseOptions
 {
-    public string TableName { get; set; } = default!;
+    public string TableName { get; set; } = "bot_history";
 }
