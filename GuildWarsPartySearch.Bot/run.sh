@@ -34,7 +34,7 @@ RUN_CMD=$(cat <<EOF
 -email "$EMAIL" \
 -character "$CHARACTER" \
 -district "$DISTRICT" \
--mapid "$MAP_ID" \
+-travel-mapid "$MAP_ID" \
 -password "$PASSWORD" \
 -websocket-url "$WEBSOCKET_URL" \
 -l "$LOG_FILE" \

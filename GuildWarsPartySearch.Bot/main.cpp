@@ -282,7 +282,7 @@ static void load_configuration() {
                 bot_configuration.web_socket_url = get_next_argument(i);
                 i++;
             }
-            else if (arg == "-mapid") {
+            else if (arg == "-travel-mapid") {
                 bot_configuration.map_id = stoi(get_next_argument(i));
                 i++;
             }
