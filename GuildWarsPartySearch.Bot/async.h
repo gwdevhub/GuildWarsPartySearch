@@ -94,19 +94,3 @@ void async_wait_map_loading(AsyncState* state, msec_t timeout_ms)
     assert(RegisterEvent(EventType_WorldMapEnter, &state->callback_1));
     assert(RegisterEvent(EventType_WorldCantTravel, &state->callback_2));
 }
-
-void async_redirect_map(AsyncState* state,
-    uint32_t map_id, uint32_t type, District district, int district_number, msec_t timeout_ms)
-{
-    async_wait_map_loading(state, timeout_ms);
-
-    RedirectMap(map_id, type, district, district_number);
-}
-
-void async_travel(AsyncState* state,
-    uint32_t map_id, District district, uint16_t district_number, msec_t timeout_ms)
-{
-    async_wait_map_loading(state, timeout_ms);
-
-    Travel(map_id, district, district_number);
-}
