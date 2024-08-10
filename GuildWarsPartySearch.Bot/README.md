@@ -16,7 +16,10 @@
 ## Debugging
 
 Segmentation fault in docker usually means the bot failed; running manually by sshing into the server could help give more info in the console.
-
-1. `docker run -d --restart always --name partysearchbot -v "%cd%":/app partysearchbot_alpine`
-2. `docker exec -ti partysearchbot bash`
-3. `./run.sh`
+1. `docker rm -f partysearchbot`
+2. `docker run -d --restart always --name partysearchbot -v "%cd%":/app partysearchbot_alpine`
+3. `docker exec -ti partysearchbot bash`
+4. `./run.sh` - this should fail with a useless segmentation fault message. Copy the command shown in the output.
+5. `gdb --args <your_copied_text>` - this should open a gdb prompt for the next steps.
+6. `run` - this should end up printing out `Program received signal SIGSEGV, Segmentation fault.`
+6. `bt` to view the call stack, explaining the error so you can actually do something about it!

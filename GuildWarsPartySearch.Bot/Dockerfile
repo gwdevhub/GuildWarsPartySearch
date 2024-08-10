@@ -6,6 +6,7 @@ RUN apk update && apk add \
   ninja \
   ninja-build \
   alpine-sdk \
+  gdb \
   python3 py3-pip py3-tqdm py3-pefile
 
 WORKDIR /app

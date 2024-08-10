@@ -29,6 +29,17 @@ if [ ! -f $CLIENT_EXE ]; then
 source build.sh
 fi
 
+echo $CLIENT_EXE
+echo $EMAIL
+echo $PASSWORD
+echo $CHARACTER
+echo $DISTRICT
+echo $MAP_ID
+echo $LOG_FILE
+echo $BUILD_VERSION_FILE
+echo $PLUGIN_EXE
+
+RUN_CMD=$(cat <<EOF
 "$CLIENT_EXE" \
 -email "$EMAIL" \
 -character "$CHARACTER" \
@@ -37,4 +48,18 @@ fi
 -password "$PASSWORD" \
 -l "$LOG_FILE" \
 -file-game-version "$BUILD_VERSION_FILE" \
-"$PLUGIN_EXE" 2>&1
+"$PLUGIN_EXE"
+EOF
+)
+
+
+echo "
+------- Command to run:
+";
+echo $RUN_CMD
+echo "
+-------
+";
+
+
+bash -c "$RUN_CMD"
