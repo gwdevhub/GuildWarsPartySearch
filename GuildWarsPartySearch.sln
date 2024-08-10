@@ -29,9 +29,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dockerfiles", "Dockerfiles", "{7F3BB655-7DC0-41BB-BC28-34039267C833}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{10E13028-30D6-47CF-846E-757E6510D018}"
 	ProjectSection(SolutionItems) = preProject
-		Dockerfile-Bot = Dockerfile-Bot
-		Dockerfile-Server = Dockerfile-Server
+		GuildWarsPartySearch\Dockerfile = GuildWarsPartySearch\Dockerfile
 	EndProjectSection
 EndProject
 Global
@@ -98,6 +99,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{9FF3793B-F37B-4370-AECC-D901C879E0CB} = {B9CF84E8-5186-4C8F-A892-FDE452C3F21E}
+		{10E13028-30D6-47CF-846E-757E6510D018} = {7F3BB655-7DC0-41BB-BC28-34039267C833}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41E8BB8F-3A9F-4256-8E34-62CCC9EB5EEE}

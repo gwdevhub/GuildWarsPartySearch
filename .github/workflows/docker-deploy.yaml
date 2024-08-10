@@ -38,7 +38,7 @@ jobs:
     - name: Build docker image
       run: |
         echo "Building docker image"
-        docker build -t guildwarspartysearch.server -f Dockerfile-Server .
+        docker build -t guildwarspartysearch.server -f GuildWarsPartySearch/Dockerfile .
         echo "Exporting docker image"
         docker save -o guildwarspartysearch.server.tar guildwarspartysearch.server
         echo "Exported docker image"
