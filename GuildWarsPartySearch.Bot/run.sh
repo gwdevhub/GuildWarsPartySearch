@@ -13,17 +13,28 @@ BUILD_VERSION_FILE=$PWD/Gw.build;
 # Absolute location of plugin on disk
 PLUGIN_EXE=$BIN_DIR/libGuildWarsPartySearch.Bot.so;
 
-# TODO: ENV vars
-RUN_EMAIL="${EMAIL:-null@arenanet.com}";
-RUN_PASSWORD="${PASSWORD:-nopassword}";
-RUN_CHARACTER="${CHARACTER:-No Character}";
-RUN_MAP_ID="${MAP_ID:-0}";
-RUN_DISTRICT="${DISTRICT:-0}";
-
 # Absolute log
 LOG_DIR=$(dirname "$LOG_FILE")
 rm -R $LOG_DIR;
 mkdir -p $LOG_DIR;
 touch $LOG_FILE;
 
-"$CLIENT_EXE" -email "$RUN_EMAIL" -character "$RUN_CHARACTER" -district "$RUN_DISTRICT" -mapid "$RUN_MAP_ID" -password "$RUN_PASSWORD" -l "$LOG_FILE" -file-game-version "$BUILD_VERSION_FILE" "$PLUGIN_EXE" 
+# Load in the login credentials from config.sh
+source config.sh
+# Check with the GW fileserver for an updated gw version, and copy it into Gw.build
+source check_and_update_gw_keys.sh
+
+# Build the solution if its not already built
+if [ ! -f $CLIENT_EXE ]; then
+source build.sh
+fi
+
+"$CLIENT_EXE" \
+-email "$EMAIL" \
+-character "$CHARACTER" \
+-district "$DISTRICT" \
+-mapid "$MAP_ID" \
+-password "$PASSWORD" \
+-l "$LOG_FILE" \
+-file-game-version "$BUILD_VERSION_FILE" \
+"$PLUGIN_EXE" 2>&1
