@@ -45,7 +45,7 @@ Sends periodic party search updates. Example:
                     ""district_number"":1,
                     ""district_language"":0,
                     ""message"":"""",
-                    ""sender"":""Demia Frelluis"",
+                    ""sender"":""Alucard Dracula"",
                     ""party_size"":4,
                     ""hero_count"":3,
                     ""hard_mode"":1,
