@@ -7,7 +7,7 @@ BIN_DIR=$PWD/linuxbuild/bin;
 # Absolute path to client executable
 CLIENT_EXE=$BIN_DIR/client;
 # Absolute path to log file
-LOG_FILE=$PWD/logs/$NOW.txt;
+LOG_FILE=/var/log/partysearchbot/$NOW.txt;
 # Contains the build version number of guild wars
 BUILD_VERSION_FILE=$PWD/Gw.build;
 # Absolute location of plugin on disk
