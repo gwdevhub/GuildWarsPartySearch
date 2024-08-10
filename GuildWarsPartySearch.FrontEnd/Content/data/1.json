@@ -53,62 +53,73 @@
         {
           "name": "Ascalon City",
           "type": "city",
-          "coordinates": [ 7104, 4534 ]
+          "coordinates": [ 7104, 4534 ],
+          "mapId": 81
         },
         {
           "name": "Ascalon Arena",
           "type": "arena",
           "coordinates": [ 7184, 4570 ],
-          "wiki": "Ascalon_Arena_(outpost)"
+          "wiki": "Ascalon_Arena_(outpost)",
+          "mapId": 85
         },
         {
           "name": "Grendich Courthouse",
           "type": "outpost",
-          "coordinates": [ 6211, 4004 ]
+          "coordinates": [ 6211, 4004 ],
+          "mapId": 36
         },
         {
           "name": "Piken Square",
           "type": "outpost",
-          "coordinates": [ 6870, 4270 ]
+          "coordinates": [ 6870, 4270 ],
+          "mapId": 40
         },
         {
           "name": "Sardelac Sanitarium",
           "type": "outpost",
-          "coordinates": [ 6813, 4682 ]
+          "coordinates": [ 6813, 4682 ],
+          "mapId": 39
         },
         {
           "name": "Serenity Temple",
           "type": "outpost",
-          "coordinates": [ 7445, 4585 ]
+          "coordinates": [ 7445, 4585 ],
+          "mapId": 131
         },
         {
           "name": "Frontier Gate",
           "type": "outpost",
-          "coordinates": [ 7322, 4302 ]
+          "coordinates": [ 7322, 4302 ],
+          "mapId": 135
         },
         {
           "name": "Fort Ranik",
           "type": "mission",
           "coordinates": [ 7412, 4863 ],
-          "wiki": "Fort_Ranik_(outpost)"
+          "wiki": "Fort_Ranik_(outpost)",
+          "mapId": 29
         },
         {
           "name": "The Great Northern Wall",
           "type": "mission",
           "coordinates": [ 7217, 4350 ],
-          "wiki": "The_Great_Northern_Wall_(outpost)"
+          "wiki": "The_Great_Northern_Wall_(outpost)",
+          "mapId": 28
         },
         {
           "name": "Ruins of Surmia",
           "type": "mission",
           "coordinates": [ 7258, 4226 ],
-          "wiki": "Ruins_of_Surmia_(outpost)"
+          "wiki": "Ruins_of_Surmia_(outpost)",
+          "mapId": 30
         },
         {
           "name": "Nolani Academy",
           "type": "mission",
           "coordinates": [ 5990, 4387 ],
-          "wiki": "Nolani_Academy_(outpost)"
+          "wiki": "Nolani_Academy_(outpost)",
+          "mapId": 32
         }
       ]
     },
@@ -118,11 +129,11 @@
 
         {
           "name": "Traveler's Vale",
-          "coordinates": [ 5685, 3647 ]
+          "coordinates": [ 5685, 3647 ],
         },
         {
           "name": "Iron Horse Mine",
-          "coordinates": [ 5308, 3421 ]
+          "coordinates": [ 5308, 3421 ],
         },
         {
           "name": "Anvil Rock",
@@ -141,35 +152,41 @@
         {
           "name": "Yak's Bend",
           "type": "outpost",
-          "coordinates": [ 5793, 3590 ]
+          "coordinates": [ 5793, 3590 ],
+          "mapId": 134
         },
         {
           "name": "Ice Tooth Cave",
           "type": "outpost",
-          "coordinates": [ 4711, 3505 ]
+          "coordinates": [ 4711, 3505 ],
+          "mapId": 132
         },
         {
           "name": "Beacon's Perch",
           "type": "outpost",
-          "coordinates": [ 4670, 4312 ]
+          "coordinates": [ 4670, 4312 ],
+          "mapId": 133
         },
         {
           "name": "Borlis Pass",
           "type": "mission",
           "coordinates": [ 5554, 3740 ],
-          "wiki": "Borlis_Pass_(outpost)"
+          "wiki": "Borlis_Pass_(outpost)",
+          "mapId": 25
         },
         {
           "name": "The Frost Gate",
           "type": "mission",
           "coordinates": [ 5041, 3824 ],
-          "wiki": "The_Frost_Gate_(outpost)"
+          "wiki": "The_Frost_Gate_(outpost)",
+          "mapId": 21
         },
         {
           "name": "Shiverpeak Arena",
           "type": "arena",
           "coordinates": [ 5755, 3514 ],
-          "wiki": "Shiverpeak_Arena_(outpost)"
+          "wiki": "Shiverpeak_Arena_(outpost)",
+          "mapId": 181
         }
       ]
     },
@@ -238,57 +255,67 @@
         {
           "name": "Lion's Arch",
           "type": "city",
-          "coordinates": [ 3960, 4800 ]
+          "coordinates": [ 3960, 4800 ],
+          "mapId": 385
         },
         {
           "name": "Bergen Hot Springs",
           "type": "outpost",
-          "coordinates": [ 3592, 4620 ]
+          "coordinates": [ 3592, 4620 ],
+          "mapId": 57
         },
         {
           "name": "Beetletun",
           "type": "outpost",
-          "coordinates": [ 3245, 4262 ]
+          "coordinates": [ 3245, 4262 ],
+          "mapId": 136
         },
         {
           "name": "Temple of the Ages",
           "type": "outpost",
-          "coordinates": [ 2961, 4360 ]
+          "coordinates": [ 2961, 4360 ],
+          "mapId": 138
         },
         {
           "name": "Fishermen's Haven",
           "type": "outpost",
-          "coordinates": [ 2716, 5020 ]
+          "coordinates": [ 2716, 5020 ],
+          "mapId": 137
         },
         {
           "name": "Gates of Kryta",
           "type": "mission",
           "coordinates": [ 4162, 4650 ],
-          "wiki": "Gates_of_Kryta_(outpost)"
+          "wiki": "Gates_of_Kryta_(outpost)",
+          "mapId": 14
         },
         {
           "name": "D'Alessio Seaboard",
           "type": "mission",
           "coordinates": [ 3779, 4881 ],
-          "wiki": "D'Alessio_Seaboard_(outpost)"
+          "wiki": "D'Alessio_Seaboard_(outpost)",
+          "mapId": 15
         },
         {
           "name": "Divinity Coast",
           "type": "mission",
           "coordinates": [ 2774, 4200 ],
-          "wiki": "Divinity_Coast_(outpost)"
+          "wiki": "Divinity_Coast_(outpost)",
+          "mapId": 16
         },
         {
           "name": "Riverside Province",
           "type": "mission",
           "coordinates": [ 2266, 5414 ],
-          "wiki": "Riverside_Province_(outpost)"
+          "wiki": "Riverside_Province_(outpost)",
+          "mapId": 73
         },
         {
           "name": "Sanctum Cay",
           "type": "mission",
           "coordinates": [ 2785, 5282 ],
-          "wiki": "Sanctum_Cay_(outpost)"
+          "wiki": "Sanctum_Cay_(outpost)",
+          "mapId": 19
         },
         {
           "name": "Travel",
@@ -343,45 +370,53 @@
         {
           "name": "Druid's Overlook",
           "type": "outpost",
-          "coordinates": [ 1639, 4685 ]
+          "coordinates": [ 1639, 4685 ],
+          "mapId": 140
         },
         {
           "name": "Quarrel Falls",
           "type": "outpost",
-          "coordinates": [ 995, 4917 ]
+          "coordinates": [ 995, 4917 ],
+          "mapId": 142
         },
         {
           "name": "Verntari's Refuge",
           "type": "outpost",
-          "coordinates": [ 942, 5200 ]
+          "coordinates": [ 942, 5200 ],
+          "mapId": 139
         },
         {
           "name": "Maguuma Stade",
           "type": "outpost",
-          "coordinates": [ 1649, 5642 ]
+          "coordinates": [ 1649, 5642 ],
+          "mapId": 141
         },
         {
           "name": "Henge of Denravi",
           "type": "city",
-          "coordinates": [ 1706, 5253 ]
+          "coordinates": [ 1706, 5253 ],
+          "mapId": 49
         },
         {
           "name": "The Wilds",
           "type": "mission",
           "coordinates": [ 1391, 4466 ],
-          "wiki": "The_Wilds_(outpost)"
+          "wiki": "The_Wilds_(outpost)",
+          "mapId": 11
         },
         {
           "name": "Bloodstone Fen",
           "type": "mission",
           "coordinates": [ 818, 4694 ],
-          "wiki": "Bloodstone_Fen_(outpost)"
+          "wiki": "Bloodstone_Fen_(outpost)",
+          "mapId": 471
         },
         {
           "name": "Aurora Glade",
           "type": "mission",
           "coordinates": [ 1324, 4998 ],
-          "wiki": "Aurora_Glade_(outpost)"
+          "wiki": "Aurora_Glade_(outpost)",
+          "mapId": 12
         }
       ]
     },
@@ -421,62 +456,72 @@
         {
           "name": "The Amnoon Oasis",
           "type": "city",
-          "coordinates": [ 6246, 7837 ]
+          "coordinates": [ 6246, 7837 ],
+          "mapId": 109
         },
         {
           "name": "Seeker's Passage",
           "type": "outpost",
-          "coordinates": [ 6398, 7574 ]
+          "coordinates": [ 6398, 7574 ],
+          "mapId": 153
         },
         {
           "name": "Tomb of the Primeval Kings",
           "type": "outpost",
-          "coordinates": [ 7025, 6983 ]
+          "coordinates": [ 7025, 6983 ],
+          "mapId": 82
         },
         {
           "name": "Destiny's Gorge",
           "type": "outpost",
-          "coordinates": [ 7094, 7935 ]
+          "coordinates": [ 7094, 7935 ],
+          "mapId": 154
         },
         {
           "name": "Heroes' Audience",
           "type": "outpost",
-          "coordinates": [ 6286, 8275 ]
+          "coordinates": [ 6286, 8275 ],
+          "mapId": 152
         },
         {
           "name": "The Dragon's Lair",
           "type": "mission",
           "coordinates": [ 6992, 7097 ],
-          "wiki": "The_Dragon's_Lair_(outpost)"
+          "wiki": "The_Dragon's_Lair_(outpost)",
+          "mapId": 120
         },
         {
           "name": "Elona Reach",
           "type": "mission",
           "coordinates": [ 6907, 7657 ],
-          "wiki": "Elona_Reach_(outpost)"
+          "wiki": "Elona_Reach_(outpost)",
+          "mapId": 118
         },
         {
           "name": "Augury Rock",
           "type": "mission",
           "coordinates": [ 6714, 8103 ],
-          "wiki": "Augury_Rock_(outpost)"
+          "wiki": "Augury_Rock_(outpost)",
+          "mapId": 119
         },
         {
           "name": "Dunes of Despair",
           "type": "mission",
           "coordinates": [ 6516, 8615 ],
-          "wiki": "Dunes_of_Despair_(outpost)"
+          "wiki": "Dunes_of_Despair_(outpost)",
+          "mapId": 116
         },
         {
           "name": "Thirsty River",
           "type": "mission",
           "coordinates": [ 7388, 8391 ],
-          "wiki": "Thirsty_River_(outpost)"
+          "wiki": "Thirsty_River_(outpost)",
+          "mapId": 117
         }
       ]
     },
     {
-      "name": "Ring of Fire Islands",
+      "name": "Southern Shiverpeaks",
       "areas": [
         {
           "name": "Lornar's Pass",
@@ -531,55 +576,65 @@
         {
           "name": "Droknar's Forge",
           "type": "city",
-          "coordinates": [ 5175, 6541 ]
+          "coordinates": [ 5175, 6541 ],
+          "mapId": 20
         },
         {
           "name": "Camp Rankor",
           "type": "outpost",
-          "coordinates": [ 4804, 6114 ]
+          "coordinates": [ 4804, 6114 ],
+          "mapId": 155
         },
         {
           "name": "Deldrimor War Camp",
           "type": "outpost",
-          "coordinates": [ 4988, 5666 ]
+          "coordinates": [ 4988, 5666 ],
+          "mapId": 206
         },
         {
           "name": "The Granite Citadel",
           "type": "outpost",
-          "coordinates": [ 5290, 5380 ]
+          "coordinates": [ 5290, 5380 ],
+          "mapId": 156
         },
         {
           "name": "Copperhammer Mines",
           "type": "outpost",
-          "coordinates": [ 5550, 5856 ]
+          "coordinates": [ 5550, 5856 ],
+          "mapId": 159
         },
         {
           "name": "Port Sledge",
           "type": "outpost",
-          "coordinates": [ 5324, 6725 ]
+          "coordinates": [ 5324, 6725 ],
+          "mapId": 158
         },
         {
           "name": "Marhan's Grotto",
           "type": "outpost",
-          "coordinates": [ 6125, 6444 ]
+          "coordinates": [ 6125, 6444 ],
+          "mapId": 157
         },
         {
           "name": "Ice Caves of Sorrow",
           "type": "mission",
           "coordinates": [ 5322, 6433 ],
-          "wiki": "Ice_Caves_of_Sorrow_(outpost)"
+          "wiki": "Ice_Caves_of_Sorrow_(outpost)",
+          "mapId": 22
         },
         {
           "name": "Iron Mines of Moladune",
           "type": "mission",
           "coordinates": [ 5982, 5848 ],
-          "wiki": "Iron_Mines_of_Moladune_(outpost)"
+          "wiki": "Iron_Mines_of_Moladune_(outpost)",
+          "mapId": 24
         },
         {
           "name": "Thunderhead Keep",
           "type": "mission",
           "coordinates": [ 6307, 6118 ],
-          "wiki": "Thunderhead_Keep_(outpost)"
+          "wiki": "Thunderhead_Keep_(outpost)",
+          "mapId": 23
         }
       ]
     },
@@ -595,25 +650,29 @@
         {
           "name": "Ember Light Camp",
           "type": "outpost",
-          "coordinates": [ 1980, 7770 ]
+          "coordinates": [ 1980, 7770 ],
+          "mapId": 35
         },
         {
           "name": "Ring of Fire",
           "type": "mission",
           "coordinates": [ 1781, 7542 ],
-          "wiki": "Ring_of_Fire_(outpost)"
+          "wiki": "Ring_of_Fire_(outpost)",
+          "mapId": 122
         },
         {
           "name": "Abaddon's Mouth",
           "type": "mission",
           "coordinates": [ 1594, 7425 ],
-          "wiki": "Abaddon's_Mouth_(outpost)"
+          "wiki": "Abaddon's_Mouth_(outpost)",
+          "mapId": 123
         },
         {
           "name": "Hell's Precipice",
           "type": "mission",
           "coordinates": [ 1574, 7625 ],
-          "wiki": "Hell's_Precipice_(outpost)"
+          "wiki": "Hell's_Precipice_(outpost)",
+          "mapId": 124
         }
       ]
     },
@@ -665,43 +724,51 @@
         {
           "name": "Boreal Station",
           "type": "outpost",
-          "coordinates": [ 6384, 2717 ]
+          "coordinates": [ 6384, 2717 ],
+          "mapId": 675
         },
         {
           "name": "Eye of the North",
           "type": "outpost",
           "coordinates": [ 6283, 2405 ],
-          "wiki": "Eye_of_the_North_(outpost)"
+          "wiki": "Eye_of_the_North_(outpost)",
+          "mapId": 642
         },
         {
           "name": "Gunnar's Hold",
           "type": "city",
-          "coordinates": [ 6265, 1980 ]
+          "coordinates": [ 6265, 1980 ],
+          "mapId": 644
         },
         {
           "name": "Longeye's Ledge",
           "type": "outpost",
-          "coordinates": [ 6750, 1615 ]
+          "coordinates": [ 6750, 1615 ],
+          "mapId": 650
         },
         {
           "name": "Olafstead",
           "type": "outpost",
-          "coordinates": [ 5442, 2180 ]
+          "coordinates": [ 5442, 2180 ],
+          "mapId": 645
         },
         {
           "name": "Sifhalla",
           "type": "outpost",
-          "coordinates": [ 5666, 1399 ]
+          "coordinates": [ 5666, 1399 ],
+          "mapId": 643
         },
         {
           "name": "Umbral Grotto",
           "type": "outpost",
-          "coordinates": [ 4573, 2420 ]
+          "coordinates": [ 4573, 2420 ],
+          "mapId": 639
         },
         {
           "name": "Central Transfer Chamber",
           "type": "outpost",
-          "coordinates": [ 5918, 3282 ]
+          "coordinates": [ 5918, 3282 ],
+          "mapId": 652
         },
         {
           "name": "Fronis Irontoe's Lair",
@@ -791,7 +858,8 @@
         {
           "name": "Doomlore Shrine",
           "type": "city",
-          "coordinates": [ 7418, 1405 ]
+          "coordinates": [ 7418, 1405 ],
+          "mapId": 648
         },
         {
           "name": "Ooze Pit",
@@ -860,22 +928,26 @@
         {
           "name": "Vlox's Falls",
           "type": "outpost",
-          "coordinates": [ 2793, 5882 ]
+          "coordinates": [ 2793, 5882 ],
+          "mapId": 624
         },
         {
           "name": "Tarnished Haven",
           "type": "outpost",
-          "coordinates": [ 2286, 6540 ]
+          "coordinates": [ 2286, 6540 ],
+          "mapId": 641
         },
         {
           "name": "Rata Sum",
           "type": "city",
-          "coordinates": [ 1650, 6070 ]
+          "coordinates": [ 1650, 6070 ],
+          "mapId": 640
         },
         {
           "name": "Gadd's Encampment",
           "type": "outpost",
-          "coordinates": [ 4110, 6675 ]
+          "coordinates": [ 4110, 6675 ],
+          "mapId": 638
         },
         {
           "name": "Shards of Orr",

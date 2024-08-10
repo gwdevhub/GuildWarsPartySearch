@@ -54,45 +54,47 @@
         {
           "name": "Shing Jea Monastery",
           "type": "city_cantha",
-          "coordinates": [ 1519, 2659 ]
+          "coordinates": [ 1519, 2659 ],
+          "mapId": 242
         },
         {
           "name": "Tsumei Village",
           "type": "outpost_cantha",
-          "coordinates": [ 1160, 2680 ]
+          "coordinates": [ 1160, 2680 ],
+          "mapId": 249
         },
         {
           "name": "Ran Musu Gardens",
           "type": "outpost_cantha",
-          "coordinates": [ 996, 2263 ]
-        },
-        {
-          "name": "Ran Musu Gardens",
-          "type": "outpost_cantha",
-          "coordinates": [ 996, 2263 ]
+          "coordinates": [ 996, 2263 ],
+          "mapId": 251
         },
         {
           "name": "Seitung Harbor",
           "type": "outpost_cantha",
-          "coordinates": [ 1810, 2623 ]
+          "coordinates": [ 1810, 2623 ],
+          "mapId": 250
         },
         {
           "name": "Minister Cho's Estate",
           "type": "mission_cantha",
           "coordinates": [ 1333, 2324 ],
-          "wiki": "Minister_Cho's_Estate_(outpost)"
+          "wiki": "Minister_Cho's_Estate_(outpost)",
+          "mapId": 214
         },
         {
           "name": "Zen Daijun",
           "type": "mission_cantha",
           "coordinates": [ 2222, 2569 ],
-          "wiki": "Zen_Daijun_(outpost)"
+          "wiki": "Zen_Daijun_(outpost)",
+          "mapId": 213
         },
         {
           "name": "Shing Jea Arena",
           "type": "arena_cantha",
           "coordinates": [ 1393, 3221 ],
-          "wiki": "Shing_Jea_Arena_(outpost)"
+          "wiki": "Shing_Jea_Arena_(outpost)",
+          "mapId": 243
         }
       ]
     },
@@ -164,75 +166,88 @@
         {
           "name": "Kaineng Center",
           "type": "city_cantha",
-          "coordinates": [ 2962, 800 ]
+          "coordinates": [ 2962, 800 ],
+          "mapId": 400
         },
         {
           "name": "The Marketplace",
           "type": "outpost_cantha",
-          "coordinates": [ 2915, 1244 ]
+          "coordinates": [ 2915, 1244 ],
+          "mapId": 303
         },
         {
           "name": "Senji's Corner",
           "type": "outpost_cantha",
-          "coordinates": [ 3217, 1612 ]
+          "coordinates": [ 3217, 1612 ],
+          "mapId": 50
         },
         {
           "name": "Zin Ku Corridor",
           "type": "outpost_cantha",
-          "coordinates": [ 3851, 1452 ]
+          "coordinates": [ 3851, 1452 ],
+          "mapId": 284
         },
         {
           "name": "Maatu Keep",
           "type": "outpost_cantha",
-          "coordinates": [ 3621, 1865 ]
+          "coordinates": [ 3621, 1865 ],
+          "mapId": 283
         },
         {
           "name": "Dragon's Throat",
           "type": "challenge_cantha",
           "coordinates": [ 3424, 951 ],
-          "wiki": "Dragon's_Throat_(outpost)"
+          "wiki": "Dragon's_Throat_(outpost)",
+          "mapId": 274
         },
         {
           "name": "Raisu Palace",
           "type": "mission_cantha",
           "coordinates": [ 3112, 803 ],
-          "wiki": "Raisu_Palace_(outpost)"
+          "wiki": "Raisu_Palace_(outpost)",
+          "mapId": 225
         },
         {
           "name": "Imperial Sanctum",
           "type": "mission_cantha",
           "coordinates": [ 3581, 803 ],
-          "wiki": "Imperial_Sanctum_(outpost)"
+          "wiki": "Imperial_Sanctum_(outpost)",
+          "mapId": 226
         },
         {
           "name": "Vizunah Square (Foreign Quarter)",
           "type": "mission_cantha",
           "coordinates": [ 3272, 996 ],
-          "label": "Vizunah Square<br/>(Foreign Quarter)"
+          "label": "Vizunah Square<br/>(Foreign Quarter)",
+          "mapId": 292
         },
         {
           "name": "Vizunah Square (Local Quarter)",
           "type": "mission_cantha",
           "coordinates": [ 3332, 1257 ],
-          "label": "Vizunah Square<br/>(Local Quarter)"
+          "label": "Vizunah Square<br/>(Local Quarter)",
+          "mapId": 291
         },
         {
           "name": "Nahpui Quarter",
           "type": "mission_cantha",
           "coordinates": [ 2884, 1685 ],
-          "wiki": "Nahpui_Quarter_(outpost)"
+          "wiki": "Nahpui_Quarter_(outpost)",
+          "mapId": 216
         },
         {
           "name": "Sunjiang District",
           "type": "mission_cantha",
           "coordinates": [ 3683, 1706 ],
-          "wiki": "Sunjiang_District_(outpost)"
+          "wiki": "Sunjiang_District_(outpost)",
+          "mapId": 254
         },
         {
           "name": "Tahnnakai Temple",
           "type": "mission_cantha",
           "coordinates": [ 3675, 1385 ],
-          "wiki": "Tahnnakai_Temple_(outpost)"
+          "wiki": "Tahnnakai_Temple_(outpost)",
+          "mapId": 217
         },
         {
           "name": "Travel",
@@ -285,86 +300,102 @@
         {
           "name": "Tanglewood Copse",
           "type": "outpost_cantha_kurzick",
-          "coordinates": [ 3587, 2117 ]
+          "coordinates": [ 3587, 2117 ],
+          "mapId": 348
         },
         {
           "name": "Arborstone",
           "type": "mission_cantha_kurzick",
           "coordinates": [ 3378, 2277 ],
-          "wiki": "Arborstone_(outpost)"
+          "wiki": "Arborstone_(outpost)",
+          "mapId": 218
         },
         {
           "name": "Altrumm Ruins",
           "type": "challenge_cantha_kurzick",
           "coordinates": [ 3455, 2593 ],
-          "wiki": "Altrumm_Ruins_(outpost)"
+          "wiki": "Altrumm_Ruins_(outpost)",
+          "mapId": 270
         },
         {
           "name": "House zu Heltzer",
           "type": "city_cantha_kurzick",
-          "coordinates": [ 3511, 2715 ]
+          "coordinates": [ 3511, 2715 ],
+          "mapId": 77
         },
         {
           "name": "Aspenwood Gate (Kurzick)",
           "type": "outpost_cantha_kurzick",
-          "coordinates": [ 3850, 2635 ]
+          "coordinates": [ 3850, 2635 ],
+          "mapId": 388
         },
         {
           "name": "Fort Aspenwood (Kurzick)",
           "type": "challenge_cantha_kurzick",
-          "coordinates": [ 3867, 2540 ]
+          "coordinates": [ 3867, 2540 ],
+          "mapId": 294
         },
         {
           "name": "Jade Flats (Kurzick)",
           "type": "outpost_cantha_kurzick",
-          "coordinates": [ 4187, 2845 ]
+          "coordinates": [ 4187, 2845 ],
+          "mapId": 390
         },
         {
           "name": "The Jade Quarry (Kurzick)",
           "type": "challenge_cantha_kurzick",
-          "coordinates": [ 4221, 2737 ]
+          "coordinates": [ 4221, 2737 ],
+          "mapId": 296
         },
         {
           "name": "Saint Anjeka's Shrine",
           "type": "outpost_cantha_kurzick",
-          "coordinates": [ 3567, 3040 ]
+          "coordinates": [ 3567, 3040 ],
+          "mapId": 349
         },
         {
           "name": "Lutgardis Conservatory",
           "type": "outpost_cantha_kurzick",
-          "coordinates": [ 3907, 3093 ]
+          "coordinates": [ 3907, 3093 ],
+          "mapId": 129
         },
         {
           "name": "Brauer Academy",
           "type": "outpost_cantha_kurzick",
-          "coordinates": [ 3857, 3248 ]
+          "coordinates": [ 3857, 3248 ],
+          "mapId": 286
         },
         {
           "name": "The Eternal Grove",
           "type": "mission_cantha_kurzick",
           "coordinates": [ 3712, 3469 ],
-          "wiki": "The_Eternal_Grove_(outpost)"
+          "wiki": "The_Eternal_Grove_(outpost)",
+          "mapId": 128
         },
         {
           "name": "Vasburg Armory",
           "type": "outpost_cantha_kurzick",
-          "coordinates": [ 3943, 3509 ]
+          "coordinates": [ 3943, 3509 ],
+          "mapId": 130
         },
         {
           "name": "Durheim Archives",
           "type": "outpost_cantha_kurzick",
-          "coordinates": [ 4248, 3727 ]
+          "coordinates": [ 4248, 3727 ],
+          "mapId": 287
         },
         {
           "name": "Amatz Basin",
           "type": "challenge_cantha_kurzick",
           "coordinates": [ 3813, 3947 ],
-          "wiki": "Amatz_Basin_(outpost)"
+          "wiki": "Amatz_Basin_(outpost)",
+          "mapId": 229
         },
         {
           "name": "Unwaking Waters (Kurzick)",
           "type": "mission_cantha_kurzick",
-          "coordinates": [ 4493, 3445 ]
+          "coordinates": [ 4493, 3445 ],
+          "mapId": 298
         }
       ]
     },
@@ -412,84 +443,100 @@
           "name": "Boreas Seabed",
           "type": "mission_cantha_luxon",
           "coordinates": [ 4023, 2021 ],
-          "wiki": "Boreas_Seabed_(outpost)"
+          "wiki": "Boreas_Seabed_(outpost)",
+          "mapId": 219
         },
         {
           "name": "Bai Paasu Reach",
           "type": "outpost_cantha_luxon",
-          "coordinates": [ 4599, 2031 ]
+          "coordinates": [ 4599, 2031 ],
+          "mapId": 288
         },
         {
           "name": "Eredon Terrace",
           "type": "outpost_cantha_luxon",
-          "coordinates": [ 4971, 2044 ]
+          "coordinates": [ 4971, 2044 ],
+          "mapId": 350
         },
         {
           "name": "Zos Shivros Channel",
           "type": "challenge_cantha_luxon",
-          "coordinates": [ 4387, 2140 ]
+          "coordinates": [ 4387, 2140 ],
+          "mapId": 273
         },
         {
           "name": "Cavalon",
           "type": "city_cantha_luxon",
-          "coordinates": [ 4451, 2259 ]
+          "coordinates": [ 4451, 2259 ],
+          "mapId": 192
         },
         {
           "name": "Breaker Hollow",
           "type": "outpost_cantha_luxon",
-          "coordinates": [ 4173, 2298 ]
+          "coordinates": [ 4173, 2298 ],
+          "mapId": 278
         },
         {
           "name": "Aspenwood Gate (Luxon)",
           "type": "outpost_cantha_luxon",
-          "coordinates": [ 3890, 2360 ]
+          "coordinates": [ 3890, 2360 ],
+          "mapId": 389
         },
         {
           "name": "Fort Aspenwood (Luxon)",
           "type": "challenge_cantha_luxon",
-          "coordinates": [ 3955, 2441 ]
+          "coordinates": [ 3955, 2441 ],
+          "mapId": 293
         },
         {
           "name": "Jade Flats (Luxon)",
           "type": "outpost_cantha_luxon",
-          "coordinates": [ 4341, 2546 ]
+          "coordinates": [ 4341, 2546 ],
+          "mapId": 391
         },
         {
           "name": "The Jade Quarry (Luxon)",
           "type": "challenge_cantha_luxon",
-          "coordinates": [ 4318, 2626 ]
+          "coordinates": [ 4318, 2626 ],
+          "mapId": 295
         },
         {
           "name": "Gyala Hatchery",
           "type": "mission_cantha_luxon",
           "coordinates": [ 4888, 2342 ],
-          "wiki": "Gyala_Hatchery_(outpost)"
+          "wiki": "Gyala_Hatchery_(outpost)",
+          "mapId": 143
         },
         {
           "name": "Leviathan Pits",
           "type": "outpost_cantha_luxon",
-          "coordinates": [ 4990, 2810 ]
+          "coordinates": [ 4990, 2810 ],
+          "mapId": 279
         },
         {
           "name": "Seafarer's Rest",
           "type": "outpost_cantha_luxon",
-          "coordinates": [ 5067, 3124 ]
+          "coordinates": [ 5067, 3124 ],
+          "mapId": 289
         },
         {
           "name": "The Aurios Mines",
           "type": "challenge_cantha_luxon",
           "coordinates": [ 5368, 2953 ],
-          "wiki": "The_Aurios_Mines_(outpost)"
+          "wiki": "The_Aurios_Mines_(outpost)",
+          "mapId": 234
         },
         {
           "name": "Unwaking Waters (Luxon)",
           "type": "mission_cantha_luxon",
-          "coordinates": [ 4741, 3266 ]
+          "coordinates": [ 4741, 3266 ],
+          "mapId": 297
         },
         {
           "name": "Harvest Temple",
           "type": "outpost_cantha",
-          "coordinates": [ 4628, 3343 ]
+          "coordinates": [ 4628, 3343 ],
+          "mapId": 277
         }
       ]
     },

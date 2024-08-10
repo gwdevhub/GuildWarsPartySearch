@@ -23,53 +23,61 @@
         {
           "name": "Embark Beach",
           "type": "outpost",
-          "coordinates": [ 606, 1027 ]
+          "coordinates": [ 606, 1027 ],
+          "mapId": 857
         },
         {
           "name": "Zaishen Menagerie",
           "type": "outpost",
           "coordinates": [ 1111, 530 ],
-          "wiki": "Zaishen_Menagerie_(outpost)"
+          "wiki": "Zaishen_Menagerie_(outpost)",
+          "mapId": 795
         },
         {
           "name": "Great Temple of Balthazar",
           "type": "city",
-          "coordinates": [ 672, 887 ]
+          "coordinates": [ 672, 887 ],
+          "mapId": 248
         },
         {
           "name": "Heroes' Ascent",
           "type": "arena",
           "coordinates": [ 1258, 539 ],
-          "wiki": "Heroes'_Ascent_(outpost)"
+          "wiki": "Heroes'_Ascent_(outpost)",
+          "mapId": 330
         },
         {
           "name": "Codex Arena",
           "type": "arena",
           "coordinates": [ 1410, 851 ],
-          "wiki": "Codex_Arena_(outpost)"
+          "wiki": "Codex_Arena_(outpost)",
+          "mapId": 796
         },
         {
           "name": "Random Arenas",
           "type": "arena",
           "coordinates": [ 1055, 905 ],
-          "wiki": "Random_Arenas_(outpost)"
+          "wiki": "Random_Arenas_(outpost)",
+          "mapId": 185
         },
         {
           "name": "Zaishen Challenge",
           "type": "zaishen",
           "coordinates": [ 774, 1051 ],
-          "wiki": "Zaishen_Challenge_(outpost)"
+          "wiki": "Zaishen_Challenge_(outpost)",
+          "mapId": 281
         },
         {
           "name": "Zaishen Elite",
           "type": "zaishen",
           "coordinates": [ 1082, 1126 ],
-          "wiki": "Zaishen_Elite_(outpost)"
+          "wiki": "Zaishen_Elite_(outpost)",
+          "mapId": 282
         },
         {
           "name": "Guild Hall",
           "type": "guildhall",
-          "coordinates": [ 973, 550 ]
+          "coordinates": [ 973, 550 ],
         },
         {
           "name": "Travel",

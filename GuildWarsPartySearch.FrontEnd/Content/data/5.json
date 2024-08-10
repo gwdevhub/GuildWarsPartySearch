@@ -76,51 +76,60 @@
         {
           "name": "Gate of Torment",
           "type": "city_realm",
-          "coordinates": [ 2013, 1180 ]
+          "coordinates": [ 2013, 1180 ],
+          "mapId": 450
         },
         {
           "name": "Gate of Anguish",
           "type": "gate_of_anguish",
-          "coordinates": [ 2065, 1415 ]
+          "coordinates": [ 2065, 1415 ],
+          "mapId": 474
         },
         {
           "name": "Abaddon's Gate",
           "type": "mission_realm",
           "coordinates": [ 1365, 1270 ],
-          "wiki": "Abaddon's_Gate_(outpost)"
+          "wiki": "Abaddon's_Gate_(outpost)",
+          "mapId": 496
         },
         {
           "name": "Gate of the Nightfallen Lands",
           "type": "outpost_realm",
-          "coordinates": [ 1865, 1090 ]
+          "coordinates": [ 1865, 1090 ],
+          "mapId": 559
         },
         {
           "name": "Gate of Pain",
           "type": "mission_realm",
           "coordinates": [ 1860, 1225 ],
-          "wiki": "Gate_of_Pain_(outpost)"
+          "wiki": "Gate_of_Pain_(outpost)",
+          "mapId": 494
         },
         {
           "name": "Gate of Fear",
           "type": "outpost_realm",
-          "coordinates": [ 2126, 1040 ]
+          "coordinates": [ 2126, 1040 ],
+          "mapId": 469
         },
         {
           "name": "Gate of Secrets",
           "type": "outpost_realm",
-          "coordinates": [ 2164, 1305 ]
+          "coordinates": [ 2164, 1305 ],
+          "mapId": 473
         },
         {
           "name": "Gate of Madness",
           "type": "mission_realm",
           "coordinates": [ 1905, 1365 ],
-          "wiki": "Gate_of_Madness_(outpost)"
+          "wiki": "Gate_of_Madness_(outpost)",
+          "mapId": 495
         },
         {
           "name": "The Shadow Nexus",
           "type": "challenge_realm",
           "coordinates": [ 2820, 1250 ],
-          "wiki": "The_Shadow_Nexus_(outpost)"
+          "wiki": "The_Shadow_Nexus_(outpost)",
+          "mapId": 555
         }
       ]
     }
