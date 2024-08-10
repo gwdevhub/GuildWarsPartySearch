@@ -6,7 +6,7 @@
 body, html {
     height: 100%;
     width: 100%;
-    font-family: Fremont 'Segoe UI', sans-serif;
+    font-family: 'Fremont Segoe UI', sans-serif;
 }
 
 body {
@@ -175,7 +175,7 @@ body {
     *
 */
 .marker .holder {
-    font-family: Fremont 'Segoe UI', sans-serif;
+    font-family: 'Fremont Segoe UI', sans-serif;
     display: block;
     padding: 0;
     margin: 0;
