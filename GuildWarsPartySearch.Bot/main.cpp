@@ -393,8 +393,11 @@ static void connect_websocket() {
 
         LogInfo("Attempting to connect. Try %d/%d", i + 1, connect_retries);
         ws = easywsclient::WebSocket::from_url(bot_configuration.web_socket_url, user_agent);
-        if (!ws)
+        if (!ws) {
+            // Sleep before retry
+            time_sleep_sec(5);
             continue;
+        }
         // Wait for websocket to open
         for (auto j = 0; j < 5000; j+=50) {
             ws->poll();
