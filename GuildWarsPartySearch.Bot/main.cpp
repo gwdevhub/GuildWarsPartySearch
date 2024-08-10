@@ -49,7 +49,7 @@ extern "C" {
 #define FAILED_TO_CONNECT           5
 
 struct BotConfiguration {
-    std::string         web_socket_url = "ws://217.160.162.89/party-search/update";
+    std::string         web_socket_url = "";
     uint32_t            map_id = 857; // Embark beach
     District            district = District::DISTRICT_AMERICAN;
     uint32_t            district_number = 0;
