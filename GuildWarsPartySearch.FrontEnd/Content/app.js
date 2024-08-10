@@ -906,6 +906,9 @@ async function buildPartyList() {
     let container = document.querySelector(".partyList");
     container.innerHTML = "";
     for (const mapId in aggregatedPartySearches) {
+        if (aggregatedPartySearches[mapId.toString()].length === 0) {
+            continue;
+        }
         const activity = data.find(a => a.mapId.toString() === mapId.toString());
         if (!activity) {
             continue;
