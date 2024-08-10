@@ -10,11 +10,14 @@ namespace GuildWarsPartySearch.Server.Endpoints;
 [Route("status")]
 public class StatusController : Controller
 {
+    private readonly IWebHostEnvironment environment;
     private readonly IBotStatusService botStatusService;
 
     public StatusController(
+        IWebHostEnvironment hostEnvironment,
         IBotStatusService botStatusService)
     {
+        this.environment = hostEnvironment.ThrowIfNull();
         this.botStatusService = botStatusService.ThrowIfNull();
     }
 
@@ -22,9 +25,14 @@ public class StatusController : Controller
     [ServiceFilter<IpWhitelistFilter>]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
-    [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n")]
+    [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
     public async Task<IActionResult> GetAllBotActivity()
     {
+        if (this.environment.IsProduction())
+        {
+            return this.NotFound();
+        }
+
         return this.Ok(await this.botStatusService.GetAllActivities(this.HttpContext.RequestAborted));
     }
 
@@ -32,9 +40,14 @@ public class StatusController : Controller
     [ServiceFilter<IpWhitelistFilter>]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
-    [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n")]
+    [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
     public async Task<IActionResult> GetBotActivityByName(string botName)
     {
+        if (this.environment.IsProduction())
+        {
+            return this.NotFound();
+        }
+
         return this.Ok(await this.botStatusService.GetActivitiesForBot(botName, this.HttpContext.RequestAborted));
     }
 
@@ -42,9 +55,14 @@ public class StatusController : Controller
     [ServiceFilter<IpWhitelistFilter>]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
-    [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n")]
+    [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
     public async Task<IActionResult> GetBotActivityByMap(string map)
     {
+        if (this.environment.IsProduction())
+        {
+            return this.NotFound();
+        }
+
         if (int.TryParse(map, out var mapId))
         {
             return this.Ok(await this.botStatusService.GetActivitiesForMap(mapId, this.HttpContext.RequestAborted));
@@ -62,6 +80,11 @@ public class StatusController : Controller
     [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n")]
     public async Task<IActionResult> GetBotStatus()
     {
+        if (this.environment.IsProduction())
+        {
+            return this.NotFound();
+        }
+
         return this.Ok(await this.botStatusService.GetBots(this.HttpContext.RequestAborted));
     }
 
