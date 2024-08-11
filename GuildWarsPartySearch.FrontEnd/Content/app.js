@@ -868,7 +868,13 @@ function updateHash() {
     var zoom = map.getZoom();
     var point = project(map.getCenter());
 
-    history.replaceState(undefined, undefined, "?v=1&x=" + point.x + "&y=" + point.y + "&z=" + zoom + "&c=" + continent);
+    const url = new URL(window.location.href);
+    url.searchParams.set("v", 1);
+    url.searchParams.set("x", point.x);
+    url.searchParams.set("y", point.y);
+    url.searchParams.set("z", zoom);
+    url.searchParams.set("c", continent);
+    window.history.replaceState({}, '', url);
 }
 
 function getURLParameter(name) {
