@@ -42,6 +42,7 @@ public sealed class LiveFeedService : ILiveFeedService
             catch(Exception ex)
             {
                 this.logger.LogError(ex, $"Encountered exception while broadcasting update");
+                RemoveClientInternal(client);
             }
         });
     }
@@ -62,6 +63,11 @@ public sealed class LiveFeedService : ILiveFeedService
     {
         this.semaphore.Wait();
         this.clients.Remove(client);
+        if (client?.State is not WebSocketState.Closed or WebSocketState.Aborted)
+        {
+            client?.Abort();
+        }
+
         this.semaphore.Release();
     }
 
