@@ -944,7 +944,7 @@ async function buildPartyList() {
     }
 }
 
-async function navigateToLocation(mapObj) {
+async function navigateToLocation(mapObj, showParties) {
     for (const continentData of leafletData) {
         if (!continentData.regions) {
             continue;
@@ -967,9 +967,26 @@ async function navigateToLocation(mapObj) {
                         return;
                     }
 
+                    var pixelBounds = map.getPixelBounds();
+                    var desiredBounds = pixelBounds.getSize().divideBy(2);
+                    var quarterSize = pixelBounds.getSize().divideBy(4);
+                    var center = L.point(pixelBounds.min.x + desiredBounds.x, pixelBounds.min.y + desiredBounds.y)
+
+                    var reducedPixelBounds = L.bounds(L.point(center.x - quarterSize.x, center.y - quarterSize.y), L.point(center.x + quarterSize.x, center.y + quarterSize.y));
+                    if (reducedPixelBounds.contains(location.coordinates)) {
+                        mapClicked(location);
+                        return;
+                    }
+
                     setURLParameter("navigating", "1");
-                    map.panTo(location.coordinates);
-                    mapClicked(location);
+                    map.setView(location.coordinates, 2, { animate: true, duration: 1 });
+                    await waitMillis(1000);
+                    map.setZoom(map.getMaxZoom(), { animate: true, duration: 1 });
+                    await waitMillis(1000);
+                    if (showParties) {
+                        mapClicked(location);
+                    }
+                    resetURLParameter("navigating");
                     return; // Assuming you only want to navigate to the first match
                 }
             }
@@ -979,9 +996,7 @@ async function navigateToLocation(mapObj) {
 
 function mapRowClicked(mapObj) {
     window.location.hash = mapObj.name;
-    navigateToLocation(mapObj);
-    showPartyWindow();
-    buildPartyWindow();
+    navigateToLocation(mapObj, true);
 }
 
 function hidePartyWindowRows(rowType) {
@@ -1180,10 +1195,7 @@ function loadMap(mapIndex) {
                 }
             }).on('click focus movestart', function () {
                 hideMenu();
-                if (getURLParameter("navigating") == "1") {
-                    resetURLParameter("navigating");
-                }
-                else {
+                if (!getURLParameter("navigating") == "1") {
                     hidePartyWindow();
                 }
             });
@@ -1425,6 +1437,12 @@ async function waitForLoaded(){
     while (loading) {
         await new Promise(resolve => setTimeout(resolve, 50));
     }
+}
+
+async function waitMillis(millis) {
+    return new Promise(resolve => {
+        setTimeout(resolve, millis);
+    });
 }
 
 function togglePartyWindow(){
