@@ -875,6 +875,22 @@ function getURLParameter(name) {
     return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search) || [null, ''])[1].replace(/\+/g, '%20')) || null;
 }
 
+function setURLParameter(name, value) {
+    const url = new URL(window.location.href); // Get the current URL
+    url.searchParams.set(name, value); // Set or update the parameter
+
+    // Update the URL without reloading the page
+    window.history.replaceState({}, '', url);
+}
+
+function resetURLParameter(name) {
+    const url = new URL(window.location.href); // Get the current URL
+    url.searchParams.delete(name); // Delete the specified parameter
+
+    // Update the URL without reloading the page
+    window.history.replaceState({}, '', url);
+}
+
 function toggleMenu() {
     document.querySelector("#menu").classList.toggle("hidden");
 }
@@ -922,35 +938,42 @@ async function buildPartyList() {
     }
 }
 
-function navigateToMap(mapObj) {
-    leafletData.forEach(continentData => {
+async function navigateToLocation(mapObj) {
+    for (const continentData of leafletData) {
         if (!continentData.regions) {
-            return;
+            continue;
         }
 
-        continentData.regions.forEach(region => {
+        for (const region of continentData.regions) {
             if (!region.locations) {
-                return;
+                continue;
             }
 
-            region.locations.forEach(location => {
-                if (location.mapId &&
-                    location.mapId === mapObj.id) {
-                    var url = new URL(window.location.href);
-                    url.searchParams.set("x", location.coordinates[0]);
-                    url.searchParams.set("y", location.coordinates[1]);
-                    url.searchParams.set("c", continentData.id);
-                    url.searchParams.set("z", "4");
-                    window.location = url;
+            for (const location of region.locations) {
+                if (location.mapId && location.mapId === mapObj.id) {
+                    let currentContinent = getURLParameter("c");
+                    if (continentData.id != currentContinent) {
+                        loadMap(continentData.id);
+                    }
+
+                    await waitForLoaded();
+                    if (!map) {
+                        return;
+                    }
+
+                    setURLParameter("navigating", "1");
+                    map.panTo(location.coordinates);
+                    mapClicked(location);
+                    return; // Assuming you only want to navigate to the first match
                 }
-            });
-        });
-    });
+            }
+        }
+    }
 }
 
 function mapRowClicked(mapObj) {
     window.location.hash = mapObj.name;
-    navigateToMap(mapObj);
+    navigateToLocation(mapObj);
     showPartyWindow();
     buildPartyWindow();
 }
@@ -1125,6 +1148,7 @@ function loadMap(mapIndex) {
         map.remove();
     }
 
+    loading = true;
     fetch("data/" + mapIndex + ".json?v=20200516001")
         .then((response) => {
             return response.json();
@@ -1140,7 +1164,6 @@ function loadMap(mapIndex) {
                 crs: L.CRS.Simple,
                 attributionControl: false
             }).on('click', function (e) {
-                hidePartyWindow();
             }).on('zoomend', function () {
                 zoomEnd();
             }).on('moveend zoomend', function () {
@@ -1151,6 +1174,12 @@ function loadMap(mapIndex) {
                 }
             }).on('click focus movestart', function () {
                 hideMenu();
+                if (getURLParameter("navigating") == "1") {
+                    resetURLParameter("navigating");
+                }
+                else {
+                    hidePartyWindow();
+                }
             });
 
 
@@ -1382,6 +1411,12 @@ function connectToLiveFeed() {
 
 async function waitForInitialized() {
     while (!initialized) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
+}
+
+async function waitForLoaded(){
+    while (loading) {
         await new Promise(resolve => setTimeout(resolve, 50));
     }
 }
