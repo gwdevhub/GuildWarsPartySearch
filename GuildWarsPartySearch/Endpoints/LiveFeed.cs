@@ -35,8 +35,15 @@ public sealed class LiveFeed : WebSocketRouteBase<TextContent, PartySearchList>
 
     public override async Task SocketAccepted(CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), this.Context?.Connection.RemoteIpAddress?.ToString() ?? string.Empty);
-        this.liveFeedService.AddClient(this.WebSocket!);
+        var ipAddress = this.Context?.Connection.RemoteIpAddress?.ToString();
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), ipAddress ?? string.Empty);
+        if (!await this.liveFeedService.AddClient(this.WebSocket!, ipAddress, cancellationToken))
+        {
+            scopedLogger.LogError("Client rejected");
+            this.WebSocket?.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "Connection rejected", cancellationToken);
+            return;
+        }
+
         scopedLogger.LogDebug("Client accepted to livefeed");
 
         scopedLogger.LogDebug("Sending all party searches");
@@ -46,8 +53,9 @@ public sealed class LiveFeed : WebSocketRouteBase<TextContent, PartySearchList>
 
     public override Task SocketClosed()
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), this.Context?.Connection.RemoteIpAddress?.ToString() ?? string.Empty);
-        this.liveFeedService.RemoveClient(this.WebSocket!);
+        var ipAddress = this.Context?.Connection.RemoteIpAddress?.ToString();
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), ipAddress ?? string.Empty);
+        this.liveFeedService.RemoveClient(this.WebSocket!, ipAddress);
         scopedLogger.LogDebug("Client removed from livefeed");
         return Task.CompletedTask;
     }
