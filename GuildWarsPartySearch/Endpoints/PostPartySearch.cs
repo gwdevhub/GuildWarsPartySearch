@@ -49,10 +49,12 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
 
     public override async Task SocketClosed()
     {
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketClosed), string.Empty);
         if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
             userAgentValue is not string userAgent)
         {
-            throw new InvalidOperationException("Unable to extract user agent on client disconnect");
+            scopedLogger.LogDebug("No user agent found. A connection has been rejected");
+            return;
         }
 
         if (!await this.botStatusService.RemoveBot(userAgent, CancellationToken.None))

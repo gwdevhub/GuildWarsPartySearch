@@ -108,6 +108,7 @@ public static class WebApplicationExtensions
                 }
 
                 await filter.OnActionExecutionAsync(actionExecutingContext, next);
+                await (actionExecutingContext.Result?.ExecuteResultAsync(actionExecutingContext) ?? Task.CompletedTask);
                 return actionExecutedContext;
             };
         }
