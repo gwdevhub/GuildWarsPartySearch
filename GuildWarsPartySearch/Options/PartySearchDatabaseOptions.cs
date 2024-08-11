@@ -2,5 +2,5 @@
 
 public class PartySearchDatabaseOptions
 {
-    public string TableName { get; set; } = default!;
+    public string TableName { get; set; } = "party_searches";
 }

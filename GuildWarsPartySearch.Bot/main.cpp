@@ -92,11 +92,13 @@ static struct thread  bot_thread;
 static std::atomic<bool> running;
 static std::atomic<bool> ready;
 static std::string last_payload;
+static uint64_t last_websocket_message = 0;
 
 District district = District::DISTRICT_CURRENT;
 int district_number = -1;
 uint32_t map_id = 0;
 char character_name[42] = { 0 };
+char account_uuid[128] = { 0 };
 
 static PluginObject* plugin_hook;
 static BotConfiguration bot_configuration;
@@ -110,7 +112,12 @@ static CallbackEntry EventType_WorldMapLeave_entry;
 
 static easywsclient::WebSocket::pointer ws;
 
+static bool party_advertisements_pending = true;
+
 static std::vector<PartySearchAdvertisement*> party_search_advertisements;
+
+static easywsclient::WebSocket::pointer connect_websocket();
+static void disconnect_websocket();
 
 static std::string get_next_argument(int current_index) {
     if (current_index <= GetArgc()) {
@@ -202,7 +209,16 @@ static PartySearchAdvertisement* create_party_search_advertisement(Event* event)
     return party;
 }
 
-static std::string get_json_payload() {
+static int send_websocket(const std::string& payload) {
+    connect_websocket();
+    LogInfo("Websocket send:");
+    printf("%s\n", payload.c_str());
+    last_websocket_message = time_get_ms();
+    ws->send(payload);
+    return 0;
+}
+
+static int send_party_advertisements() {
     std::vector<PartySearchAdvertisement> ads;
     for (const auto& ad : party_search_advertisements) {
         if (!ad) {
@@ -216,7 +232,19 @@ static std::string get_json_payload() {
     j["map_id"] = map_id;
     j["district"] = district;
     j["parties"] = ads;
-    return j.dump();
+
+    const auto payload = j.dump();
+    return send_websocket(payload);
+}
+
+static void collect_instance_info() {
+    map_id = GetMapId();
+    district = GetDistrict();
+    district_number = GetDistrictNumber();
+    *character_name = 0;
+    assert(GetCharacterName(character_name, ARRAY_SIZE(character_name)) > 0);
+    *account_uuid = 0;
+    assert(GetAccountUuid(account_uuid, ARRAY_SIZE(account_uuid)) > 0);
 }
 
 static void on_map_left(Event* event, void* params) {
@@ -224,11 +252,8 @@ static void on_map_left(Event* event, void* params) {
 }
 
 static void on_map_entered(Event* event, void* params) {
-    map_id = GetMapId();
-    district = GetDistrict();
-    district_number = GetDistrictNumber();
-    *character_name = 0;
-    GetCharacterName(character_name, sizeof(character_name)  / sizeof(*character_name));
+    collect_instance_info();
+    party_advertisements_pending = true;
     ready = true;
 }
 
@@ -236,6 +261,7 @@ static void add_party_search_advertisement(Event* event, void* params) {
     assert(event && event->type == EventType_PartySearchAdvertisement && event->PartySearchAdvertisement.party_id);
 
     create_party_search_advertisement(event);
+    party_advertisements_pending = true;
 }
 
 static void update_party_search_advertisement(Event* event, void* params) {
@@ -257,6 +283,7 @@ static void update_party_search_advertisement(Event* event, void* params) {
             break;
         }
     }
+    party_advertisements_pending = true;
 }
 
 static void wait_until_ingame() {
@@ -282,7 +309,7 @@ static void load_configuration() {
                 bot_configuration.web_socket_url = get_next_argument(i);
                 i++;
             }
-            else if (arg == "-mapid") {
+            else if (arg == "-travel-mapid") {
                 bot_configuration.map_id = stoi(get_next_argument(i));
                 i++;
             }
@@ -347,23 +374,10 @@ static void ensure_correct_outpost() {
     LogInfo("I should be in outpost %d %d %d", GetMapId(), GetDistrict(), GetDistrictNumber());
 }
 
-static void send_info() {
-    const auto payload = get_json_payload();
-    if (payload == last_payload) {
-        return;
-    }
-
-    LogInfo(payload.c_str());
-    ws->send(payload);
-    ws->poll();
-    if (ws->getReadyState() != easywsclient::WebSocket::OPEN) {
-        LogInfo("Disconnected while attempting to send payload");
-        return;
-    }
-
-    // Pretty lazy way to detect changes
-    last_payload = payload;
-    time_sleep_sec(5);
+static void on_websocket_message(const std::string& message) {
+    LogInfo("Websocket recv:");
+    printf("%s\n", message.c_str());
+    last_websocket_message = time_get_ms();
 }
 
 static void disconnect_websocket() {
@@ -378,13 +392,19 @@ static void disconnect_websocket() {
     }
     ws = NULL;
 }
-static void connect_websocket() {
+static easywsclient::WebSocket::pointer connect_websocket() {
     if (ws && ws->getReadyState() == easywsclient::WebSocket::OPEN)
-        return;
+        return ws;
 
-    assert(*character_name && map_id);
+    assert(*account_uuid && map_id);
     char user_agent[255];
-    assert(snprintf(user_agent, sizeof(user_agent) / sizeof(*user_agent), "%s-%d-%d", character_name, map_id, static_cast<uint32_t>(district)) > 0);
+    char uuid_less_hyphens[ARRAY_SIZE(account_uuid)] = { 0 };
+    size_t added = 0;
+    for (size_t i = 0; i < ARRAY_SIZE(account_uuid); i++) {
+        if (account_uuid[i] != '-')
+            uuid_less_hyphens[added++] = account_uuid[i];
+    }
+    assert(snprintf(user_agent, ARRAY_SIZE(user_agent), "%s-%d-%d", uuid_less_hyphens, map_id, static_cast<uint32_t>(district)) > 0);
 
     const auto connect_retries = 10;
 
@@ -401,24 +421,26 @@ static void connect_websocket() {
         // Wait for websocket to open
         for (auto j = 0; j < 5000; j+=50) {
             ws->poll();
-            if (ws->getReadyState() == easywsclient::WebSocket::OPEN)
-                break;
+            if (ws->getReadyState() == easywsclient::WebSocket::OPEN) {
+                LogInfo("Websocket opened successfully");
+                party_advertisements_pending = true;
+                last_websocket_message = time_get_ms();
+                return ws;
+            }
             time_sleep_ms(50);
         }
-        break;
     }
-    if (ws && ws->getReadyState() == easywsclient::WebSocket::OPEN)
-        return;
     
-    exit_with_status("Timed out while attempting to connect", FAILED_TO_CONNECT);
+    exit_with_status("Failed to connect to websocket", FAILED_TO_CONNECT);
 }
 
 static int main_bot(void* param)
 {
+    load_configuration();
+
     CallbackEntry_Init(&EventType_WorldMapLeave_entry, on_map_left, NULL);
     RegisterEvent(EventType_WorldMapLeave, &EventType_WorldMapLeave_entry);
 
-    on_map_entered(NULL, NULL);
     CallbackEntry_Init(&EventType_WorldMapEnter_entry, on_map_entered, NULL);
     RegisterEvent(EventType_WorldMapEnter, &EventType_WorldMapEnter_entry);
 
@@ -436,17 +458,21 @@ static int main_bot(void* param)
     
     wait_until_ingame();
 
-    load_configuration();
-
     while (running) {
         wait_until_ingame();
         ensure_correct_outpost();
-        connect_websocket();
+        if (party_advertisements_pending) {
+            send_party_advertisements();
+            party_advertisements_pending = false;
+        }
         if (ws) {
+            if (time_get_ms() - last_websocket_message > 30000)
+                send_websocket("ping");
+            ws->dispatch(on_websocket_message);
             ws->poll();
         }
-        send_info();
-        time_sleep_sec(1);
+        
+        time_sleep_ms(50);
     }
 
 cleanup:
