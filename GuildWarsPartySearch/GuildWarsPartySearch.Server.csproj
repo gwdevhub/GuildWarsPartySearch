@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Services\BotStatus\BotStatusService.cs~RFec2479f.TMP" />
+    <None Include="README.md" />
   </ItemGroup>
 
   <ItemGroup>
