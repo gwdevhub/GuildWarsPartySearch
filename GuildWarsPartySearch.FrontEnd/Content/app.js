@@ -985,7 +985,7 @@ function mapRowClicked(mapObj) {
 }
 
 function hidePartyWindowRows(rowType) {
-    const tbody = document.querySelector("#popupWindowTable tbody");
+    const tbody = document.querySelector("#partyWindowTable tbody");
     const existingRows = tbody.querySelectorAll(`.${rowType}`);
     existingRows.forEach(row => row.remove());
     const pivotRow = document.getElementById(`${rowType}`);
@@ -996,7 +996,7 @@ function hidePartyWindowRows(rowType) {
 }
 
 function populatePartyWindowRows(rowType, partySearchesArray) {
-    const tbody = document.querySelector("#popupWindowTable tbody");
+    const tbody = document.querySelector("#partyWindowTable tbody");
     const existingRows = tbody.querySelectorAll(`.${rowType}`);
     existingRows.forEach(row => row.remove());
     const pivotRow = document.getElementById(`${rowType}`);
@@ -1053,7 +1053,7 @@ async function buildPartyWindow() {
         return;
     }
 
-    let popupWindowTitle = document.querySelector("#popupWindowTitle");
+    let popupWindowTitle = document.querySelector("#partyWindowTitle");
     popupWindowTitle.textContent = `Party Search - ${map.name}`;
     if (aggregatedPartySearches[map.id.toString()] &&
         aggregatedPartySearches[map.id.toString()][0] &&
@@ -1428,18 +1428,18 @@ async function waitForLoaded(){
 }
 
 function togglePartyWindow(){
-    document.querySelector("#popupWindow").classList.toggle("hidden");
+    document.querySelector("#partyWindow").classList.toggle("hidden");
 }
 
 function hidePartyWindow(){
-    if (!document.querySelector("#popupWindow").classList.contains("hidden")) {
+    if (!document.querySelector("#partyWindow").classList.contains("hidden")) {
         togglePartyWindow();
         window.location.hash = "";
     }
 }
 
 function showPartyWindow(){
-    if (document.querySelector("#popupWindow").classList.contains("hidden")) {
+    if (document.querySelector("#partyWindow").classList.contains("hidden")) {
         togglePartyWindow();
     }
 }

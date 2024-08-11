@@ -305,7 +305,7 @@ body {
     font-size: 10pt;
 }
 
-#popupWindow {
+.popupWindow {
     position: absolute;
     right: 25%;
     top: 25%;
@@ -321,16 +321,16 @@ body {
     display: block;
     color: #ffffff;
     overflow-y: auto;
-    overflow-x: auto;
+    overflow-x: hidden;
     border: solid 1px #808080;
 }
 
-    #popupWindow.hidden {
+    .popupWindow.hidden {
         opacity: 0;
         pointer-events: none;
     }
 
-    #popupWindow .closeButton {
+    .popupWindow .closeButton {
         position: absolute;
         top: 0;
         right: 0;
@@ -339,32 +339,37 @@ body {
         cursor: pointer;
     }
 
-        #popupWindow .closeButton:hover {
+        .popupWindow .closeButton:hover {
             background: #1d1d1d;
         }
 
-    #popupWindow .table{
+    .popupWindow .table{
         display: table;
+        overflow-wrap: anywhere;
         width: 100%;
     }
 
-    #popupWindow .table .row{
+    .popupWindow .table .row{
         display: table-row;
         margin-left: 5px;
     }
 
-    #popupWindow .divider {
+    .popupWindow .divider {
         font-size: 12pt;
         margin: 5px;
     }
 
-    #popupWindow .table .row .header{
+    .popupWindow .table tr.divider td {
+        border-top: solid 1px #808080;
+    }
+
+    .popupWindow .table .row .header{
         display: table-cell;
         text-align: center;
         font-size: 12pt;
     }
 
-    #popupWindow .table .row .cell {
+    .popupWindow .table .row .cell {
             display: table-cell;
             text-align: center;
             font-size: 10pt;
