@@ -61,6 +61,13 @@ public sealed class BotStatusService : IBotStatusService
         }
 
         var bot = new Bot { Name = tokens[0], Map = map, District = district, WebSocket = client };
+        if (this.connectedBots.TryRemove(botId, out var existingBot))
+        {
+            scopedLogger.LogInformation("Bot has a dangling connection. Closing old connection");
+            await existingBot.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "New connection detected", cancellationToken);
+            existingBot.WebSocket.Dispose();
+        }
+
         if (!this.connectedBots.TryAdd(botId, bot))
         {
             scopedLogger.LogInformation("Unable to add bot. Failed to add to cache");
