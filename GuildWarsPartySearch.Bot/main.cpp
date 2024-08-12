@@ -463,7 +463,7 @@ static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt)
     *websocket_pt = NULL;
     return true;
 }
-static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, const std::string& url) {
+static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, const std::string& url, const std::string& api_key) {
     assert(websocket_pt && url.size() && *account_uuid && map_id);
     if (is_websocket_ready(*websocket_pt))
         return true;
@@ -480,7 +480,7 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
 
     for (auto i = 0; i < connect_retries; i++) {
         LogInfo("Attempting to connect. Try %d/%d", i + 1, connect_retries);
-        auto websocket = easywsclient::WebSocket::from_url(url, user_agent);
+        auto websocket = easywsclient::WebSocket::from_url(url, user_agent, api_key);
         // Wait for websocket to open
         for (auto j = 0; websocket && j < 5000; j+=50) {
             websocket->poll();
@@ -530,7 +530,11 @@ static int main_bot(void* param)
     while (running) {
         wait_until_ingame();
         ensure_correct_outpost();
-        assert(connect_websocket(&sending_websocket, bot_configuration.web_socket_url));
+        if (!is_websocket_ready(sending_websocket)) {
+            party_advertisements_pending = true;
+        }
+        if (!connect_websocket(&sending_websocket, bot_configuration.web_socket_url, bot_configuration.api_key))
+            continue; // Don't bomb out just because we can't connect to the server just yet!
         if (party_advertisements_pending) {
             send_party_advertisements(sending_websocket);
             party_advertisements_pending = false;
