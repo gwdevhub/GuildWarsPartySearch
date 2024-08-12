@@ -58,7 +58,7 @@ extern "C" {
 
 struct BotConfiguration {
     std::string         web_socket_url = "";
-    uint32_t            map_id = 857; // Embark beach
+    uint32_t            map_id = 0; // Embark beach
     District            district = District::DISTRICT_AMERICAN;
     uint32_t            district_number = 0;
     int32_t             connection_retries = 10;
@@ -220,8 +220,13 @@ static PartySearchAdvertisement* create_party_search_advertisement(Event* event)
     return party;
 }
 
+static bool is_websocket_ready(easywsclient::WebSocket::pointer ws) {
+    return ws && ws->getReadyState() == easywsclient::WebSocket::OPEN;
+}
+
 static int send_websocket(const std::string& payload) {
-    connect_websocket();
+    if(!is_websocket_ready(ws))
+        connect_websocket();
     LogInfo("Websocket send:");
     printf("%s\n", payload.c_str());
     last_websocket_message = time_get_ms();
@@ -229,12 +234,12 @@ static int send_websocket(const std::string& payload) {
     return 0;
 }
 
-static int send_ping() {
-    connect_websocket();
+static void send_ping() {
+    if (!is_websocket_ready(ws))
+        return; // No need to connect if its not ready
     LogInfo("Sending ping");
     last_websocket_message = time_get_ms();
     ws->sendPing();
-    return 0;
 }
 
 static int send_party_advertisements() {
@@ -448,9 +453,8 @@ static void disconnect_websocket() {
     ws = NULL;
 }
 static easywsclient::WebSocket::pointer connect_websocket() {
-    if (ws && ws->getReadyState() == easywsclient::WebSocket::OPEN)
+    if (is_websocket_ready(ws))
         return ws;
-
     assert(*account_uuid && map_id);
     char user_agent[255];
     char uuid_less_hyphens[ARRAY_SIZE(account_uuid)] = { 0 };
@@ -476,7 +480,7 @@ static easywsclient::WebSocket::pointer connect_websocket() {
         // Wait for websocket to open
         for (auto j = 0; j < 5000; j+=50) {
             ws->poll();
-            if (ws->getReadyState() == easywsclient::WebSocket::OPEN) {
+            if (is_websocket_ready(ws)) {
                 LogInfo("Websocket opened successfully");
                 party_advertisements_pending = true;
                 last_websocket_message = time_get_ms();
@@ -524,7 +528,6 @@ static int main_bot(void* param)
         if (ws) {
             if (time_get_ms() - last_websocket_message > 30000) {
                 send_ping();
-                
             }
             ws->dispatch(on_websocket_message);
             ws->poll();
