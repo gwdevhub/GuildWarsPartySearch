@@ -17,6 +17,7 @@ body {
 
 #mapdiv {
     /*cursor: crosshair;*/
+    background-color: black !important;
 }
 
 
