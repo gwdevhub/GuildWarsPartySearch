@@ -480,7 +480,7 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
 
     for (auto i = 0; i < connect_retries; i++) {
         LogInfo("Attempting to connect. Try %d/%d", i + 1, connect_retries);
-        auto websocket = easywsclient::WebSocket::from_url(url, user_agent);
+        auto websocket = easywsclient::WebSocket::from_url(url, user_agent, bot_configuration.api_key);
         // Wait for websocket to open
         for (auto j = 0; websocket && j < 5000; j+=50) {
             websocket->poll();
