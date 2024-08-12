@@ -22,10 +22,10 @@ public class StatusController : Controller
     }
 
     [HttpGet("bot-activity/all")]
-    [ServiceFilter<IpWhitelistFilter>]
+    [ServiceFilter<ApiWhitelistFilter>]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
-    [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
+    [SwaggerOperation(Description = $"Protected by *API Key whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
     public async Task<IActionResult> GetAllBotActivity()
     {
         if (this.environment.IsProduction())
@@ -37,10 +37,10 @@ public class StatusController : Controller
     }
 
     [HttpGet("bot-activity/bots/{botName}")]
-    [ServiceFilter<IpWhitelistFilter>]
+    [ServiceFilter<ApiWhitelistFilter>]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
-    [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
+    [SwaggerOperation(Description = $"Protected by *API Key whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
     public async Task<IActionResult> GetBotActivityByName(string botName)
     {
         if (this.environment.IsProduction())
@@ -52,10 +52,10 @@ public class StatusController : Controller
     }
 
     [HttpGet("bot-activity/maps/{map}")]
-    [ServiceFilter<IpWhitelistFilter>]
+    [ServiceFilter<ApiWhitelistFilter>]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
-    [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
+    [SwaggerOperation(Description = $"Protected by *API Key whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
     public async Task<IActionResult> GetBotActivityByMap(string map)
     {
         if (this.environment.IsProduction())
@@ -74,10 +74,10 @@ public class StatusController : Controller
     }
 
     [HttpGet("bots")]
-    [ServiceFilter<IpWhitelistFilter>]
+    [ServiceFilter<ApiWhitelistFilter>]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
-    [SwaggerOperation(Description = $"Protected by *IP whitelisting*.\r\n\r\n")]
+    [SwaggerOperation(Description = $"Protected by *API Key whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
     public async Task<IActionResult> GetBotStatus()
     {
         if (this.environment.IsProduction())

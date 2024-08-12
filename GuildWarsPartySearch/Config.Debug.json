@@ -29,6 +29,9 @@
       "localhost"
     ]
   },
+  "ApiWhitelistOptions": {
+    "Key": "development"
+  },
   "ContentOptions": {
     "StagingFolder": "Content"
   }

@@ -10,7 +10,7 @@ using System.Extensions;
 
 namespace GuildWarsPartySearch.Server.Endpoints;
 
-[ServiceFilter<IpWhitelistFilter>]
+[ServiceFilter<ApiWhitelistFilter>]
 [ServiceFilter<UserAgentRequired>]
 public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest, PostPartySearchResponse>
 {

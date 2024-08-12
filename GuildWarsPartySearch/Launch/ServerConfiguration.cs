@@ -60,7 +60,8 @@ public static class ServerConfiguration
             .ConfigureExtended<ServerOptions>()
             .ConfigureExtended<IpWhitelistOptions>()
             .ConfigureExtended<BotHistoryDatabaseOptions>()
-            .ConfigureExtended<SQLiteDatabaseOptions>();
+            .ConfigureExtended<SQLiteDatabaseOptions>()
+            .ConfigureExtended<ApiWhitelistOptions>();
     }
 
     public static IServiceCollection SetupServices(this IServiceCollection services)
@@ -83,6 +84,7 @@ public static class ServerConfiguration
         services.AddSingleton<IBotHistoryDatabase, BotHistorySqliteDatabase>();
         services.AddScoped<UserAgentRequired>();
         services.AddScoped<IpWhitelistFilter>();
+        services.AddScoped<ApiWhitelistFilter>();
         services.AddScoped<IPartySearchService, PartySearchService>();
         services.AddScoped<ICharNameValidator, CharNameValidator>();
         return services;

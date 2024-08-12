@@ -58,6 +58,7 @@ extern "C" {
 
 struct BotConfiguration {
     std::string         web_socket_url = "";
+    std::string         api_key = "development";
     uint32_t            map_id = 0; // Embark beach
     District            district = District::DISTRICT_AMERICAN;
     uint32_t            district_number = 0;
@@ -367,6 +368,10 @@ static void load_configuration() {
             }
             else if (arg == "-connection-retries") {
                 bot_configuration.connection_retries = stoi(get_next_argument(i));
+                i++;
+            }
+            else if (arg == "-api-key") {
+                bot_configuration.api_key = get_next_argument(i);
                 i++;
             }
         }
