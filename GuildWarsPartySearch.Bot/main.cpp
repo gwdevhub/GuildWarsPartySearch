@@ -50,6 +50,7 @@ extern "C" {
 
 struct BotConfiguration {
     std::string         web_socket_url = "";
+    std::string         api_key = "development";
     uint32_t            map_id = 857; // Embark beach
     District            district = District::DISTRICT_AMERICAN;
     uint32_t            district_number = 0;
@@ -333,6 +334,10 @@ static void load_configuration() {
                 bot_configuration.connection_retries = stoi(get_next_argument(i));
                 i++;
             }
+            else if (arg == "-api-key") {
+                bot_configuration.api_key = get_next_argument(i);
+                i++;
+            }
         }
     }
     catch (std::exception) {
@@ -420,7 +425,7 @@ static easywsclient::WebSocket::pointer connect_websocket() {
         disconnect_websocket();
 
         LogInfo("Attempting to connect. Try %d/%d", i + 1, connect_retries);
-        ws = easywsclient::WebSocket::from_url(bot_configuration.web_socket_url, user_agent);
+        ws = easywsclient::WebSocket::from_url(bot_configuration.web_socket_url, user_agent, bot_configuration.api_key);
         if (!ws) {
             // Sleep before retry
             time_sleep_sec(5);

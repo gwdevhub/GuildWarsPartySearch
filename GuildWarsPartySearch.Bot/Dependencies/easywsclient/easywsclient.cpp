@@ -454,7 +454,7 @@ class _RealWebSocket : public easywsclient::WebSocket
 };
 
 
-easywsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, const std::string& origin, const std::string& userAgent) {
+easywsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, const std::string& origin, const std::string& user_agent, const std::string& api_key) {
     char host[512];
     int port;
     char path[512];
@@ -501,7 +501,8 @@ easywsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, 
         else {
             snprintf(line, 1024, "Host: %s:%d\r\n", host, port); ::send(sockfd, line, strlen(line), 0);
         }
-        snprintf(line, 1024, "User-Agent: %s\r\n", userAgent.c_str()); ::send(sockfd, line, strlen(line), 0);
+        snprintf(line, 1024, "User-Agent: %s\r\n", user_agent.c_str()); ::send(sockfd, line, strlen(line), 0);
+        snprintf(line, 1024, "X-Api-Key: %s\r\n", api_key.c_str()); ::send(sockfd, line, strlen(line), 0);
         snprintf(line, 1024, "Upgrade: websocket\r\n"); ::send(sockfd, line, strlen(line), 0);
         snprintf(line, 1024, "Connection: Upgrade\r\n"); ::send(sockfd, line, strlen(line), 0);
         if (!origin.empty()) {
@@ -544,12 +545,12 @@ WebSocket::pointer WebSocket::create_dummy() {
 }
 
 
-WebSocket::pointer WebSocket::from_url(const std::string& url, const std::string& userAgent, const std::string& origin) {
-    return ::from_url(url, true, origin, userAgent);
+WebSocket::pointer WebSocket::from_url(const std::string& url, const std::string& user_agent, const std::string& api_key, const std::string& origin) {
+    return ::from_url(url, true, origin, user_agent, api_key);
 }
 
-WebSocket::pointer WebSocket::from_url_no_mask(const std::string& url, const std::string& userAgent, const std::string& origin) {
-    return ::from_url(url, false, origin, userAgent);
+WebSocket::pointer WebSocket::from_url_no_mask(const std::string& url, const std::string& user_agent, const std::string& api_key, const std::string& origin) {
+    return ::from_url(url, false, origin, user_agent, api_key);
 }
 
 
