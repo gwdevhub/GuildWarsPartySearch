@@ -530,7 +530,11 @@ static int main_bot(void* param)
     while (running) {
         wait_until_ingame();
         ensure_correct_outpost();
-        assert(connect_websocket(&sending_websocket, bot_configuration.web_socket_url));
+        if (!is_websocket_ready(sending_websocket)) {
+            party_advertisements_pending = true;
+        }
+        if (!connect_websocket(&sending_websocket, bot_configuration.web_socket_url, bot_configuration.api_key))
+            continue; // Don't bomb out just because we can't connect to the server just yet!
         if (party_advertisements_pending) {
             send_party_advertisements(sending_websocket);
             party_advertisements_pending = false;
