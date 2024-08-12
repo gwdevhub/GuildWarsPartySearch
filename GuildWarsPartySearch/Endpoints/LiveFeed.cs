@@ -3,14 +3,11 @@ using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
 using System.Core.Extensions;
 using System.Extensions;
-using System.Text;
 
 namespace GuildWarsPartySearch.Server.Endpoints;
 
-public sealed class LiveFeed : WebSocketRouteBase<TextContent, PartySearchList>
+public sealed class LiveFeed : WebSocketRouteBase<LiveFeedRequest, PartySearchList>
 {
-    private readonly static byte[] PongAnswer = Encoding.UTF8.GetBytes("pong");
-
     private readonly IPartySearchService partySearchService;
     private readonly ILiveFeedService liveFeedService;
     private readonly ILogger<LiveFeed> logger;
@@ -25,12 +22,18 @@ public sealed class LiveFeed : WebSocketRouteBase<TextContent, PartySearchList>
         this.logger = logger.ThrowIfNull();
     }
 
-    public override async Task ExecuteAsync(TextContent? content, CancellationToken cancellationToken)
+    public override async Task ExecuteAsync(LiveFeedRequest? message, CancellationToken cancellationToken)
     {
-        if (content?.Text?.Equals("ping", StringComparison.OrdinalIgnoreCase) is true)
+        if (message?.GetFullList is not true)
         {
-            await this.WebSocket!.SendAsync(PongAnswer, System.Net.WebSockets.WebSocketMessageType.Text, true, cancellationToken);
+            return;
         }
+
+        var searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
+        await this.SendMessage(new PartySearchList
+        {
+            Searches = searches
+        }, cancellationToken);
     }
 
     public override async Task SocketAccepted(CancellationToken cancellationToken)

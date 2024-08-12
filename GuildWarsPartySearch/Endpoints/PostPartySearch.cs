@@ -76,10 +76,10 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
 
             await this.botStatusService.RecordBotUpdateActivity(userAgent, this.Context.RequestAborted);
             var result = await this.partySearchService.PostPartySearch(message, cancellationToken);
-            var response = result.Switch<PostPartySearchResponse>(
-                onSuccess: _ =>
+            var response = await result.Switch<Task<PostPartySearchResponse>>(
+                onSuccess: async _ =>
                 {
-                    this.liveFeedService.PushUpdate(new PartySearch
+                    await this.liveFeedService.PushUpdate(new PartySearch
                     {
                         Map = message?.Map,
                         District = message?.District ?? 0,
@@ -90,7 +90,14 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                             return e;
                         }).ToList(),
                     }, cancellationToken);
-                    return Success;
+
+                    var response =  Success.Result;
+                    if (message?.GetFullList is true)
+                    {
+                        response.PartySearches = await this.partySearchService.GetAllPartySearches(cancellationToken);
+                    }
+
+                    return response;
                 },
                 onFailure: failure => failure switch
                 {
@@ -120,105 +127,105 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
         }
     }
 
-    private static PostPartySearchResponse Success => new()
+    private static Task<PostPartySearchResponse> Success => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Posted entries"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidPayload => new()
+    private static Task<PostPartySearchResponse> InvalidPayload => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid payload"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidMap => new()
+    private static Task<PostPartySearchResponse> InvalidMap => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid map"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidEntries => new()
+    private static Task<PostPartySearchResponse> InvalidEntries => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid entries"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidSender => new()
+    private static Task<PostPartySearchResponse> InvalidSender => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid sender"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidMessage => new()
+    private static Task<PostPartySearchResponse> InvalidMessage => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid message"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidDistrictRegion => new()
+    private static Task<PostPartySearchResponse> InvalidDistrictRegion => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid district region"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidDistrictLanguage => new()
+    private static Task<PostPartySearchResponse> InvalidDistrictLanguage => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid district language"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidDistrictNumber => new()
+    private static Task<PostPartySearchResponse> InvalidDistrictNumber => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid district number"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidPartyId => new()
+    private static Task<PostPartySearchResponse> InvalidPartyId => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid party id"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidHeroCount => new()
+    private static Task<PostPartySearchResponse> InvalidHeroCount => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid hero count"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidHardMode => new()
+    private static Task<PostPartySearchResponse> InvalidHardMode => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid hard mode"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidSearchType => new()
+    private static Task<PostPartySearchResponse> InvalidSearchType => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid search type"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidPrimary => new()
+    private static Task<PostPartySearchResponse> InvalidPrimary => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid primary"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidSecondary => new()
+    private static Task<PostPartySearchResponse> InvalidSecondary => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid secondary"
-    };
+    });
 
-    private static PostPartySearchResponse InvalidLevel => new()
+    private static Task<PostPartySearchResponse> InvalidLevel => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Invalid level"
-    };
+    });
 
-    private static PostPartySearchResponse UnspecifiedFailure => new()
+    private static Task<PostPartySearchResponse> UnspecifiedFailure => Task.FromResult(new PostPartySearchResponse
     {
         Result = 0,
         Description = "Unspecified failure"
-    };
+    });
 }
