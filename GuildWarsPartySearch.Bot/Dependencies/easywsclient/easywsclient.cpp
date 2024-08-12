@@ -502,7 +502,8 @@ easywsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, 
             snprintf(line, 1024, "Host: %s:%d\r\n", host, port); ::send(sockfd, line, strlen(line), 0);
         }
         snprintf(line, 1024, "User-Agent: %s\r\n", user_agent.c_str()); ::send(sockfd, line, strlen(line), 0);
-        snprintf(line, 1024, "X-Api-Key: %s\r\n", api_key.c_str()); ::send(sockfd, line, strlen(line), 0);
+        if(api_key.size())
+            snprintf(line, 1024, "X-Api-Key: %s\r\n", api_key.c_str()); ::send(sockfd, line, strlen(line), 0);
         snprintf(line, 1024, "Upgrade: websocket\r\n"); ::send(sockfd, line, strlen(line), 0);
         snprintf(line, 1024, "Connection: Upgrade\r\n"); ::send(sockfd, line, strlen(line), 0);
         if (!origin.empty()) {
