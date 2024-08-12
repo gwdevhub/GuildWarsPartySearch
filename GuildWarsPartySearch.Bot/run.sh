@@ -36,6 +36,7 @@ RUN_CMD=$(cat <<EOF
 -district "$DISTRICT" \
 -travel-mapid "$MAP_ID" \
 -password "$PASSWORD" \
+-api-key "$WEBSOCKET_API_KEY" \
 -websocket-url "$WEBSOCKET_URL" \
 -l "$LOG_FILE" \
 -file-game-version "$BUILD_VERSION_FILE" \
