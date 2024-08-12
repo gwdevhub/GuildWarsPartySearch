@@ -29,13 +29,15 @@ if [ ! -f $CLIENT_EXE ]; then
 source build.sh
 fi
 
+export HEADQUARTER_PASSWORD="$PASSWORD"
+export HEADQUARTER_2FA_SECRET="$TOTP_SECRET"
+
 RUN_CMD=$(cat <<EOF
 "$CLIENT_EXE" \
 -email "$EMAIL" \
 -character "$CHARACTER" \
 -district "$DISTRICT" \
 -travel-mapid "$MAP_ID" \
--password "$PASSWORD" \
 -api-key "$WEBSOCKET_API_KEY" \
 -websocket-url "$WEBSOCKET_URL" \
 -l "$LOG_FILE" \
