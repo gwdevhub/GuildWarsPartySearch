@@ -30,7 +30,7 @@ jobs:
       run: |
         $jsonContent = Get-Content -Raw -Path GuildWarsPartySearch\Config.Production.json | ConvertFrom-Json
         $trimmedIps = "${{ secrets.COMMA_SEPARATED_IPS }}" -split ',' | ForEach-Object { $_.Trim() }
-        $trimmedKeys = "${{ secrets.COMMA_SEPARATED_API_KEYS }}" -split ',' | ForEach-Object { $_.Trim() }
+        $trimmedKeys = @("${{ secrets.COMMA_SEPARATED_API_KEYS }}" -split ',' | ForEach-Object { $_.Trim() })
         $newAddressesArray = $jsonContent.IpWhitelistOptions.Addresses + $trimmedIps
         $jsonContent.IpWhitelistOptions.Addresses = $newAddressesArray
         $jsonContent.ApiWhitelistOptions.Keys = $trimmedKeys
