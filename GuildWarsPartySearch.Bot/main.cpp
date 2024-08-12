@@ -229,6 +229,14 @@ static int send_websocket(const std::string& payload) {
     return 0;
 }
 
+static int send_ping() {
+    connect_websocket();
+    LogInfo("Sending ping");
+    last_websocket_message = time_get_ms();
+    ws->sendPing();
+    return 0;
+}
+
 static int send_party_advertisements() {
     std::vector<PartySearchAdvertisement> ads;
     for (const auto& ad : party_search_advertisements) {
@@ -483,8 +491,6 @@ static easywsclient::WebSocket::pointer connect_websocket() {
 
 static int main_bot(void* param)
 {
-    load_configuration();
-
     CallbackEntry_Init(&EventType_WorldMapLeave_entry, on_map_left, NULL);
     RegisterEvent(EventType_WorldMapLeave, &EventType_WorldMapLeave_entry);
 
@@ -502,7 +508,9 @@ static int main_bot(void* param)
 
     CallbackEntry_Init(&EventType_PartySearchType_entry, update_party_search_advertisement, NULL);
     RegisterEvent(EventType_PartySearchType, &EventType_PartySearchType_entry);
-    
+ 
+    load_configuration();
+
     wait_until_ingame();
 
     while (running) {
@@ -514,8 +522,10 @@ static int main_bot(void* param)
             party_advertisements_pending = false;
         }
         if (ws) {
-            if (time_get_ms() - last_websocket_message > 30000)
-                send_websocket("ping");
+            if (time_get_ms() - last_websocket_message > 30000) {
+                send_ping();
+                
+            }
             ws->dispatch(on_websocket_message);
             ws->poll();
         }
