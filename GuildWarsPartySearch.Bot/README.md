@@ -5,7 +5,7 @@
 1. Copy config.example.sh to config.sh, and edit it to add your Guild Wars credentials
 2. `docker build -t partysearchbot_alpine .`
 3. *Windows:* `docker run -d --restart always --name partysearchbot -v "%cd%":/app partysearchbot_alpine ./run.sh`
-3. *Linux:* `docker run -d --restart always --name partysearchbot -v "$PWD":/app partysearchbot_alpine ./run.sh`
+3. *Linux:* `docker run -d --restart always --name partysearchbot -v "$PWD":/app partysearchbot_alpine:Z ./run.sh`
 
 ## If the source code for the bot has been changed
 
