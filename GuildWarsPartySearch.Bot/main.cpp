@@ -122,14 +122,12 @@ static CallbackEntry EventType_PartySearchType_entry;
 static CallbackEntry EventType_WorldMapEnter_entry;
 static CallbackEntry EventType_WorldMapLeave_entry;
 
-static easywsclient::WebSocket::pointer ws;
-
 static bool party_advertisements_pending = true;
 
 static std::vector<PartySearchAdvertisement*> party_search_advertisements;
 
-static easywsclient::WebSocket::pointer connect_websocket();
-static void disconnect_websocket();
+static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, const std::string& url);
+static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt);
 
 static std::string get_next_argument(int current_index) {
     if (current_index <= GetArgc()) {
@@ -225,25 +223,27 @@ static bool is_websocket_ready(easywsclient::WebSocket::pointer ws) {
     return ws && ws->getReadyState() == easywsclient::WebSocket::OPEN;
 }
 
-static int send_websocket(const std::string& payload) {
-    if(!is_websocket_ready(ws))
-        connect_websocket();
+static bool send_websocket(easywsclient::WebSocket::pointer websocket, const std::string& payload) {
+    if (!is_websocket_ready(websocket)) {
+        return false;
+    }
     LogInfo("Websocket send:");
     printf("%s\n", payload.c_str());
     last_websocket_message = time_get_ms();
-    ws->send(payload);
-    return 0;
+    websocket->send(payload);
+    return true;
 }
 
-static void send_ping() {
-    if (!is_websocket_ready(ws))
+static void send_ping(easywsclient::WebSocket::pointer websocket) {
+    if (!is_websocket_ready(websocket))
         return; // No need to connect if its not ready
     LogInfo("Sending ping");
     last_websocket_message = time_get_ms();
-    ws->sendPing();
+    websocket->sendPing();
 }
 
-static int send_party_advertisements() {
+static int send_party_advertisements(easywsclient::WebSocket::pointer websocket) {
+    assert(is_websocket_ready(websocket));
     std::vector<PartySearchAdvertisement> ads;
     for (const auto& ad : party_search_advertisements) {
         if (!ad) {
@@ -259,7 +259,7 @@ static int send_party_advertisements() {
     j["parties"] = ads;
 
     const auto payload = j.dump();
-    return send_websocket(payload);
+    return send_websocket(websocket, payload);
 }
 
 static void collect_instance_info() {
@@ -445,22 +445,28 @@ static void on_websocket_message(const std::string& message) {
     last_websocket_message = time_get_ms();
 }
 
-static void disconnect_websocket() {
-    if (!ws) return;
-    ws->close();
+static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt) {
+    if (!websocket_pt)
+        return false;
+    auto websocket = *websocket_pt;
+    if (!websocket)
+        return true;
+
+    websocket->close();
     // Wait for websocket to close
     for (auto j = 0; j < 5000; j+=50) {
-        ws->poll();
-        if (ws->getReadyState() == easywsclient::WebSocket::CLOSED)
+        websocket->poll();
+        if (websocket->getReadyState() == easywsclient::WebSocket::CLOSED)
             break;
         time_sleep_ms(50);
     }
-    ws = NULL;
+    *websocket_pt = NULL;
+    return true;
 }
-static easywsclient::WebSocket::pointer connect_websocket() {
-    if (is_websocket_ready(ws))
-        return ws;
-    assert(*account_uuid && map_id);
+static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, const std::string& url) {
+    assert(websocket_pt && url.size() && *account_uuid && map_id);
+    if (is_websocket_ready(*websocket_pt))
+        return true;
     char user_agent[255];
     char uuid_less_hyphens[ARRAY_SIZE(account_uuid)] = { 0 };
     size_t added = 0;
@@ -473,26 +479,23 @@ static easywsclient::WebSocket::pointer connect_websocket() {
     const auto connect_retries = 10;
 
     for (auto i = 0; i < connect_retries; i++) {
-        disconnect_websocket();
-
         LogInfo("Attempting to connect. Try %d/%d", i + 1, connect_retries);
-        ws = easywsclient::WebSocket::from_url(bot_configuration.web_socket_url, user_agent, bot_configuration.api_key);
-        if (!ws) {
-            // Sleep before retry
-            time_sleep_sec(5);
-            continue;
-        }
+        auto websocket = easywsclient::WebSocket::from_url(url, user_agent);
         // Wait for websocket to open
-        for (auto j = 0; j < 5000; j+=50) {
-            ws->poll();
-            if (is_websocket_ready(ws)) {
+        for (auto j = 0; websocket && j < 5000; j+=50) {
+            websocket->poll();
+            if (is_websocket_ready(websocket)) {
+                *websocket_pt = websocket;
                 LogInfo("Websocket opened successfully");
                 party_advertisements_pending = true;
                 last_websocket_message = time_get_ms();
-                return ws;
+                return websocket;
             }
             time_sleep_ms(50);
         }
+        disconnect_websocket(&websocket);
+        // Sleep before retry
+        time_sleep_sec(5);
     }
     
     exit_with_status("Failed to connect to websocket", FAILED_TO_CONNECT);
@@ -522,26 +525,28 @@ static int main_bot(void* param)
 
     wait_until_ingame();
 
+    easywsclient::WebSocket::pointer sending_websocket;
+
     while (running) {
         wait_until_ingame();
         ensure_correct_outpost();
-        connect_websocket();
+        assert(connect_websocket(&sending_websocket, bot_configuration.web_socket_url));
         if (party_advertisements_pending) {
-            send_party_advertisements();
+            send_party_advertisements(sending_websocket);
             party_advertisements_pending = false;
         }
-        if (ws) {
+        if (sending_websocket) {
             if (time_get_ms() - last_websocket_message > 30000) {
-                send_ping();
+                send_ping(sending_websocket);
             }
-            ws->dispatch(on_websocket_message);
-            ws->poll();
+            sending_websocket->dispatch(on_websocket_message);
+            sending_websocket->poll();
         }
         
         time_sleep_ms(50);
     }
+    disconnect_websocket(&sending_websocket);
 
-cleanup:
     UnRegisterEvent(&EventType_PartySearchAdvertisement_entry);
     UnRegisterEvent(&EventType_PartySearchRemoved_entry);
     UnRegisterEvent(&EventType_PartySearchSize_entry);
@@ -550,7 +555,7 @@ cleanup:
     UnRegisterEvent(&EventType_WorldMapLeave_entry);
 
     clear_party_search_advertisements();
-    disconnect_websocket();
+
     raise(SIGTERM);
     return 0;
 }
