@@ -463,7 +463,7 @@ static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt)
     *websocket_pt = NULL;
     return true;
 }
-static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, const std::string& url) {
+static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, const std::string& url, const std::string& api_key) {
     assert(websocket_pt && url.size() && *account_uuid && map_id);
     if (is_websocket_ready(*websocket_pt))
         return true;
@@ -480,7 +480,7 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
 
     for (auto i = 0; i < connect_retries; i++) {
         LogInfo("Attempting to connect. Try %d/%d", i + 1, connect_retries);
-        auto websocket = easywsclient::WebSocket::from_url(url, user_agent);
+        auto websocket = easywsclient::WebSocket::from_url(url, user_agent, api_key);
         // Wait for websocket to open
         for (auto j = 0; websocket && j < 5000; j+=50) {
             websocket->poll();
