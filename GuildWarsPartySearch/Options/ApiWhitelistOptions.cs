@@ -2,5 +2,5 @@
 
 public class ApiWhitelistOptions
 {
-    public string? Key { get; set; } = "development";
+    public List<string> Keys { get; set; } = ["development"];
 }

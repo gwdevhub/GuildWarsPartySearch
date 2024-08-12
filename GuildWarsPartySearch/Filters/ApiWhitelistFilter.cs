@@ -31,7 +31,7 @@ namespace GuildWarsPartySearch.Server.Filters
                 scopedLogger.LogDebug($"X-Api-Key {string.Join(',', xApiKeyvalues.Select(s => s))}");
             }
 
-            if (xApiKeyvalues.None(k => k == this.apiWhitelistOptions.Key))
+            if (xApiKeyvalues.None(k => string.IsNullOrWhiteSpace(k) || this.apiWhitelistOptions.Keys.Contains(k)))
             {
                 context.Result = new ForbiddenResponseActionResult("Forbidden");
                 return;

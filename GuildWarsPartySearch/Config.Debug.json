@@ -30,7 +30,9 @@
     ]
   },
   "ApiWhitelistOptions": {
-    "Key": "development"
+    "Keys": [
+      "development"
+    ]
   },
   "ContentOptions": {
     "StagingFolder": "Content"
