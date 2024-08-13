@@ -22,17 +22,6 @@ public sealed class IPExtractingMiddleware : IMiddleware
         var address = context.Connection.RemoteIpAddress?.ToString();
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InvokeAsync), address ?? string.Empty);
         scopedLogger.LogDebug($"Received request");
-        if (context.Request.Headers.TryGetValue(XForwardedForHeaderKey, out var xForwardedForValues))
-        {
-            scopedLogger.LogDebug($"X-Forwarded-For {string.Join(',', xForwardedForValues.Select(s => s))}");
-        }
-
-        if (xForwardedForValues.FirstOrDefault() is string xForwardedIpAddress)
-        {
-            context.SetClientIP(xForwardedIpAddress);
-            await next(context);
-            return;
-        }
 
         if (context.Request.Headers.TryGetValue(CFConnectingIPHeaderKey, out var cfConnectingIpValues))
         {
@@ -42,6 +31,18 @@ public sealed class IPExtractingMiddleware : IMiddleware
         if (cfConnectingIpValues.FirstOrDefault() is string xCfIpAddress)
         {
             context.SetClientIP(xCfIpAddress);
+            await next(context);
+            return;
+        }
+
+        if (context.Request.Headers.TryGetValue(XForwardedForHeaderKey, out var xForwardedForValues))
+        {
+            scopedLogger.LogDebug($"X-Forwarded-For {string.Join(',', xForwardedForValues.Select(s => s))}");
+        }
+
+        if (xForwardedForValues.FirstOrDefault() is string xForwardedIpAddress)
+        {
+            context.SetClientIP(xForwardedIpAddress);
             await next(context);
             return;
         }
