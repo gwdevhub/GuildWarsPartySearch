@@ -2,8 +2,10 @@ name: Build bot on alpine
 
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
+    paths:
+      - "GuildWarsPartySearch.Bot/**"
+      - ".github/workflows/bot-alpine.yaml"
   pull_request:
 
 jobs:

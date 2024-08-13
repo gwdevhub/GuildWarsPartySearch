@@ -23,6 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{B9CF
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{9FF3793B-F37B-4370-AECC-D901C879E0CB}"
 	ProjectSection(SolutionItems) = preProject
+		.github\workflows\bot_alpine.yaml = .github\workflows\bot_alpine.yaml
 		.github\workflows\content-deploy.yaml = .github\workflows\content-deploy.yaml
 		.github\workflows\docker-deploy.yaml = .github\workflows\docker-deploy.yaml
 		.github\workflows\test.yaml = .github\workflows\test.yaml
