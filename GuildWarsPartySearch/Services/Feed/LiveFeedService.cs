@@ -14,18 +14,15 @@ public sealed class LiveFeedService : ILiveFeedService
 
     private readonly SemaphoreSlim semaphore = new(1);
     private readonly Dictionary<string, List<WebSocket>> clients = [];
-    private readonly IIpWhitelistDatabase ipWhitelistDatabase;
     private readonly JsonSerializerOptions jsonSerializerOptions;
     private readonly ILogger<LiveFeedService> logger;
 
     public LiveFeedService(
         IHostApplicationLifetime lifetime,
-        IIpWhitelistDatabase ipWhitelistDatabase,
         JsonSerializerOptions jsonSerializerOptions,
         ILogger<LiveFeedService> logger)
     {
         lifetime.ApplicationStopping.Register(this.ShutDownConnections);
-        this.ipWhitelistDatabase = ipWhitelistDatabase.ThrowIfNull();
         this.jsonSerializerOptions = jsonSerializerOptions.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
     }
@@ -72,14 +69,14 @@ public sealed class LiveFeedService : ILiveFeedService
                 return false;
             }
 
-            var whitelistedIps = await this.ipWhitelistDatabase.GetWhitelistedAddresses(cancellationToken);
-            if (whitelistedIps.None(addr => addr == ipAddress) &&
-                this.clients.TryGetValue(ipAddress, out var sockets) &&
-                sockets.Count >= 2)
-            {
-                scopedLogger.LogError("Too many live connections. Rejecting");
-                return false;
-            }
+            //var whitelistedIps = await this.ipWhitelistDatabase.GetWhitelistedAddresses(cancellationToken);
+            //if (whitelistedIps.None(addr => addr == ipAddress) &&
+            //    this.clients.TryGetValue(ipAddress, out var sockets) &&
+            //    sockets.Count >= 2)
+            //{
+            //    scopedLogger.LogError("Too many live connections. Rejecting");
+            //    return false;
+            //}
 
             if (!this.clients.TryGetValue(ipAddress, out var existingSockets))
             {

@@ -23,15 +23,14 @@
   "BotHistoryDatabaseOptions": {
     "TableName": "botactivity"
   },
-  "IpWhitelistOptions": {
-    "Addresses": [
-      "127.0.0.1",
-      "localhost"
-    ]
-  },
   "ApiWhitelistOptions": {
+    "TableName": "api_keys",
     "Keys": [
-      "development"
+      {
+        "Key": "development",
+        "PermissionLevel": "Admin",
+        "Description": "default admin"
+      }
     ]
   },
   "ContentOptions": {
