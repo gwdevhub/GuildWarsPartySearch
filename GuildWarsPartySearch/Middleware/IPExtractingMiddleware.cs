@@ -21,8 +21,6 @@ public sealed class IPExtractingMiddleware : IMiddleware
     {
         var address = context.Connection.RemoteIpAddress?.ToString();
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InvokeAsync), address ?? string.Empty);
-        scopedLogger.LogDebug($"Received request");
-
         if (context.Request.Headers.TryGetValue(CFConnectingIPHeaderKey, out var cfConnectingIpValues))
         {
             scopedLogger.LogDebug($"CF-Connecting-IP {string.Join(',', cfConnectingIpValues.Select(s => s))}");

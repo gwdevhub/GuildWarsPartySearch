@@ -24,7 +24,6 @@ public sealed class PermissioningMiddleware : IMiddleware
     {
         var address = context.Connection.RemoteIpAddress?.ToString();
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InvokeAsync), address ?? string.Empty);
-        scopedLogger.LogDebug($"Received request");
         if (context.Request.Headers.TryGetValue(XApiKeyHeaderKey, out var xApiKeyvalues))
         {
             scopedLogger.LogDebug($"X-Api-Key {string.Join(',', xApiKeyvalues.Select(s => s))}");
