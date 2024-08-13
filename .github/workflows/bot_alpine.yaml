@@ -19,6 +19,8 @@ jobs:
     - name: Install dependencies
       run: |
         apk add --no-cache \
+            gcc \
+            g++ \
             bash \
             cmake \
             ninja \
