@@ -970,7 +970,7 @@ async function navigateToLocation(mapObj, showParties) {
                     var pixelBounds = map.getPixelBounds();
                     var desiredBounds = pixelBounds.getSize().divideBy(2);
                     var quarterSize = pixelBounds.getSize().divideBy(4);
-                    var center = L.point(pixelBounds.min.x + desiredBounds.x, pixelBounds.min.y + desiredBounds.y)
+                    var center = project(map.getCenter());
 
                     var reducedPixelBounds = L.bounds(L.point(center.x - quarterSize.x, center.y - quarterSize.y), L.point(center.x + quarterSize.x, center.y + quarterSize.y));
                     if (reducedPixelBounds.contains(location.coordinates)) {
@@ -978,10 +978,17 @@ async function navigateToLocation(mapObj, showParties) {
                         return;
                     }
 
+                    // Adjust the offset by the zoom level
+                    var currentZoom = map.getZoom();
+                    var baseZoom = map.getMaxZoom();
+                    var scaleFactor = map.getZoomScale(baseZoom, currentZoom);
+
+                    var offset = L.point(
+                        (location.coordinates[0] - center.x) / scaleFactor,
+                        (location.coordinates[1] - center.y) / scaleFactor
+                    );
                     setURLParameter("navigating", "1");
-                    map.setView(location.coordinates, 2, { animate: true, duration: 1 });
-                    await waitMillis(1000);
-                    map.setZoom(map.getMaxZoom(), { animate: true, duration: 1 });
+                    map.panBy(offset, { animate: true, duration: 1 });
                     await waitMillis(1000);
                     if (showParties) {
                         mapClicked(location);
