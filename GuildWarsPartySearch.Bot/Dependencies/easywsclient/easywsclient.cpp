@@ -203,7 +203,7 @@ namespace { // private module-only namespace
                 FD_ZERO(&wfds);
                 FD_SET(ptConnCtx->sockfd, &rfds);
                 if (!txbuf.empty()) { FD_SET(ptConnCtx->sockfd, &wfds); }
-                select(ptConnCtx->sockfd + 1, &rfds, &wfds, NULL, &tv);
+                select((int)ptConnCtx->sockfd + 1, &rfds, &wfds, NULL, &tv);
             }
             while (true) {
                 int N = rxbuf.size();

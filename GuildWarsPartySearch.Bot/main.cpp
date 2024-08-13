@@ -159,8 +159,7 @@ static void clear_party_search_advertisements() {
 }
 
 static PartySearchAdvertisement* get_party_search_advertisement(uint32_t party_search_id) {
-    PartySearchAdvertisement* party;
-    for (auto party : party_search_advertisements) {
+    for (const auto party : party_search_advertisements) {
         if (party->party_id == party_search_id) {
             return party;
         }
