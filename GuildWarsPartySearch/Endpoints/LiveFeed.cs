@@ -56,8 +56,8 @@ public sealed class LiveFeed : WebSocketRouteBase<LiveFeedRequest, PartySearchLi
 
     public override Task SocketClosed()
     {
-        var ipAddress = this.Context?.Connection.RemoteIpAddress?.ToString();
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), ipAddress ?? string.Empty);
+        var ipAddress = this.Context?.Request.HttpContext.GetClientIP();
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketClosed), ipAddress ?? string.Empty);
         this.liveFeedService.RemoveClient(this.WebSocket!, ipAddress);
         scopedLogger.LogDebug("Client removed from livefeed");
         return Task.CompletedTask;
