@@ -1124,8 +1124,15 @@ async function buildPartyWindow() {
 
 }
 
-function mapClicked(map) {
+async function mapClicked(map) {
     if (map.mapId) {
+        const response = await fetch('/status/map-activity');
+        const data = await response.json();
+        const activity = data.find(item => item.mapId == map.mapId);
+        if (!activity) {
+            return;
+        }
+
         let partySearches = getEntriesForMapId(locationMap, map.mapId.toString());
         let found = false;
         partySearches.forEach(partySearch => {
