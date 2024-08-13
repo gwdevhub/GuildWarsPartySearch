@@ -9,7 +9,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <math.h>
 #include <locale.h>
-#include <stdbool.h>
+#include <cstdbool>
 
 #define HEADQUARTER_RUNTIME_LINKING
 extern "C" {
