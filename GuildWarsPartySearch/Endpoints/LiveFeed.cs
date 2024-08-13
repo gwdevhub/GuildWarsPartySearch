@@ -39,7 +39,7 @@ public sealed class LiveFeed : WebSocketRouteBase<LiveFeedRequest, PartySearchLi
 
     public override async Task SocketAccepted(CancellationToken cancellationToken)
     {
-        var ipAddress = this.Context?.Connection.RemoteIpAddress?.ToString();
+        var ipAddress = this.Context?.GetClientIP();
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), ipAddress ?? string.Empty);
         if (!await this.liveFeedService.AddClient(this.WebSocket!, ipAddress, this.Context?.GetPermissionLevel() ?? Models.PermissionLevel.None, cancellationToken))
         {
@@ -49,7 +49,6 @@ public sealed class LiveFeed : WebSocketRouteBase<LiveFeedRequest, PartySearchLi
         }
 
         scopedLogger.LogDebug("Client accepted to livefeed");
-
         scopedLogger.LogDebug("Sending all party searches");
         var updates = await this.partySearchService.GetAllPartySearches(cancellationToken);
         await this.SendMessage(new PartySearchList { Searches = updates }, cancellationToken);

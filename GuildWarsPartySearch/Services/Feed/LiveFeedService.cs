@@ -1,6 +1,5 @@
 ﻿using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Models.Endpoints;
-using GuildWarsPartySearch.Server.Services.Database;
 using System.Core.Extensions;
 using System.Extensions;
 using System.Net.WebSockets;

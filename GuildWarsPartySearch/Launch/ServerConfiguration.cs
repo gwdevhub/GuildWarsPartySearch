@@ -48,7 +48,7 @@ public static class ServerConfiguration
     {
         builder.ThrowIfNull()
             .ClearProviders()
-            .AddConsole();
+            .AddConsole(o => o.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ");
 
         return builder;
     }
@@ -84,6 +84,7 @@ public static class ServerConfiguration
         services.AddSingleton<IPartySearchDatabase, PartySearchSqliteDatabase>();
         services.AddSingleton<IBotHistoryDatabase, BotHistorySqliteDatabase>();
         services.AddSingleton<IApiKeyDatabase, ApiKeySqliteDatabase>();
+        services.AddScoped<IPExtractingMiddleware>();
         services.AddScoped<PermissioningMiddleware>();
         services.AddScoped<UserAgentRequired>();
         services.AddScoped<AdminPermissionRequired>();

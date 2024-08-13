@@ -78,7 +78,8 @@ public class Program
         }
 
         var app = builder.Build();
-        app.UseMiddleware<PermissioningMiddleware>()
+        app.UseMiddleware<IPExtractingMiddleware>()
+           .UseMiddleware<PermissioningMiddleware>()
            .UseSwagger()
            .UseWebSockets()
            .UseRouting()
