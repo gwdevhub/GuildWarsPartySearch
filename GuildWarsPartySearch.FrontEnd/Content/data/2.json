@@ -1,6 +1,9 @@
 {
   "id": 2,
   "name": "Cantha",
+  "zoom": 2,
+  "minZoom": 2,
+  "maxZoom": 4,
   "dims": [ 6120, 4584 ],
   "center": [ 1519, 2659 ],
   "regions": [

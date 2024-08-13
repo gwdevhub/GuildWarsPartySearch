@@ -1,6 +1,9 @@
 {
   "id": 1,
   "name": "Tyria",
+  "zoom": 2,
+  "minZoom": 2,
+  "maxZoom": 4,
   "dims": [ 8176, 9214 ],
   "center": [ 3960, 4800 ],
   "regions": [

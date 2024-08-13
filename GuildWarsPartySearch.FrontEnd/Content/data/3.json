@@ -1,6 +1,9 @@
 {
   "id": 3,
   "name": "Elona",
+  "zoom": 2,
+  "minZoom": 2,
+  "maxZoom": 4,
   "dims": [ 6144, 4608 ],
   "center": [ 2150, 3235 ],
   "regions": [

@@ -1184,7 +1184,7 @@ function loadMap(mapIndex) {
     }
 
     loading = true;
-    fetch("data/" + mapIndex + ".json?v=20230813001")
+    fetch("data/" + mapIndex + ".json?v=20230813002")
         .then((response) => {
             return response.json();
         })
@@ -1194,8 +1194,9 @@ function loadMap(mapIndex) {
             document.title = "Guild Wars Party Search [" + mapData.name + "]";
 
             map = L.map("mapdiv", {
-                minZoom: 0,
-                maxZoom: 4,
+                minZoom: data.minZoom,
+                maxZoom: data.maxZoom,
+                zoom: data.zoom,
                 crs: L.CRS.Simple,
                 attributionControl: false
             }).on('click', function (e) {

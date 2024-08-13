@@ -1,6 +1,9 @@
 {
   "id": 4,
   "name": "the Battle Isles",
+  "zoom": 4,
+  "minZoom": 4,
+  "maxZoom": 4,
   "dims": [ 2048, 1540 ],
   "regions": [
     {

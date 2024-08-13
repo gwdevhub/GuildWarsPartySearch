@@ -1,6 +1,9 @@
 {
   "id": 5,
   "name": "Realm of Torment",
+  "zoom": 3,
+  "minZoom": 3,
+  "maxZoom": 4,
   "dims": [ 3200, 2400 ],
   "center": [ 2013, 1180 ],
   "regions": [
