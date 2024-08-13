@@ -1,4 +1,5 @@
-﻿using GuildWarsPartySearch.Server.Models.Endpoints;
+﻿using GuildWarsPartySearch.Server.Models;
+using GuildWarsPartySearch.Server.Models.Endpoints;
 using GuildWarsPartySearch.Server.Services.Database;
 using System.Core.Extensions;
 using System.Extensions;
@@ -27,9 +28,9 @@ public sealed class LiveFeedService : ILiveFeedService
         this.logger = logger.ThrowIfNull();
     }
 
-    public Task<bool> AddClient(WebSocket client, string? ipAddress, CancellationToken cancellationToken)
+    public Task<bool> AddClient(WebSocket client, string? ipAddress, PermissionLevel permissionLevel, CancellationToken cancellationToken)
     {
-        return AddClientInternal(client, ipAddress, cancellationToken);
+        return AddClientInternal(client, ipAddress, permissionLevel, cancellationToken);
     }
 
     public async Task PushUpdate(Models.PartySearch partySearchUpdate, CancellationToken cancellationToken)
@@ -56,7 +57,7 @@ public sealed class LiveFeedService : ILiveFeedService
         RemoveClientInternal(client, ipAddress);
     }
 
-    private async Task<bool> AddClientInternal(WebSocket client, string? ipAddress, CancellationToken cancellationToken)
+    private async Task<bool> AddClientInternal(WebSocket client, string? ipAddress, PermissionLevel permissionLevel, CancellationToken cancellationToken)
     {
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.AddClientInternal), ipAddress ?? string.Empty);
 
@@ -69,14 +70,13 @@ public sealed class LiveFeedService : ILiveFeedService
                 return false;
             }
 
-            //var whitelistedIps = await this.ipWhitelistDatabase.GetWhitelistedAddresses(cancellationToken);
-            //if (whitelistedIps.None(addr => addr == ipAddress) &&
-            //    this.clients.TryGetValue(ipAddress, out var sockets) &&
-            //    sockets.Count >= 2)
-            //{
-            //    scopedLogger.LogError("Too many live connections. Rejecting");
-            //    return false;
-            //}
+            if (permissionLevel is PermissionLevel.None &&
+                this.clients.TryGetValue(ipAddress, out var sockets) &&
+                sockets.Count >= 2)
+            {
+                scopedLogger.LogError("Too many live connections. Rejecting");
+                return false;
+            }
 
             if (!this.clients.TryGetValue(ipAddress, out var existingSockets))
             {

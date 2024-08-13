@@ -1,4 +1,5 @@
-﻿using GuildWarsPartySearch.Server.Models.Endpoints;
+﻿using GuildWarsPartySearch.Server.Extensions;
+using GuildWarsPartySearch.Server.Models.Endpoints;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
 using System.Core.Extensions;
@@ -40,7 +41,7 @@ public sealed class LiveFeed : WebSocketRouteBase<LiveFeedRequest, PartySearchLi
     {
         var ipAddress = this.Context?.Connection.RemoteIpAddress?.ToString();
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), ipAddress ?? string.Empty);
-        if (!await this.liveFeedService.AddClient(this.WebSocket!, ipAddress, cancellationToken))
+        if (!await this.liveFeedService.AddClient(this.WebSocket!, ipAddress, this.Context?.GetPermissionLevel() ?? Models.PermissionLevel.None, cancellationToken))
         {
             scopedLogger.LogError("Client rejected");
             this.WebSocket?.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure, "Connection rejected", cancellationToken);
