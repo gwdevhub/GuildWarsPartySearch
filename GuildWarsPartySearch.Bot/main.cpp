@@ -102,6 +102,7 @@ static std::atomic<bool> running;
 static std::atomic<bool> ready;
 static std::string last_payload;
 static uint64_t last_websocket_message = 0;
+static uint64_t websocket_ping_interval = 30000; // Ping every 30s
 
 District district = District::DISTRICT_CURRENT;
 int district_number = -1;
@@ -126,7 +127,7 @@ static bool party_advertisements_pending = true;
 
 static std::vector<PartySearchAdvertisement*> party_search_advertisements;
 
-static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, const std::string& url);
+static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, const std::string& url, const std::string& api_key = "");
 static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt);
 
 static std::string get_next_argument(int current_index) {
@@ -479,17 +480,15 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
     const auto connect_retries = 10;
 
     for (auto i = 0; i < connect_retries; i++) {
-        LogInfo("Attempting to connect. Try %d/%d", i + 1, connect_retries);
+        if(i > 0)
+            LogInfo("Attempting to connect to %s. Try %d/%d", url.c_str(), i + 1, connect_retries);
         auto websocket = easywsclient::WebSocket::from_url(url, user_agent, api_key);
         // Wait for websocket to open
         for (auto j = 0; websocket && j < 5000; j+=50) {
             websocket->poll();
             if (is_websocket_ready(websocket)) {
                 *websocket_pt = websocket;
-                LogInfo("Websocket opened successfully");
-                party_advertisements_pending = true;
-                last_websocket_message = time_get_ms();
-                return websocket;
+                return true;
             }
             time_sleep_ms(50);
         }
@@ -497,8 +496,7 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
         // Sleep before retry
         time_sleep_sec(5);
     }
-    
-    exit_with_status("Failed to connect to websocket", FAILED_TO_CONNECT);
+    return false;
 }
 
 static int main_bot(void* param)
@@ -525,22 +523,27 @@ static int main_bot(void* param)
 
     wait_until_ingame();
 
-    easywsclient::WebSocket::pointer sending_websocket;
+    easywsclient::WebSocket::pointer sending_websocket = NULL;
 
     while (running) {
         wait_until_ingame();
         ensure_correct_outpost();
         if (!is_websocket_ready(sending_websocket)) {
+            // Websocket not currently active, reset vars ready to send bits on sucessful connect later
             party_advertisements_pending = true;
+            last_websocket_message = time_get_ms() - websocket_ping_interval;
         }
-        if (!connect_websocket(&sending_websocket, bot_configuration.web_socket_url, bot_configuration.api_key))
-            continue; // Don't bomb out just because we can't connect to the server just yet!
+        if (!connect_websocket(&sending_websocket, bot_configuration.web_socket_url, bot_configuration.api_key)) {
+            // Connection to server failed, continue the loop until we connect
+            continue;
+        }
         if (party_advertisements_pending) {
             send_party_advertisements(sending_websocket);
             party_advertisements_pending = false;
         }
         if (sending_websocket) {
-            if (time_get_ms() - last_websocket_message > 30000) {
+            if (time_get_ms() - last_websocket_message > websocket_ping_interval) {
+
                 send_ping(sending_websocket);
             }
             sending_websocket->dispatch(on_websocket_message);

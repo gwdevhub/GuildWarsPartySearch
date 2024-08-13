@@ -44,7 +44,7 @@ add_library(
   Dependencies/easywsclient/easywsclient.cpp
 )
 
-target_link_libraries(GuildWarsPartySearch.Bot PRIVATE common client)
+target_link_libraries(GuildWarsPartySearch.Bot PRIVATE common client mbedtls mbedx509 mbedcrypto)
 
 set_target_properties(common
     PROPERTIES
