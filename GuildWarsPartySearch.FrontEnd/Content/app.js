@@ -417,7 +417,7 @@ const maps = [
     { id: 446, name: "The Alkali Pan" },
     { id: 447, name: "Cliffs of Dohjok" },
     { id: 448, name: "Crystal Overlook" },
-    { id: 449, name: "Kamadan" },
+    { id: 449, name: "Kamadan, Jewel of Istan" },
     { id: 450, name: "Gate of Torment" },
     { id: 451, name: "Nightfallen Garden" },
     { id: 456, name: "Churrhir Fields" },
@@ -1170,7 +1170,7 @@ function loadMap(mapIndex) {
     }
 
     loading = true;
-    fetch("data/" + mapIndex + ".json?v=20200516001")
+    fetch("data/" + mapIndex + ".json?v=20230813001")
         .then((response) => {
             return response.json();
         })
