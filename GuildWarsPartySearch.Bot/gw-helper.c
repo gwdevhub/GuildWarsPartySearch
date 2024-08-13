@@ -153,14 +153,14 @@ static float get_distance_to_agent(ApiAgent* agent) {
 
 static int irand(int min, int max)
 {
-    assert(0 < (max - min) < RAND_MAX);
+    assert((max - min) < RAND_MAX);
     int range = max - min;
     return (rand() % range) + min;
 }
 
 static float frand(float min, float max)
 {
-    assert(0 < (max - min) < RAND_MAX);
+    assert((max - min) < RAND_MAX);
     float range = max - min;
     float random = (float)rand() / RAND_MAX;
     return (random * range) + min;
