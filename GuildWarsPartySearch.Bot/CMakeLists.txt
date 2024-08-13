@@ -70,7 +70,10 @@ set_target_properties(GuildWarsPartySearch.Bot
 )
 
 target_compile_definitions(GuildWarsPartySearch.Bot PRIVATE HEADQUARTER_BUILD_EXPORTS)
-target_compile_options(GuildWarsPartySearch.Bot PRIVATE /wd4267 /wd4996)
+
+if (MSVC)
+    target_compile_options(GuildWarsPartySearch.Bot PRIVATE /wd4267 /wd4996)
+endif()
 
 target_include_directories(
   GuildWarsPartySearch.Bot
