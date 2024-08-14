@@ -33,6 +33,10 @@
       }
     ]
   },
+  "TextProcessorOptions": {
+    "ChatFilterRegexes": [
+    ]
+  },
   "ContentOptions": {
     "StagingFolder": "Content"
   }

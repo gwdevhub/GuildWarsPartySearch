@@ -7,7 +7,6 @@ using GuildWarsPartySearch.Server.Services.PartySearch;
 using Microsoft.AspNetCore.Mvc;
 using System.Core.Extensions;
 using System.Extensions;
-using System.Logging;
 
 namespace GuildWarsPartySearch.Server.Endpoints;
 
@@ -38,7 +37,6 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
 		if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
             userAgentValue is not string userAgent)
         {
-			scopedLogger.LogDebug(this.Context?.Items.ToString());
 			scopedLogger.LogDebug("Failed to extract user agent");
 			await this.WebSocket!.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.InternalServerError, "Failed to extract user agent", cancellationToken);
             return;
@@ -46,7 +44,6 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
 
         if (!await this.botStatusService.AddBot(userAgent, this.WebSocket!, cancellationToken))
         {
-			scopedLogger.LogDebug(this.Context?.Items.ToString());
 			scopedLogger.LogDebug($"Failed to add bot with id {userAgent}");
 			await this.WebSocket!.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation, $"Failed to add bot with id {userAgent}", cancellationToken);
             return;
@@ -84,22 +81,22 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
             await this.botStatusService.RecordBotUpdateActivity(userAgent, this.Context.RequestAborted);
             var result = await this.partySearchService.PostPartySearch(message, cancellationToken);
             var response = await result.Switch<Task<PostPartySearchResponse>>(
-                onSuccess: async _ =>
+                onSuccess: async parsedResult =>
                 {
                     await this.liveFeedService.PushUpdate(new PartySearch
                     {
-                        Map = message?.Map,
-                        District = message?.District ?? 0,
-                        PartySearchEntries = message?.PartySearchEntries?.Select(e =>
+                        Map = parsedResult?.Map,
+                        District = parsedResult?.District ?? 0,
+                        PartySearchEntries = parsedResult?.PartySearchEntries?.Select(e =>
                         {
                             // Patch the input to match the original district
-                            e.District = message.District ?? 0;
+                            e.District = parsedResult.District ?? 0;
                             return e;
                         }).ToList(),
                     }, cancellationToken);
 
                     var response =  Success.Result;
-                    if (message?.GetFullList is true)
+                    if (parsedResult?.GetFullList is true)
                     {
                         response.PartySearches = await this.partySearchService.GetAllPartySearches(cancellationToken);
                     }

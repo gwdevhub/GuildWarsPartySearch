@@ -3,6 +3,7 @@ using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Models.Endpoints;
 using GuildWarsPartySearch.Server.Services.CharName;
 using GuildWarsPartySearch.Server.Services.Database;
+using GuildWarsPartySearch.Server.Services.Processing;
 using System.Core.Extensions;
 using System.Extensions;
 
@@ -10,15 +11,18 @@ namespace GuildWarsPartySearch.Server.Services.PartySearch;
 
 public sealed class PartySearchService : IPartySearchService
 {
+    private readonly ITextProcessor textProcessor;
     private readonly ICharNameValidator charNameValidator;
     private readonly IPartySearchDatabase partySearchDatabase;
     private readonly ILogger<PartySearchService> logger;
 
     public PartySearchService(
+        ITextProcessor textProcessor,
         ICharNameValidator charNameValidator,
         IPartySearchDatabase partySearchDatabase,
         ILogger<PartySearchService> logger)
     {
+        this.textProcessor = textProcessor.ThrowIfNull();
         this.charNameValidator = charNameValidator.ThrowIfNull();
         this.partySearchDatabase = partySearchDatabase.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
@@ -126,7 +130,7 @@ public sealed class PartySearchService : IPartySearchService
             }
         }
 
-        //TODO: Implement district validation, party size validation, party max size validation and npcs validation
+        request.PartySearchEntries = request.PartySearchEntries.Where(p => !this.textProcessor.IsSpam(p.Message)).ToList();
         var result = await this.partySearchDatabase.SetPartySearches(
             request.Map,
             request.District.Cast<int>(),

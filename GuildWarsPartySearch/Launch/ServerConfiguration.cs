@@ -10,6 +10,7 @@ using GuildWarsPartySearch.Server.Services.Database;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
 using GuildWarsPartySearch.Server.Services.Permissions;
+using GuildWarsPartySearch.Server.Services.Processing;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Options;
 using System.Core.Extensions;
@@ -63,7 +64,8 @@ public static class ServerConfiguration
             .ConfigureExtended<IpWhitelistOptions>()
             .ConfigureExtended<BotHistoryDatabaseOptions>()
             .ConfigureExtended<SQLiteDatabaseOptions>()
-            .ConfigureExtended<ApiWhitelistOptions>();
+            .ConfigureExtended<ApiWhitelistOptions>()
+            .ConfigureExtended<TextProcessorOptions>();
     }
 
     public static IServiceCollection SetupServices(this IServiceCollection services)
@@ -84,6 +86,7 @@ public static class ServerConfiguration
         services.AddSingleton<IPartySearchDatabase, PartySearchSqliteDatabase>();
         services.AddSingleton<IBotHistoryDatabase, BotHistorySqliteDatabase>();
         services.AddSingleton<IApiKeyDatabase, ApiKeySqliteDatabase>();
+        services.AddSingleton<ITextProcessor, TextProcessor>();
         services.AddScoped<IPExtractingMiddleware>();
         services.AddScoped<PermissioningMiddleware>();
         services.AddScoped<HeaderLoggingMiddleware>();
