@@ -13,7 +13,8 @@ public abstract class PermissionFilterBase : IAsyncActionFilter
         var permissionLevel = context.HttpContext.GetPermissionLevel();
         if (permissionLevel < this.PermissionLevel)
         {
-            context.Result = new ForbiddenResponseActionResult("Forbidden");
+            var permissionReason = context.HttpContext.GetPermissionLevelReason();
+            context.Result = new ForbiddenResponseActionResult($"Insufficient permissions. Expected permission level: {this.PermissionLevel}. Client permission level: {permissionLevel}. Reason: {permissionReason}");
             return;
         }
 

@@ -31,13 +31,13 @@ public sealed class PermissioningMiddleware : IMiddleware
 
         if (xApiKeyvalues.FirstOrDefault() is not string apiKey)
         {
-            context.SetPermissionLevel(Models.PermissionLevel.None);
+            context.SetPermissionLevel(Models.PermissionLevel.None, "No API Key found in X-Api-Key header");
             await next(context);
             return;
         }
 
         var permissionLevel = await this.permissionService.GetPermissionLevel(apiKey, context.RequestAborted);
-        context.SetPermissionLevel(permissionLevel);
+        context.SetPermissionLevel(permissionLevel, $"Api key {apiKey} is associated with {permissionLevel} permission level");
         await next(context);
     }
 }

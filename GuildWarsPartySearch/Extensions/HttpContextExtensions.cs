@@ -6,12 +6,14 @@ namespace GuildWarsPartySearch.Server.Extensions;
 public static class HttpContextExtensions
 {
     private const string PermissionLevelKey = "PermissionLevel";
+    private const string PermissionReasonKey = "PermissionReason";
     private const string ClientIPKey = "ClientIP";
 
-    public static void SetPermissionLevel(this HttpContext context, PermissionLevel permissionLevel)
+    public static void SetPermissionLevel(this HttpContext context, PermissionLevel permissionLevel, string reason)
     {
         context.ThrowIfNull()
             .Items.Add(PermissionLevelKey, permissionLevel);
+        context.Items.Add(PermissionReasonKey, reason);
     }
 
     public static PermissionLevel GetPermissionLevel(this HttpContext context)
@@ -24,6 +26,18 @@ public static class HttpContextExtensions
         }
 
         return permissionLevel;
+    }
+
+    public static string? GetPermissionLevelReason(this HttpContext context)
+    {
+        context.ThrowIfNull();
+        if (!context.Items.TryGetValue(PermissionReasonKey, out var reason) ||
+            reason is not string reasonStr)
+        {
+            return default;
+        }
+
+        return reasonStr;
     }
 
     public static void SetClientIP(this HttpContext context, string ip)
