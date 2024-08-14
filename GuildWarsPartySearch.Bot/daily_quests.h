@@ -87,7 +87,7 @@ namespace DailyQuests {
     { GW::Constants::MapID::Slavers_Exile_Level_1 },           // Rand Stormweaver
     { GW::Constants::MapID::Kessex_Peak },                     // Verata
     };
-    static_assert(_countof(zaishen_bounty_cycles) == ZAISHEN_BOUNTY_COUNT);
+    static_assert(ARRAY_SIZE(zaishen_bounty_cycles) == ZAISHEN_BOUNTY_COUNT);
 
     DailyQuest zaishen_combat_cycles[] = {
         {GW::Constants::MapID::The_Jade_Quarry_mission},
@@ -119,7 +119,7 @@ namespace DailyQuests {
         {GW::Constants::MapID::Fort_Aspenwood_mission},
         {GW::Constants::MapID::Isle_of_the_Dead_guild_hall}
     };
-    static_assert(_countof(zaishen_combat_cycles) == ZAISHEN_COMBAT_COUNT);
+    static_assert(ARRAY_SIZE(zaishen_combat_cycles) == ZAISHEN_COMBAT_COUNT);
 
     DailyQuest zaishen_vanquish_cycles[] = {
             {GW::Constants::MapID::Jaya_Bluffs},
@@ -259,7 +259,7 @@ namespace DailyQuests {
             {GW::Constants::MapID::Garden_of_Seborhin},
             {GW::Constants::MapID::Grenths_Footprint}
     };
-    static_assert(_countof(zaishen_vanquish_cycles) == ZAISHEN_VANQUISH_COUNT);
+    static_assert(ARRAY_SIZE(zaishen_vanquish_cycles) == ZAISHEN_VANQUISH_COUNT);
 
     DailyQuest zaishen_mission_cycles[] = {
       GW::Constants::MapID::Augury_Rock_mission,
@@ -332,27 +332,27 @@ namespace DailyQuests {
       GW::Constants::MapID::Abaddons_Gate,
       GW::Constants::MapID::The_Frost_Gate
     };
-    static_assert(_countof(zaishen_mission_cycles) == ZAISHEN_MISSION_COUNT);
+    static_assert(ARRAY_SIZE(zaishen_mission_cycles) == ZAISHEN_MISSION_COUNT);
 
 
-    uint32_t GetZaishenBountyIdx(const time_t* unix)
+    uint32_t GetZaishenBountyIdx(const uint64_t _unix)
     {
-        return static_cast<uint32_t>((*unix - 1244736000) / 86400 % ZAISHEN_BOUNTY_COUNT);
+        return static_cast<uint32_t>((_unix - 1244736000) / 86400 % ZAISHEN_BOUNTY_COUNT);
     }
 
-    uint32_t GetZaishenCombatIdx(const time_t* unix)
+    uint32_t GetZaishenCombatIdx(const uint64_t _unix)
     {
-        return static_cast<uint32_t>((*unix - 1256227200) / 86400 % ZAISHEN_COMBAT_COUNT);
+        return static_cast<uint32_t>((_unix - 1256227200) / 86400 % ZAISHEN_COMBAT_COUNT);
     }
 
-    uint32_t GetZaishenMissionIdx(const time_t* unix)
+    uint32_t GetZaishenMissionIdx(const uint64_t _unix)
     {
-        return static_cast<uint32_t>((*unix - 1299168000) / 86400 % ZAISHEN_MISSION_COUNT);
+        return static_cast<uint32_t>((_unix - 1299168000) / 86400 % ZAISHEN_MISSION_COUNT);
     }
 
-    uint32_t GetZaishenVanquishIdx(const time_t* unix)
+    uint32_t GetZaishenVanquishIdx(const uint64_t _unix)
     {
-        return static_cast<uint32_t>((*unix - 1299168000) / 86400 % ZAISHEN_VANQUISH_COUNT);
+        return static_cast<uint32_t>((_unix - 1299168000) / 86400 % ZAISHEN_VANQUISH_COUNT);
     }
 
     time_t GetNextEventTime(const time_t cycle_start_time, const time_t current_time, const int event_index, const int event_count, const int interval_in_seconds)
@@ -378,32 +378,28 @@ namespace DailyQuests {
         return next_event_time;
     }
 
-    DailyQuest* GetZaishenBounty(time_t unix)
+    DailyQuest* GetZaishenBounty(const uint64_t _unix)
     {
-        if (!unix)
-            unix = time(nullptr);
-        return &zaishen_bounty_cycles[GetZaishenBountyIdx(&unix)];
+        auto idx = GetZaishenBountyIdx(_unix);
+        return &zaishen_bounty_cycles[idx];
     }
 
-    DailyQuest* GetZaishenMission(time_t unix)
+    DailyQuest* GetZaishenMission(const uint64_t _unix)
     {
-        if (!unix)
-            unix = time(nullptr);
-        return &zaishen_mission_cycles[GetZaishenMissionIdx(&unix)];
+        auto idx = GetZaishenMissionIdx(_unix);
+        return &zaishen_mission_cycles[idx];
     }
 
-    DailyQuest* GetZaishenCombat(time_t unix)
+    DailyQuest* GetZaishenCombat(const uint64_t _unix)
     {
-        if (!unix)
-            unix = time(nullptr);
-        return &zaishen_combat_cycles[GetZaishenCombatIdx(&unix)];
+        auto idx = GetZaishenCombatIdx(_unix);
+        return &zaishen_combat_cycles[idx];
     }
 
-    DailyQuest* GetZaishenVanquish(time_t unix)
+    DailyQuest* GetZaishenVanquish(const uint64_t _unix)
     {
-        if (!unix)
-            unix = time(nullptr);
-        return &zaishen_vanquish_cycles[GetZaishenVanquishIdx(&unix)];
+        auto idx = GetZaishenVanquishIdx(_unix);
+        return &zaishen_vanquish_cycles[idx];
     }
 
 
