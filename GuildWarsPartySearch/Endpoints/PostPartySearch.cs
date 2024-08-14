@@ -83,31 +83,33 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
             var response = await result.Switch<Task<PostPartySearchResponse>>(
                 onSuccess: async parsedResult =>
                 {
-                await this.liveFeedService.PushUpdate(new PartySearch
-                {
-                    Map = parsedResult?.Map,
-                    District = parsedResult?.District ?? 0,
-                    PartySearchEntries = parsedResult?.PartySearchEntries?.Select(e =>
+                    await this.liveFeedService.PushUpdate(new PartySearch
                     {
-                        // Patch the input to match the original district
-                        e.District = parsedResult.District ?? 0;
-                        return e;
-                    }).ToList(),
-                }, cancellationToken);
+                        Map = parsedResult?.Map,
+                        District = parsedResult?.District ?? 0,
+                        PartySearchEntries = parsedResult?.PartySearchEntries?.Select(e =>
+                        {
+                            // Patch the input to match the original district
+                            e.District = parsedResult.District ?? 0;
+                            return e;
+                        }).ToList(),
+                    }, cancellationToken);
 
-                var response = Success.Result;
+                    var response = Success.Result;
                     if (parsedResult?.GetFullList is true)
                     {
-                        var party_searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
-                        response.PartySearches = [];
-                        foreach (var party_search in response.PartySearches)
+                        var currentBot = await this.botStatusService.GetBot(userAgent, cancellationToken);
+                        if (currentBot is null)
                         {
-                            // Only care about map id for bots
-                            response.PartySearches.Add(new PartySearch
-							{
-								Map = party_search.Map
-							});
+                            scopedLogger.LogError($"Failed to find bot for id {userAgent}");
                         }
+
+                        var party_searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
+                        
+                        // Return all party searches besides the current one
+                        response.PartySearches = party_searches
+                        .Where(p => p.Map != currentBot?.Map || p.District != currentBot?.District)
+                        .Select(p => new PartySearch { Map = p.Map, District = p.District }).ToList();
                     }
                     return response;
                 },

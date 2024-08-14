@@ -162,6 +162,16 @@ public sealed class BotStatusService : IBotStatusService
         return Task.FromResult(this.connectedBots.Select(b => new Models.BotStatus { Id = b.Key, Name = b.Value.Name, District = b.Value.District, Map = b.Value.Map, LastSeen = b.Value.LastSeen }));
     }
 
+    public Task<Models.BotStatus?> GetBot(string botId, CancellationToken cancellationToken)
+    {
+        if (!this.connectedBots.TryGetValue(botId, out var bot))
+        {
+            return Task.FromResult<Models.BotStatus?>(default);
+        }
+
+        return Task.FromResult<Models.BotStatus?>(new Models.BotStatus { Id = botId, Name = bot.Name, District = bot.District, Map = bot.Map, LastSeen = bot.LastSeen });
+    }
+
     public async Task<bool> RecordBotUpdateActivity(string botId, CancellationToken cancellationToken)
     {
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.RecordBotUpdateActivity), botId);

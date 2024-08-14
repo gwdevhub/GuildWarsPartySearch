@@ -13,4 +13,5 @@ public interface IBotStatusService
     Task<IEnumerable<BotActivityResponse>> GetActivitiesForMap(int mapId, CancellationToken cancellationToken);
     Task<IEnumerable<BotActivityResponse>> GetActivitiesForMap(string mapName, CancellationToken cancellationToken);
     Task<IEnumerable<Models.BotStatus>> GetBots(CancellationToken cancellationToken);
+    Task<Models.BotStatus?> GetBot(string botId, CancellationToken cancellationToken);
 }
