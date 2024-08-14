@@ -3,6 +3,7 @@ using GuildWarsPartySearch.Server.Filters;
 using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Models.Endpoints;
 using GuildWarsPartySearch.Server.Services.BotStatus;
+using GuildWarsPartySearch.Server.Services.BotStatus.Models;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
 using Microsoft.AspNetCore.Mvc;
@@ -80,7 +81,23 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
             }
 
             var currentBot = await this.botStatusService.GetBot(userAgent, cancellationToken);
-            var allBots = await this.botStatusService.GetBots(cancellationToken);
+            var allBots = (await this.botStatusService.GetBots(cancellationToken)).ToList();
+            if (message?.Map == Map.None &&
+                message.District == 0)
+            {
+                scopedLogger.LogError("Detected faulty update. Will not update location");
+                var faultyResponse = await Success;
+                if (message.GetFullList)
+                {
+                    var party_searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
+                    faultyResponse.PartySearches = FilterResults(party_searches, currentBot, allBots);
+                    
+                }
+
+                await this.SendMessage(faultyResponse, cancellationToken);
+                return;
+            }
+
             await this.botStatusService.RecordBotUpdateActivity(userAgent, message?.Map ?? Map.None, message?.District ?? -1, this.Context.RequestAborted);
             var result = await this.partySearchService.PostPartySearch(message, cancellationToken);
             var response = await result.Switch<Task<PostPartySearchResponse>>(
@@ -98,15 +115,11 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                         }).ToList(),
                     }, cancellationToken);
 
-                    var response = Success.Result;
+                    var response = await Success;
                     if (parsedResult?.GetFullList is true)
                     {
                         var party_searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
-                        
-                        response.PartySearches = party_searches
-                        .Where(p => p.Map != currentBot?.Map || p.District != currentBot?.District) // Return all party searches besides current one
-                        .Where(p => allBots.Any(b => b.Map == p.Map && b.District == p.District)) // Filter by active locations
-                        .Select(p => new PartySearch { Map = p.Map, District = p.District }).ToList();
+                        response.PartySearches = FilterResults(party_searches, currentBot, allBots);
                     }
                     return response;
                 },
@@ -136,6 +149,14 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
         {
             scopedLogger.LogError(e, "Encountered exception");
         }
+    }
+
+    private static List<PartySearch> FilterResults(List<PartySearch> searches, BotStatus? currentBot, List<BotStatus> allBots)
+    {
+        return searches
+            .Where(p => p.Map != currentBot?.Map || p.District != currentBot?.District) // Return all party searches besides current one
+            .Where(p => allBots.Any(b => b.Map == p.Map && b.District == p.District)) // Filter by active locations
+            .Select(p => new PartySearch { Map = p.Map, District = p.District }).ToList();
     }
 
     private static Task<PostPartySearchResponse> Success => Task.FromResult(new PostPartySearchResponse

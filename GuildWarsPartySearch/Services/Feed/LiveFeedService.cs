@@ -121,8 +121,14 @@ public sealed class LiveFeedService : ILiveFeedService
     private async Task ExecuteOnClientsInternal(Func<string, WebSocket, Task> action)
     {
         await this.semaphore.WaitAsync();
-        await Task.WhenAll(this.clients.SelectMany(pair => pair.Value.Select(client => action(pair.Key, client))));
-        this.semaphore.Release();
+        try
+        {
+            await Task.WhenAll(this.clients.SelectMany(pair => pair.Value.Select(client => action(pair.Key, client))));
+        }
+        finally
+        {
+            this.semaphore.Release();
+        }
     }
 
     private void ShutDownConnections()
