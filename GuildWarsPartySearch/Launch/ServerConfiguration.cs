@@ -2,12 +2,14 @@
 using GuildWarsPartySearch.Server.Endpoints;
 using GuildWarsPartySearch.Server.Extensions;
 using GuildWarsPartySearch.Server.Filters;
+using GuildWarsPartySearch.Server.Middleware;
 using GuildWarsPartySearch.Server.Options;
 using GuildWarsPartySearch.Server.Services.BotStatus;
 using GuildWarsPartySearch.Server.Services.CharName;
 using GuildWarsPartySearch.Server.Services.Database;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
+using GuildWarsPartySearch.Server.Services.Permissions;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Options;
 using System.Core.Extensions;
@@ -46,7 +48,7 @@ public static class ServerConfiguration
     {
         builder.ThrowIfNull()
             .ClearProviders()
-            .AddConsole();
+            .AddConsole(o => o.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ");
 
         return builder;
     }
@@ -69,7 +71,6 @@ public static class ServerConfiguration
         services.ThrowIfNull();
         services.AddSingleton<ILiveFeedService, LiveFeedService>();
         services.AddSingleton<IBotStatusService, BotStatusService>();
-        services.AddSingleton<IIpWhitelistDatabase, IpWhitelistConfigDatabase>();
         services.AddSingleton(sp =>
         {
             var options = sp.GetRequiredService<IOptions<SQLiteDatabaseOptions>>();
@@ -82,11 +83,15 @@ public static class ServerConfiguration
         });
         services.AddSingleton<IPartySearchDatabase, PartySearchSqliteDatabase>();
         services.AddSingleton<IBotHistoryDatabase, BotHistorySqliteDatabase>();
+        services.AddSingleton<IApiKeyDatabase, ApiKeySqliteDatabase>();
+        services.AddScoped<IPExtractingMiddleware>();
+        services.AddScoped<PermissioningMiddleware>();
         services.AddScoped<UserAgentRequired>();
-        services.AddScoped<IpWhitelistFilter>();
-        services.AddScoped<ApiWhitelistFilter>();
+        services.AddScoped<AdminPermissionRequired>();
+        services.AddScoped<BotPermissionRequired>();
         services.AddScoped<IPartySearchService, PartySearchService>();
         services.AddScoped<ICharNameValidator, CharNameValidator>();
+        services.AddScoped<IPermissionService, PermissionService>();
         return services;
     }
 

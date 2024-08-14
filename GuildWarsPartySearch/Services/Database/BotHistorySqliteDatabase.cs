@@ -1,5 +1,4 @@
 ﻿using GuildWarsPartySearch.Common.Models.GuildWars;
-using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Options;
 using GuildWarsPartySearch.Server.Services.BotStatus.Models;
 using GuildWarsPartySearch.Server.Services.Database.Models;
@@ -149,7 +148,7 @@ public sealed class BotHistorySqliteDatabase : IBotHistoryDatabase
         }
         catch (Exception e)
         {
-            scopedLogger.LogError(e, "Encountered exception while setting party searches");
+            scopedLogger.LogError(e, "Encountered exception while recording bot activity");
             return false;
         }
     }

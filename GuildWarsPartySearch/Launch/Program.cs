@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using App.Metrics;
+using GuildWarsPartySearch.Server.Middleware;
 using GuildWarsPartySearch.Server.Options;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
@@ -77,7 +78,9 @@ public class Program
         }
 
         var app = builder.Build();
-        app.UseSwagger()
+        app.UseMiddleware<IPExtractingMiddleware>()
+           .UseMiddleware<PermissioningMiddleware>()
+           .UseSwagger()
            .UseWebSockets()
            .UseRouting()
            .UseEndpoints(endpoints =>

@@ -7,9 +7,12 @@
 #endif
 
 #define _CRT_SECURE_NO_WARNINGS
-#include <math.h>
-#include <locale.h>
-#include <stdbool.h>
+#include <clocale>
+#include <cmath>
+#include <cstdbool>
+#include <csignal>
+#include <cstdio>
+#include <ctime>
 
 #define HEADQUARTER_RUNTIME_LINKING
 extern "C" {
@@ -27,11 +30,8 @@ extern "C" {
 #endif
 
 #include <fstream>
-#include <signal.h>
-#include <stdio.h>
 #include <vector>
 #include <atomic>
-#include <time.h>
 #include <codecvt>
 
 #ifdef array
@@ -59,8 +59,8 @@ extern "C" {
 struct BotConfiguration {
     std::string         web_socket_url = "";
     std::string         api_key = "development";
-    uint32_t            map_id = 0; // Embark beach
-    District            district = District::DISTRICT_AMERICAN;
+    uint32_t            map_id = 0; // stay in current map
+    District            district = District::DISTRICT_CURRENT;
     uint32_t            district_number = 0;
     int32_t             connection_retries = 10;
 };
@@ -159,8 +159,7 @@ static void clear_party_search_advertisements() {
 }
 
 static PartySearchAdvertisement* get_party_search_advertisement(uint32_t party_search_id) {
-    PartySearchAdvertisement* party;
-    for (auto party : party_search_advertisements) {
+    for (const auto party : party_search_advertisements) {
         if (party->party_id == party_search_id) {
             return party;
         }

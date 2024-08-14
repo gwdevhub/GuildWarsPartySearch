@@ -1,0 +1,43 @@
+name: Build bot on alpine
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - "GuildWarsPartySearch.Bot/**"
+      - ".github/workflows/bot-alpine.yaml"
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: alpine:3.20
+
+    steps:
+    - name: Install Git
+      run: |
+        apk add --no-cache git
+
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install dependencies
+      run: |
+        apk add --no-cache \
+            gcc \
+            g++ \
+            musl-dev \
+            bash \
+            cmake \
+            ninja \
+            ninja-build \
+            python3 py3-pip py3-tqdm py3-pefile
+
+    - name: Build
+      run: |
+        cd GuildWarsPartySearch.Bot
+        cmake -B linuxbuild -G "Ninja"
+        ninja -C linuxbuild

@@ -1,13 +1,13 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 
-set(CMAKE_CXX_FLAGS_DEBUG CACHE "CMAKE_CXX_FLAGS_DEBUG" STRING FORCE)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE "CMAKE_POSITION_INDEPENDENT_CODE" BOOL FORCE)
-set(BUILD_SHARED_LIBS OFF CACHE "BUILD_SHARED_LIBS" BOOL FORCE)
-set(CMAKE_BUILD_TYPE Debug CACHE "CMAKE_BUILD_TYPE" STRING FORCE)
+set(CMAKE_CXX_FLAGS_DEBUG "" CACHE STRING "CMAKE_CXX_FLAGS_DEBUG" FORCE)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "CMAKE_POSITION_INDEPENDENT_CODE" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "BUILD_SHARED_LIBS" FORCE)
+set(CMAKE_BUILD_TYPE Debug CACHE STRING "CMAKE_BUILD_TYPE" FORCE)
 
-set(BUILD_TESTING_STATIC OFF CACHE "BUILD_TESTING_STATIC" BOOL FORCE)
-set(BUILD_TESTING_SHARED OFF CACHE "BUILD_TESTING_SHARED" BOOL FORCE)
-set(BUILD_TESTING OFF CACHE "BUILD_TESTING" BOOL FORCE)
+set(BUILD_TESTING_STATIC OFF CACHE BOOL "BUILD_TESTING_STATIC" FORCE)
+set(BUILD_TESTING_SHARED OFF CACHE BOOL "BUILD_TESTING_SHARED" FORCE)
+set(BUILD_TESTING OFF CACHE BOOL "BUILD_TESTING" FORCE)
 
 project(
   GuildWarsPartySearch.Bot
@@ -18,9 +18,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
 if (MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
-
   # Add this line to allow keyword macros
   add_definitions(-D_ALLOW_KEYWORD_MACROS)
 
@@ -44,7 +41,7 @@ add_library(
   Dependencies/easywsclient/easywsclient.cpp
 )
 
-target_link_libraries(GuildWarsPartySearch.Bot PRIVATE common client)
+target_link_libraries(GuildWarsPartySearch.Bot PRIVATE common client mbedtls mbedx509 mbedcrypto)
 
 set_target_properties(common
     PROPERTIES
@@ -73,6 +70,10 @@ set_target_properties(GuildWarsPartySearch.Bot
 )
 
 target_compile_definitions(GuildWarsPartySearch.Bot PRIVATE HEADQUARTER_BUILD_EXPORTS)
+
+if (MSVC)
+    target_compile_options(GuildWarsPartySearch.Bot PRIVATE /wd4267 /wd4996)
+endif()
 
 target_include_directories(
   GuildWarsPartySearch.Bot

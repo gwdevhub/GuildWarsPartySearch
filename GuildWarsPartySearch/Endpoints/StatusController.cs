@@ -22,7 +22,7 @@ public class StatusController : Controller
     }
 
     [HttpGet("bot-activity/all")]
-    [ServiceFilter<ApiWhitelistFilter>]
+    [ServiceFilter<AdminPermissionRequired>]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
     [SwaggerOperation(Description = $"Protected by *API Key whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
@@ -37,7 +37,7 @@ public class StatusController : Controller
     }
 
     [HttpGet("bot-activity/bots/{botName}")]
-    [ServiceFilter<ApiWhitelistFilter>]
+    [ServiceFilter<AdminPermissionRequired>]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
     [SwaggerOperation(Description = $"Protected by *API Key whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
@@ -52,7 +52,7 @@ public class StatusController : Controller
     }
 
     [HttpGet("bot-activity/maps/{map}")]
-    [ServiceFilter<ApiWhitelistFilter>]
+    [ServiceFilter<AdminPermissionRequired>]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
     [SwaggerOperation(Description = $"Protected by *API Key whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]
@@ -74,7 +74,7 @@ public class StatusController : Controller
     }
 
     [HttpGet("bots")]
-    [ServiceFilter<ApiWhitelistFilter>]
+    [ServiceFilter<AdminPermissionRequired>]
     [ProducesResponseType(200)]
     [ProducesResponseType(403)]
     [SwaggerOperation(Description = $"Protected by *API Key whitelisting*.\r\n\r\n Disabled in *Production* \r\n\r\n")]

@@ -1,6 +1,9 @@
 {
   "id": 0,
   "name": "Ascalon (pre-Searing)",
+  "zoom": 4,
+  "minZoom": 4,
+  "maxZoom": 4,
   "dims": [ 2048, 1536 ],
   "regions": [
     {

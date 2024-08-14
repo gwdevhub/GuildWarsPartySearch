@@ -1,5 +1,5 @@
-﻿using GuildWarsPartySearch.Server.Models.Endpoints;
-using GuildWarsPartySearch.Server.Services.Database;
+﻿using GuildWarsPartySearch.Server.Models;
+using GuildWarsPartySearch.Server.Models.Endpoints;
 using System.Core.Extensions;
 using System.Extensions;
 using System.Net.WebSockets;
@@ -14,25 +14,22 @@ public sealed class LiveFeedService : ILiveFeedService
 
     private readonly SemaphoreSlim semaphore = new(1);
     private readonly Dictionary<string, List<WebSocket>> clients = [];
-    private readonly IIpWhitelistDatabase ipWhitelistDatabase;
     private readonly JsonSerializerOptions jsonSerializerOptions;
     private readonly ILogger<LiveFeedService> logger;
 
     public LiveFeedService(
         IHostApplicationLifetime lifetime,
-        IIpWhitelistDatabase ipWhitelistDatabase,
         JsonSerializerOptions jsonSerializerOptions,
         ILogger<LiveFeedService> logger)
     {
         lifetime.ApplicationStopping.Register(this.ShutDownConnections);
-        this.ipWhitelistDatabase = ipWhitelistDatabase.ThrowIfNull();
         this.jsonSerializerOptions = jsonSerializerOptions.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
     }
 
-    public Task<bool> AddClient(WebSocket client, string? ipAddress, CancellationToken cancellationToken)
+    public Task<bool> AddClient(WebSocket client, string? ipAddress, PermissionLevel permissionLevel, CancellationToken cancellationToken)
     {
-        return AddClientInternal(client, ipAddress, cancellationToken);
+        return AddClientInternal(client, ipAddress, permissionLevel, cancellationToken);
     }
 
     public async Task PushUpdate(Models.PartySearch partySearchUpdate, CancellationToken cancellationToken)
@@ -59,7 +56,7 @@ public sealed class LiveFeedService : ILiveFeedService
         RemoveClientInternal(client, ipAddress);
     }
 
-    private async Task<bool> AddClientInternal(WebSocket client, string? ipAddress, CancellationToken cancellationToken)
+    private async Task<bool> AddClientInternal(WebSocket client, string? ipAddress, PermissionLevel permissionLevel, CancellationToken cancellationToken)
     {
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.AddClientInternal), ipAddress ?? string.Empty);
 
@@ -72,8 +69,7 @@ public sealed class LiveFeedService : ILiveFeedService
                 return false;
             }
 
-            var whitelistedIps = await this.ipWhitelistDatabase.GetWhitelistedAddresses(cancellationToken);
-            if (whitelistedIps.None(addr => addr == ipAddress) &&
+            if (permissionLevel is PermissionLevel.None &&
                 this.clients.TryGetValue(ipAddress, out var sockets) &&
                 sockets.Count >= 2)
             {
