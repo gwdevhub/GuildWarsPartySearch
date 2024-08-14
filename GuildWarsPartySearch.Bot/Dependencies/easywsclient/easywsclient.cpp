@@ -396,10 +396,10 @@ namespace { // private module-only namespace
     };
 
     easywsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, const std::string& origin, const std::string& api_key) {
-        char sc[128];
-        char host[128];
-        int port;
-        char path[128];
+        char sc[128] = { 0 };
+        char host[128] = { 0 };
+        int port = 0;
+        char path[128] = { 0 };
         bool is_ssl = false;
         if (url.size() >= 128) {
             log_error("ERROR: url size limit exceeded: %s\n", url.c_str());
@@ -423,7 +423,8 @@ namespace { // private module-only namespace
         log_error("easywsclient: connecting: ssl=%s, host=%s port=%d path=/%s\n",
             is_ssl ? "true" : "false", host, port, path);
 
-        ConnectionContext* ptConnCtx = (ConnectionContext*)malloc(sizeof(ConnectionContext));
+        ConnectionContext* ptConnCtx = (ConnectionContext*)calloc(1, sizeof(ConnectionContext));
+
         ptConnCtx->sockfd = hostname_connect(host, port);
         if (ptConnCtx->sockfd == INVALID_SOCKET) {
             log_error("ERROR: Unable to connect to %s:%d\n", host, port);
