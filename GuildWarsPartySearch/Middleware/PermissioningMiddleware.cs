@@ -22,7 +22,7 @@ public sealed class PermissioningMiddleware : IMiddleware
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        var address = context.Connection.RemoteIpAddress?.ToString();
+        var address = context.Request.HttpContext.GetClientIP();
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InvokeAsync), address ?? string.Empty);
         if (context.Request.Headers.TryGetValue(XApiKeyHeaderKey, out var xApiKeyvalues))
         {
@@ -31,13 +31,13 @@ public sealed class PermissioningMiddleware : IMiddleware
 
         if (xApiKeyvalues.FirstOrDefault() is not string apiKey)
         {
-            context.SetPermissionLevel(Models.PermissionLevel.None);
+            context.SetPermissionLevel(Models.PermissionLevel.None, "No API Key found in X-Api-Key header");
             await next(context);
             return;
         }
 
         var permissionLevel = await this.permissionService.GetPermissionLevel(apiKey, context.RequestAborted);
-        context.SetPermissionLevel(permissionLevel);
+        context.SetPermissionLevel(permissionLevel, $"Api key {apiKey} is associated with {permissionLevel} permission level");
         await next(context);
     }
 }
