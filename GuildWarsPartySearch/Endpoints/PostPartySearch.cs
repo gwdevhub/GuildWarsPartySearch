@@ -89,9 +89,11 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                 var faultyResponse = await Success;
                 if (message.GetFullList)
                 {
-                    var party_searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
-                    faultyResponse.PartySearches = FilterResults(party_searches, currentBot, allBots);
-                    
+                    faultyResponse.PartySearches = allBots.Where(b => b.Id != currentBot?.Id).Select(b => new PartySearch
+                    {
+                        Map = b.Map,
+                        District = b.District
+                    }).ToList();
                 }
 
                 await this.SendMessage(faultyResponse, cancellationToken);
@@ -118,8 +120,11 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                     var response = await Success;
                     if (parsedResult?.GetFullList is true)
                     {
-                        var party_searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
-                        response.PartySearches = FilterResults(party_searches, currentBot, allBots);
+                        response.PartySearches = allBots.Where(b => b.Id != currentBot?.Id).Select(b => new PartySearch
+                        {
+                            Map = b.Map,
+                            District = b.District
+                        }).ToList();
                     }
                     return response;
                 },
