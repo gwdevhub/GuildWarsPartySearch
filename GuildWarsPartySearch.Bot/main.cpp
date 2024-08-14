@@ -42,6 +42,8 @@ extern "C" {
 
 #include "gw-helper.c"
 
+#include "daily_quests.h"
+
 #define FAILED_TO_START             1
 #define FAILED_TO_LOAD_GAME         2
 #define FAILED_TO_LOAD_CHAR_NAME    3
@@ -110,6 +112,9 @@ uint32_t map_id = 0;
 char character_name[42] = { 0 };
 char account_uuid[128] = { 0 };
 
+std::vector<uint32_t> map_ids_already_visited_by_other_bots;
+time_t party_searches_json_updated = 0;
+
 uint32_t wanted_map_id = 0;
 District wanted_district = District::DISTRICT_CURRENT;
 
@@ -126,6 +131,10 @@ static CallbackEntry EventType_WorldMapLeave_entry;
 static bool party_advertisements_pending = true;
 
 static std::vector<PartySearchAdvertisement*> party_search_advertisements;
+
+static bool is_map_already_visited(uint32_t map_id) {
+    return std::find(map_ids_already_visited_by_other_bots.begin(), map_ids_already_visited_by_other_bots.end(), map_id) != map_ids_already_visited_by_other_bots.end();
+}
 
 static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, const std::string& url, const std::string& api_key = "");
 static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt);
@@ -227,8 +236,8 @@ static bool send_websocket(easywsclient::WebSocket::pointer websocket, const std
     if (!is_websocket_ready(websocket)) {
         return false;
     }
-    LogInfo("Websocket send:");
-    printf("%s\n", payload.c_str());
+    LogInfo("Websocket send, %d len:", payload.size());
+    //printf("%s\n", payload.c_str());
     last_websocket_message = time_get_ms();
     websocket->send(payload);
     return true;
@@ -240,6 +249,50 @@ static void send_ping(easywsclient::WebSocket::pointer websocket) {
     LogInfo("Sending ping");
     last_websocket_message = time_get_ms();
     websocket->sendPing();
+}
+
+static void on_party_searches_json(const nlohmann::json& j) {
+    if (j == nlohmann::json::value_t::discarded)
+        return;
+    if (!(j.contains("PartySearches") && j["PartySearches"].is_array()))
+        return;
+    auto results = j["PartySearches"].get<std::vector<nlohmann::json>>();
+
+    party_searches_json_updated = time_get_ms();
+
+    map_ids_already_visited_by_other_bots.clear();
+    for (auto& party_search : results) {
+        if (!(party_search.contains("map_id") && party_search["map_id"].is_number()))
+            continue;
+        const auto map_id = party_search["map_id"].get<uint32_t>();
+        map_ids_already_visited_by_other_bots.push_back(map_id);
+    }
+    LogInfo("Party searches processed, %d maps already visited by other bots", map_ids_already_visited_by_other_bots.size());
+}
+
+static void on_websocket_message(const std::string& message);
+
+static bool get_party_searches_from_websocket(easywsclient::WebSocket::pointer websocket, bool force = false) {
+    if (!force && party_searches_json_updated > 0 && time_get_ms() - party_searches_json_updated < 60000)
+        return true; // 1 min cache
+    if (!is_websocket_ready(websocket))
+        return false;
+    nlohmann::json j;
+    j["map_id"] = 0;
+    j["district"] = 0;
+    j["parties"] = std::vector<uint32_t>();
+    j["full_list"] = true;
+
+    const auto payload = j.dump();
+    auto old_party_searches_json_updated = party_searches_json_updated;
+    if (!send_websocket(websocket, payload))
+        return false;
+    for (time_t i = 0; i < 5000 && party_searches_json_updated == old_party_searches_json_updated; i += 50) {
+        websocket->poll();
+        websocket->dispatch(on_websocket_message);
+        time_sleep_ms(50);
+    }
+    return party_searches_json_updated != old_party_searches_json_updated;
 }
 
 static int send_party_advertisements(easywsclient::WebSocket::pointer websocket) {
@@ -257,6 +310,7 @@ static int send_party_advertisements(easywsclient::WebSocket::pointer websocket)
     j["map_id"] = map_id;
     j["district"] = district;
     j["parties"] = ads;
+    j["full_list"] = true;
 
     const auto payload = j.dump();
     return send_websocket(websocket, payload);
@@ -275,22 +329,51 @@ static void collect_instance_info() {
 static uint32_t calculate_map_to_visit(uint32_t map_id_requested, District* district_out) {
     // @TODO: Figure out if a district for a map is available; this should already be given because we can see it on the world map
     if (map_id_requested && IsMapUnlocked(map_id_requested)) {
-        // The map given is accessible
-        if (district_out && !*district_out)
-            *district_out = District::DISTRICT_CURRENT;
-        return map_id_requested;
+        if (!is_map_already_visited(map_id_requested)) {
+            // The map given is accessible
+            if (district_out && !*district_out)
+                *district_out = District::DISTRICT_CURRENT;
+            return map_id_requested;
+        }
     }
+
+    time_t now = time_get_ms();
+
+    auto daily = DailyQuests::GetZaishenMission(now);
+    if (daily) {
+        if (!is_map_already_visited((uint32_t)daily->nearest_outpost_id)) {
+            if (IsMapUnlocked((uint32_t)daily->nearest_outpost_id))
+                return (uint32_t)daily->nearest_outpost_id;
+        }
+    }
+    daily = DailyQuests::GetZaishenVanquish(now);
+    if (daily) {
+        if (!is_map_already_visited((uint32_t)daily->nearest_outpost_id)) {
+            if (IsMapUnlocked((uint32_t)daily->nearest_outpost_id))
+                return (uint32_t)daily->nearest_outpost_id;
+        }
+    }
+    daily = DailyQuests::GetZaishenCombat(now);
+    if (daily) {
+        if (!is_map_already_visited((uint32_t)daily->nearest_outpost_id)) {
+            if (IsMapUnlocked((uint32_t)daily->nearest_outpost_id))
+                return (uint32_t)daily->nearest_outpost_id;
+        }
+    }
+
     uint32_t fallback_map_ids[] = {
         857, // Embark
         148, // Gtob
     };
     for (auto fallback_id : fallback_map_ids) {
-        if (IsMapUnlocked(fallback_id))
-            return fallback_id;
+        if(is_map_already_visited(fallback_id))
+            continue;
+        if (!IsMapUnlocked(fallback_id))
+            continue;
+        return fallback_id;
     }
-    return 0;
+    return GetMapId();
 }
-
 
 static void on_map_left(Event* event, void* params) {
     clear_party_search_advertisements();
@@ -418,7 +501,6 @@ static bool in_correct_outpost() {
 }
 
 static void ensure_correct_outpost() {
-    wanted_map_id = calculate_map_to_visit(bot_configuration.map_id, &wanted_district);
     if (!wanted_map_id)
         exit_with_status("calculate_map_to_visit failed, ensure this character has gtob unlocked", 1);
     if (in_correct_outpost())
@@ -440,9 +522,14 @@ static void ensure_correct_outpost() {
 }
 
 static void on_websocket_message(const std::string& message) {
-    LogInfo("Websocket recv:");
-    printf("%s\n", message.c_str());
+    LogInfo("Websocket recv, %d len",message.size());
+    //printf("%s\n", message.c_str());
     last_websocket_message = time_get_ms();
+    nlohmann::json j = nlohmann::json::parse(message);
+    if (j == nlohmann::json::value_t::discarded)
+        return;
+    if (j.contains("PartySearches"))
+        on_party_searches_json(j);
 }
 
 static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt) {
@@ -474,7 +561,7 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
         if (account_uuid[i] != '-')
             uuid_less_hyphens[added++] = account_uuid[i];
     }
-    assert(snprintf(user_agent, ARRAY_SIZE(user_agent), "%s-%d-%d", uuid_less_hyphens, map_id, static_cast<uint32_t>(district)) > 0);
+    assert(snprintf(user_agent, ARRAY_SIZE(user_agent), "%s-%d-%d", uuid_less_hyphens, 0, 0) > 0);
 
     std::map<std::string, std::string> extra_headers = {
         {"User-Agent",user_agent },
@@ -531,15 +618,24 @@ static int main_bot(void* param)
 
     while (running) {
         wait_until_ingame();
+        if (!connect_websocket(&sending_websocket, bot_configuration.web_socket_url, bot_configuration.api_key)) {
+            // Connection to server failed, continue the loop until we connect
+            continue;
+        }
+        if (!get_party_searches_from_websocket(sending_websocket)) {
+            LogInfo("Failed to get party searches from server");
+            break;
+        }
+        auto old_wanted_map_id = wanted_map_id;
+        wanted_map_id = get_original_map_id(calculate_map_to_visit(bot_configuration.map_id, &wanted_district));
+        if (old_wanted_map_id != wanted_map_id) {
+            LogInfo("Wanted map id changed from %d to %d", old_wanted_map_id, wanted_map_id);
+        }
         ensure_correct_outpost();
         if (!is_websocket_ready(sending_websocket)) {
             // Websocket not currently active, reset vars ready to send bits on sucessful connect later
             party_advertisements_pending = true;
             last_websocket_message = time_get_ms() - websocket_ping_interval;
-        }
-        if (!connect_websocket(&sending_websocket, bot_configuration.web_socket_url, bot_configuration.api_key)) {
-            // Connection to server failed, continue the loop until we connect
-            continue;
         }
         if (party_advertisements_pending) {
             send_party_advertisements(sending_websocket);
