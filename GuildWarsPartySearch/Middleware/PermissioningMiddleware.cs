@@ -22,7 +22,7 @@ public sealed class PermissioningMiddleware : IMiddleware
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        var address = context.Connection.RemoteIpAddress?.ToString();
+        var address = context.Request.HttpContext.GetClientIP();
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InvokeAsync), address ?? string.Empty);
         if (context.Request.Headers.TryGetValue(XApiKeyHeaderKey, out var xApiKeyvalues))
         {

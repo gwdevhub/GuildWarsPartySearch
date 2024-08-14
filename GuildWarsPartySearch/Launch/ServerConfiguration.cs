@@ -86,6 +86,7 @@ public static class ServerConfiguration
         services.AddSingleton<IApiKeyDatabase, ApiKeySqliteDatabase>();
         services.AddScoped<IPExtractingMiddleware>();
         services.AddScoped<PermissioningMiddleware>();
+        services.AddScoped<HeaderLoggingMiddleware>();
         services.AddScoped<UserAgentRequired>();
         services.AddScoped<AdminPermissionRequired>();
         services.AddScoped<BotPermissionRequired>();
