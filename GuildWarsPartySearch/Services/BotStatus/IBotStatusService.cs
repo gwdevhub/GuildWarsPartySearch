@@ -1,11 +1,12 @@
-﻿using GuildWarsPartySearch.Server.Models.Endpoints;
+﻿using GuildWarsPartySearch.Common.Models.GuildWars;
+using GuildWarsPartySearch.Server.Models.Endpoints;
 using System.Net.WebSockets;
 
 namespace GuildWarsPartySearch.Server.Services.BotStatus;
 
 public interface IBotStatusService
 {
-    Task<bool> RecordBotUpdateActivity(string botId, CancellationToken cancellationToken);
+    Task<bool> RecordBotUpdateActivity(string botId, Map map, int district, CancellationToken cancellationToken);
     Task<bool> AddBot(string botId, WebSocket client, CancellationToken cancellationToken);
     Task<bool> RemoveBot(string botId, CancellationToken cancellationToken);
     Task<IEnumerable<BotActivityResponse>> GetAllActivities(CancellationToken cancellationToken);

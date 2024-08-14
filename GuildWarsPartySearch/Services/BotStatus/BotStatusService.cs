@@ -40,27 +40,7 @@ public sealed class BotStatusService : IBotStatusService
             return false;
         }
 
-        var tokens = botId.Split('-');
-        if (tokens.Length != 3)
-        {
-            scopedLogger.LogInformation($"Unable to add bot. Malformed id");
-            return false;
-        }
-
-        if (!int.TryParse(tokens[1], out var mapId) ||
-            !Map.TryParse(mapId, out var map))
-        {
-            scopedLogger.LogInformation($"Unable to add bot. Malformed mapid");
-            return false;
-        }
-
-        if (!int.TryParse(tokens[2], out var district))
-        {
-            scopedLogger.LogInformation($"Unable to add bot. Malformed district");
-            return false;
-        }
-
-        var bot = new Bot { Name = tokens[0], Map = map, District = district, WebSocket = client };
+        var bot = new Bot { Name = botId, WebSocket = client };
         if (this.connectedBots.TryRemove(botId, out var existingBot))
         {
             scopedLogger.LogInformation("Bot has a dangling connection. Closing old connection");
@@ -159,7 +139,7 @@ public sealed class BotStatusService : IBotStatusService
 
     public Task<IEnumerable<Models.BotStatus>> GetBots(CancellationToken cancellationToken)
     {
-        return Task.FromResult(this.connectedBots.Select(b => new Models.BotStatus { Id = b.Key, Name = b.Value.Name, District = b.Value.District, Map = b.Value.Map, LastSeen = b.Value.LastSeen }));
+        return Task.FromResult(this.connectedBots.Select(b => new Models.BotStatus { Id = b.Key, Name = b.Value.Name, District = b.Value.District ?? -1, Map = b.Value.Map, LastSeen = b.Value.LastSeen }));
     }
 
     public Task<Models.BotStatus?> GetBot(string botId, CancellationToken cancellationToken)
@@ -169,10 +149,10 @@ public sealed class BotStatusService : IBotStatusService
             return Task.FromResult<Models.BotStatus?>(default);
         }
 
-        return Task.FromResult<Models.BotStatus?>(new Models.BotStatus { Id = botId, Name = bot.Name, District = bot.District, Map = bot.Map, LastSeen = bot.LastSeen });
+        return Task.FromResult<Models.BotStatus?>(new Models.BotStatus { Id = botId, Name = bot.Name, District = bot.District ?? -1, Map = bot.Map, LastSeen = bot.LastSeen });
     }
 
-    public async Task<bool> RecordBotUpdateActivity(string botId, CancellationToken cancellationToken)
+    public async Task<bool> RecordBotUpdateActivity(string botId, Map map, int district, CancellationToken cancellationToken)
     {
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.RecordBotUpdateActivity), botId);
         if (!this.connectedBots.TryGetValue(botId, out var bot))
@@ -182,6 +162,8 @@ public sealed class BotStatusService : IBotStatusService
         }
 
         bot.LastSeen = DateTime.Now;
+        bot.Map = map;
+        bot.District = district;
         await this.database.RecordBotActivity(bot, Database.Models.BotActivity.ActivityType.Update, cancellationToken);
         return true;
     }
@@ -205,7 +187,7 @@ public sealed class BotStatusService : IBotStatusService
         await this.database.RecordBotActivity(bot, Database.Models.BotActivity.ActivityType.Disconnect, cancellationToken);
         await this.liveFeedService.PushUpdate(new Server.Models.PartySearch
         {
-            District = bot.District,
+            District = bot.District ?? -1,
             Map = bot.Map,
             PartySearchEntries = []
         }, cancellationToken);

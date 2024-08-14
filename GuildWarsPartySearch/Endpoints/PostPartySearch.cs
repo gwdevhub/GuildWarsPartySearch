@@ -1,4 +1,5 @@
-﻿using GuildWarsPartySearch.Server.Filters;
+﻿using GuildWarsPartySearch.Common.Models.GuildWars;
+using GuildWarsPartySearch.Server.Filters;
 using GuildWarsPartySearch.Server.Models;
 using GuildWarsPartySearch.Server.Models.Endpoints;
 using GuildWarsPartySearch.Server.Services.BotStatus;
@@ -78,7 +79,9 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                 throw new InvalidOperationException("Unable to extract user agent on client disconnect");
             }
 
-            await this.botStatusService.RecordBotUpdateActivity(userAgent, this.Context.RequestAborted);
+            var currentBot = await this.botStatusService.GetBot(userAgent, cancellationToken);
+            var allBots = await this.botStatusService.GetBots(cancellationToken);
+            await this.botStatusService.RecordBotUpdateActivity(userAgent, message?.Map ?? Map.None, message?.District ?? -1, this.Context.RequestAborted);
             var result = await this.partySearchService.PostPartySearch(message, cancellationToken);
             var response = await result.Switch<Task<PostPartySearchResponse>>(
                 onSuccess: async parsedResult =>
@@ -98,17 +101,11 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                     var response = Success.Result;
                     if (parsedResult?.GetFullList is true)
                     {
-                        var currentBot = await this.botStatusService.GetBot(userAgent, cancellationToken);
-                        if (currentBot is null)
-                        {
-                            scopedLogger.LogError($"Failed to find bot for id {userAgent}");
-                        }
-
                         var party_searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
                         
-                        // Return all party searches besides the current one
                         response.PartySearches = party_searches
-                        .Where(p => p.Map != currentBot?.Map || p.District != currentBot?.District)
+                        .Where(p => p.Map != currentBot?.Map || p.District != currentBot?.District) // Return all party searches besides current one
+                        .Where(p => allBots.Any(b => b.Map == p.Map && b.District == p.District)) // Filter by active locations
                         .Select(p => new PartySearch { Map = p.Map, District = p.District }).ToList();
                     }
                     return response;
