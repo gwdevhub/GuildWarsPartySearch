@@ -542,11 +542,11 @@ namespace easywsclient {
         return dummy;
     }
 
-    WebSocket::pointer WebSocket::from_url(const std::string& url, const std::string& user_agent, const std::string& origin, const std::string& api_key) {
+    WebSocket::pointer WebSocket::from_url(const std::string& url, const std::string& user_agent, const std::string& api_key, const std::string& origin) {
         return ::from_url(url, true, user_agent, api_key, origin);
     }
 
-    WebSocket::pointer WebSocket::from_url_no_mask(const std::string& url, const std::string& user_agent, const std::string& origin, const std::string& api_key) {
+    WebSocket::pointer WebSocket::from_url_no_mask(const std::string& url, const std::string& user_agent, const std::string& api_key, const std::string& origin) {
         return ::from_url(url, false, user_agent, api_key, origin);
     }
 
