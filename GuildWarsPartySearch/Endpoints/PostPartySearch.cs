@@ -71,15 +71,15 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
 
     public override async Task ExecuteAsync(PostPartySearchRequest? message, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ExecuteAsync), string.Empty);
+        if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
+                userAgentValue is not string userAgent)
+        {
+            throw new InvalidOperationException("Unable to extract user agent on client disconnect");
+        }
+
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ExecuteAsync), userAgent);
         try
         {
-            if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
-                userAgentValue is not string userAgent)
-            {
-                throw new InvalidOperationException("Unable to extract user agent on client disconnect");
-            }
-
             var currentBot = await this.botStatusService.GetBot(userAgent, cancellationToken);
             var allBots = (await this.botStatusService.GetBots(cancellationToken)).ToList();
             if (message?.Map == Map.None &&
@@ -101,6 +101,7 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
             }
 
             await this.botStatusService.RecordBotUpdateActivity(userAgent, message?.Map ?? Map.None, message?.District ?? -1, this.Context.RequestAborted);
+            scopedLogger.LogDebug($"Posted update. Map: {message?.Map?.Id}. District: {message?.District}. Searches: {message?.PartySearchEntries?.Count}");
             var result = await this.partySearchService.PostPartySearch(message, cancellationToken);
             var response = await result.Switch<Task<PostPartySearchResponse>>(
                 onSuccess: async parsedResult =>

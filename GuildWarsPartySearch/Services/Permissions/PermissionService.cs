@@ -48,7 +48,7 @@ public sealed class PermissionService : IPermissionService
     public async Task<PermissionLevel> GetPermissionLevel(string apiKey, CancellationToken cancellationToken)
     {
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.DeleteApiKey), apiKey);
-        scopedLogger.LogDebug($"Deleting API key");
+        scopedLogger.LogDebug($"Retrieving API key");
         var key = await this.apiKeyDatabase.GetApiKey(apiKey, cancellationToken);
         if (key is null)
         {

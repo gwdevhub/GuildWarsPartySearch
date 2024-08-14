@@ -12,7 +12,8 @@
   "ServerOptions": {
     "InactivityTimeout": "0:0:5",
     "HeartbeatFrequency": "0:0:1",
-    "Port": 80
+    "Port": 80,
+    "LogHeaders": false
   },
   "SQLiteDatabaseOptions": {
     "Path": "partysearches.db"

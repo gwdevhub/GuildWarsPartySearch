@@ -12,4 +12,7 @@ public sealed class ServerOptions
 
     [JsonPropertyName(nameof(Port))]
     public int? Port { get; set; }
+
+    [JsonPropertyName(nameof(LogHeaders))]
+    public bool LogHeaders { get; set; } = true;
 }
