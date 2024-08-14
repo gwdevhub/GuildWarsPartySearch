@@ -53,7 +53,8 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
         if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
             userAgentValue is not string userAgent)
         {
-            scopedLogger.LogDebug("No user agent found. A connection has been rejected");
+			scopedLogger.LogDebug(this.Context?.Items.ToString());
+			scopedLogger.LogDebug("No user agent found. A connection has been rejected");
             return;
         }
 
