@@ -83,24 +83,32 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
             var response = await result.Switch<Task<PostPartySearchResponse>>(
                 onSuccess: async parsedResult =>
                 {
-                    await this.liveFeedService.PushUpdate(new PartySearch
+                await this.liveFeedService.PushUpdate(new PartySearch
+                {
+                    Map = parsedResult?.Map,
+                    District = parsedResult?.District ?? 0,
+                    PartySearchEntries = parsedResult?.PartySearchEntries?.Select(e =>
                     {
-                        Map = parsedResult?.Map,
-                        District = parsedResult?.District ?? 0,
-                        PartySearchEntries = parsedResult?.PartySearchEntries?.Select(e =>
-                        {
-                            // Patch the input to match the original district
-                            e.District = parsedResult.District ?? 0;
-                            return e;
-                        }).ToList(),
-                    }, cancellationToken);
+                        // Patch the input to match the original district
+                        e.District = parsedResult.District ?? 0;
+                        return e;
+                    }).ToList(),
+                }, cancellationToken);
 
-                    var response =  Success.Result;
+                var response = Success.Result;
                     if (parsedResult?.GetFullList is true)
                     {
-                        response.PartySearches = await this.partySearchService.GetAllPartySearches(cancellationToken);
+                        var party_searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
+                        response.PartySearches = [];
+                        foreach (var party_search in response.PartySearches)
+                        {
+                            // Only care about map id for bots
+                            response.PartySearches.Add(new PartySearch
+							{
+								Map = party_search.Map
+							});
+                        }
                     }
-
                     return response;
                 },
                 onFailure: failure => failure switch
