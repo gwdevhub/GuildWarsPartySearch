@@ -7,6 +7,7 @@ using GuildWarsPartySearch.Server.Services.PartySearch;
 using Microsoft.AspNetCore.Mvc;
 using System.Core.Extensions;
 using System.Extensions;
+using System.Logging;
 
 namespace GuildWarsPartySearch.Server.Endpoints;
 
@@ -33,16 +34,21 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
 
     public override async Task SocketAccepted(CancellationToken cancellationToken)
     {
-        if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
+		var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), string.Empty);
+		if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
             userAgentValue is not string userAgent)
         {
-            await this.WebSocket!.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.InternalServerError, "Failed to extract user agent", cancellationToken);
+			scopedLogger.LogDebug(this.Context?.Items.ToString());
+			scopedLogger.LogDebug("Failed to extract user agent");
+			await this.WebSocket!.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.InternalServerError, "Failed to extract user agent", cancellationToken);
             return;
         }
 
         if (!await this.botStatusService.AddBot(userAgent, this.WebSocket!, cancellationToken))
         {
-            await this.WebSocket!.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation, $"Failed to add bot with id {userAgent}", cancellationToken);
+			scopedLogger.LogDebug(this.Context?.Items.ToString());
+			scopedLogger.LogDebug($"Failed to add bot with id {userAgent}");
+			await this.WebSocket!.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.PolicyViolation, $"Failed to add bot with id {userAgent}", cancellationToken);
             return;
         }
     }
@@ -53,7 +59,7 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
         if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
             userAgentValue is not string userAgent)
         {
-			scopedLogger.LogDebug(this.Context?.Items.ToString());
+
 			scopedLogger.LogDebug("No user agent found. A connection has been rejected");
             return;
         }
