@@ -1,5 +1,6 @@
 ﻿using GuildWarsPartySearch.Server.Extensions;
 using GuildWarsPartySearch.Server.Models.Endpoints;
+using GuildWarsPartySearch.Server.Services.BotStatus;
 using GuildWarsPartySearch.Server.Services.Feed;
 using GuildWarsPartySearch.Server.Services.PartySearch;
 using System.Core.Extensions;
@@ -9,15 +10,18 @@ namespace GuildWarsPartySearch.Server.Endpoints;
 
 public sealed class LiveFeed : WebSocketRouteBase<LiveFeedRequest, PartySearchList>
 {
+    private readonly IBotStatusService botStatusService;
     private readonly IPartySearchService partySearchService;
     private readonly ILiveFeedService liveFeedService;
     private readonly ILogger<LiveFeed> logger;
 
     public LiveFeed(
+        IBotStatusService botStatusService,
         IPartySearchService partySearchService,
         ILiveFeedService liveFeedService,
         ILogger<LiveFeed> logger)
     {
+        this.botStatusService = botStatusService.ThrowIfNull();
         this.partySearchService = partySearchService.ThrowIfNull();
         this.liveFeedService = liveFeedService.ThrowIfNull();
         this.logger = logger.ThrowIfNull();
@@ -30,10 +34,11 @@ public sealed class LiveFeed : WebSocketRouteBase<LiveFeedRequest, PartySearchLi
             return;
         }
 
+        var bots = await this.botStatusService.GetBots(cancellationToken);
         var searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
         await this.SendMessage(new PartySearchList
         {
-            Searches = searches
+            Searches = searches.Where(u => bots.Any(b => b.Map == u.Map && b.District == u.District)).ToList() // Filter searches by current active locations
         }, cancellationToken);
     }
 
@@ -51,7 +56,11 @@ public sealed class LiveFeed : WebSocketRouteBase<LiveFeedRequest, PartySearchLi
         scopedLogger.LogDebug("Client accepted to livefeed");
         scopedLogger.LogDebug("Sending all party searches");
         var updates = await this.partySearchService.GetAllPartySearches(cancellationToken);
-        await this.SendMessage(new PartySearchList { Searches = updates }, cancellationToken);
+        var bots = await this.botStatusService.GetBots(cancellationToken);
+        await this.SendMessage(new PartySearchList
+        { 
+            Searches = updates.Where(u => bots.Any(b => b.Map == u.Map && b.District == u.District)).ToList() // Filter searches by current active locations
+        }, cancellationToken);
     }
 
     public override Task SocketClosed()
