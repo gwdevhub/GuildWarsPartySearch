@@ -395,7 +395,7 @@ namespace { // private module-only namespace
 
     };
 
-    easywsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, const std::string& origin, const std::string& api_key) {
+    easywsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, const std::string& user_agent, const std::string& api_key, const std::string& origin) {
         char sc[128] = { 0 };
         char host[128] = { 0 };
         int port = 0;
@@ -478,30 +478,32 @@ namespace { // private module-only namespace
 
         {
             char line[256];
+            int len = sizeof(line) / sizeof(*line);
             int status;
             int i;
-            snprintf(line, 256, "GET /%s HTTP/1.1\r\n", path); kWrite(ptConnCtx, line, strlen(line), 0);
+            snprintf(line, len, "GET /%s HTTP/1.1\r\n", path); kWrite(ptConnCtx, line, strlen(line), 0);
             if (port == 80) {
-                snprintf(line, 256, "Host: %s\r\n", host); kWrite(ptConnCtx, line, strlen(line), 0);
+                snprintf(line, len, "Host: %s\r\n", host); kWrite(ptConnCtx, line, strlen(line), 0);
             }
             else {
-                snprintf(line, 256, "Host: %s:%d\r\n", host, port); kWrite(ptConnCtx, line, strlen(line), 0);
+                snprintf(line, len, "Host: %s:%d\r\n", host, port); kWrite(ptConnCtx, line, strlen(line), 0);
             }
-            snprintf(line, 256, "Upgrade: websocket\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
+            snprintf(line, len, "Upgrade: websocket\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
+            snprintf(line, len, "User-Agent: %s\r\n", user_agent.c_str()); kWrite(ptConnCtx, line, strlen(line), 0);
             if (!api_key.empty())
-                snprintf(line, 256, "X-Api-Key: %s\r\n", api_key.c_str()); kWrite(ptConnCtx, line, strlen(line), 0);
-            snprintf(line, 256, "Connection: keep-alive, Upgrade\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
+                snprintf(line, len, "X-Api-Key: %s\r\n", api_key.c_str()); kWrite(ptConnCtx, line, strlen(line), 0);
+            snprintf(line, len, "Connection: keep-alive, Upgrade\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
             if (!origin.empty()) {
-                snprintf(line, 256, "Origin: %s\r\n", origin.c_str()); kWrite(ptConnCtx, line, strlen(line), 0);
+                snprintf(line, len, "Origin: %s\r\n", origin.c_str()); kWrite(ptConnCtx, line, strlen(line), 0);
             }
-            snprintf(line, 256, "Sec-WebSocket-Key: hLuO7MKwvHBxsv/ureQI9w==\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
-            snprintf(line, 256, "Sec-WebSocket-Version: 13\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
-            snprintf(line, 256, "\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
-            for (i = 0; i < 2 || (i < 255 && line[i - 2] != '\r' && line[i - 1] != '\n'); ++i) {
+            snprintf(line, len, "Sec-WebSocket-Key: hLuO7MKwvHBxsv/ureQI9w==\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
+            snprintf(line, len, "Sec-WebSocket-Version: 13\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
+            snprintf(line, len, "\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
+            for (i = 0; i < 2 || (i < len-1 && line[i - 2] != '\r' && line[i - 1] != '\n'); ++i) {
                 if (kRead(ptConnCtx, line + i, 1, 0) == 0) { return NULL; }
             }
             line[i] = 0;
-            if (i == 255) {
+            if (i == len-1) {
                 log_error("ERROR: Got invalid status line connecting to: %s\n", url.c_str());
                 return NULL;
             }
@@ -510,7 +512,7 @@ namespace { // private module-only namespace
                 return NULL;
             }
             while (true) {
-                for (i = 0; i < 2 || (i < 255 && line[i - 2] != '\r' && line[i - 1] != '\n'); ++i) {
+                for (i = 0; i < 2 || (i < len-1 && line[i - 2] != '\r' && line[i - 1] != '\n'); ++i) {
                     if (kRead(ptConnCtx, line + i, 1, 0) == 0) { return NULL; }
                 }
                 if (line[0] == '\r' && line[1] == '\n') { break; }
@@ -540,12 +542,12 @@ namespace easywsclient {
         return dummy;
     }
 
-    WebSocket::pointer WebSocket::from_url(const std::string& url, const std::string& origin, const std::string& api_key) {
-        return ::from_url(url, true, origin, api_key);
+    WebSocket::pointer WebSocket::from_url(const std::string& url, const std::string& user_agent, const std::string& origin, const std::string& api_key) {
+        return ::from_url(url, true, user_agent, api_key, origin);
     }
 
-    WebSocket::pointer WebSocket::from_url_no_mask(const std::string& url, const std::string& origin) {
-        return ::from_url(url, false, origin, {});
+    WebSocket::pointer WebSocket::from_url_no_mask(const std::string& url, const std::string& user_agent, const std::string& origin, const std::string& api_key) {
+        return ::from_url(url, false, user_agent, api_key, origin);
     }
 
 } // namespace easywsclient
