@@ -756,18 +756,5 @@ namespace GW {
 
             Count,
         };
-
-        bool is_valid_outpost(GW::Constants::MapID map_id) {
-            // TODO: flags etc
-            return false;
-        }
-
-        GW::Constants::MapID get_nearest_outpost_id(GW::Constants::MapID map_id) {
-            if (is_valid_outpost(map_id)) {
-                return map_id;
-            }
-            // TODO: calc!
-            return GW::Constants::MapID::None;
-        }
     }
 }

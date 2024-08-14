@@ -207,6 +207,60 @@ static void buy_rare_material_item(Item *item)
 }
 #endif
 
+
+struct area_info {
+    uint32_t campaign;
+    uint32_t continent;
+    Region region;
+    RegionType region_type;
+    uint32_t flags;
+    uint32_t x;
+    uint32_t y;
+    uint32_t start_x;
+    uint32_t start_y;
+    uint32_t end_x;
+    uint32_t end_y;
+};
+
+const area_info* get_map_info(uint32_t map_id) {
+    static const struct area_info area_info_table[] = {
+        #include <client/data/area_info.data>
+    };
+    if (map_id > ARRAY_SIZE(area_info_table))
+        return nullptr;
+    return &area_info_table[map_id];
+}
+
+bool is_valid_outpost(uint32_t map_id) {
+    const auto map_info = get_map_info(map_id);
+    if (!(map_info && map_info->start_x && map_info->start_y))
+        return false;
+    if ((map_info->flags & 0x5000000) == 0x5000000)
+        return false; // e.g. "wrong" augury rock is map 119, no NPCs
+    if ((map_info->flags & 0x80000000) == 0x80000000)
+        return false; // e.g. Debug map
+    switch (map_info->region_type) {
+    case RegionType_City:
+    case RegionType_CompetitiveMission:
+    case RegionType_CooperativeMission:
+    case RegionType_EliteMission:
+    case RegionType_MissionOutpost:
+    case RegionType_Outpost:
+        break;
+    default:
+        return false;
+    }
+    return true;
+}
+
+uint32_t get_nearest_outpost_id(uint32_t map_id) {
+    if (is_valid_outpost(map_id)) {
+        return map_id;
+    }
+    // TODO: calc!
+    return 0;
+}
+
 static int get_rare_material_trader_id(int map_id)
 {
     switch(map_id) {

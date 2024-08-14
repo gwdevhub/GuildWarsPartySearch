@@ -9,12 +9,12 @@ namespace DailyQuests {
     constexpr int SECONDSINAWEEK = 604800;
 
     struct DailyQuest {
-        GW::Constants::MapID map_id;
-        GW::Constants::MapID nearest_outpost_id = GW::Constants::MapID::None;
-        DailyQuest(GW::Constants::MapID _map_id, GW::Constants::MapID _nearest_outpost_id = GW::Constants::MapID::None) {
-            map_id = _map_id;
-            nearest_outpost_id = _nearest_outpost_id;
-            if (nearest_outpost_id == GW::Constants::MapID::None) {
+        uint32_t map_id = 0;
+        uint32_t nearest_outpost_id = 0;
+        DailyQuest(GW::Constants::MapID _map_id, GW::Constants::MapID _nearest_outpost_id = (GW::Constants::MapID)0) {
+            map_id = (uint32_t)_map_id;
+            nearest_outpost_id = (uint32_t)_nearest_outpost_id;
+            if (nearest_outpost_id == 0) {
                 nearest_outpost_id = get_nearest_outpost_id(map_id);
             }
         }
@@ -400,29 +400,5 @@ namespace DailyQuests {
     {
         auto idx = GetZaishenVanquishIdx(_unix);
         return &zaishen_vanquish_cycles[idx];
-    }
-
-
-    struct area_info {
-        uint32_t campaign;
-        uint32_t continent;
-        Region region;
-        RegionType region_type;
-        uint32_t flags;
-        uint32_t x;
-        uint32_t y;
-        uint32_t start_x;
-        uint32_t start_y;
-        uint32_t end_x;
-        uint32_t end_y;
-    };
-
-    const area_info* GetMapInfo(const uint32_t map_id) {
-        static const struct area_info area_info_table[] = {
-            #include <client/data/area_info.data>
-        };
-        if (map_id > ARRAY_SIZE(area_info_table))
-            return nullptr;
-        return &area_info_table[map_id];
     }
 }

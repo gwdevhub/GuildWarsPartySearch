@@ -112,7 +112,80 @@ uint32_t map_id = 0;
 char character_name[42] = { 0 };
 char account_uuid[128] = { 0 };
 
-std::vector<uint32_t> map_ids_already_visited_by_other_bots;
+struct BotPartySearches {
+    uint32_t map_id = 0;
+    District district = (District)0;
+};
+
+void extract_district(District district, DistrictRegion* region, DistrictLanguage* language)
+{
+    switch (district) {
+    case DISTRICT_INTERNATIONAL:
+        *region = DistrictRegion_International;
+        *language = DistrictLanguage_Default;
+        break;
+    case DISTRICT_AMERICAN:
+        *region = DistrictRegion_America;
+        *language = DistrictLanguage_Default;
+        break;
+    case DISTRICT_EUROPE_ENGLISH:
+        *region = DistrictRegion_Europe;
+        *language = DistrictLanguage_English;
+        break;
+    case DISTRICT_EUROPE_FRENCH:
+        *region = DistrictRegion_Europe;
+        *language = DistrictLanguage_French;
+        break;
+    case DISTRICT_EUROPE_GERMAN:
+        *region = DistrictRegion_Europe;
+        *language = DistrictLanguage_German;
+        break;
+    case DISTRICT_EUROPE_ITALIAN:
+        *region = DistrictRegion_Europe;
+        *language = DistrictLanguage_Italian;
+        break;
+    case DISTRICT_EUROPE_SPANISH:
+        *region = DistrictRegion_Europe;
+        *language = DistrictLanguage_Spanish;
+        break;
+    case DISTRICT_EUROPE_POLISH:
+        *region = DistrictRegion_Europe;
+        *language = DistrictLanguage_Polish;
+        break;
+    case DISTRICT_EUROPE_RUSSIAN:
+        *region = DistrictRegion_Europe;
+        *language = DistrictLanguage_Russian;
+        break;
+    case DISTRICT_ASIA_KOREAN:
+        *region = DistrictRegion_Korea;
+        *language = DistrictLanguage_Default;
+        break;
+    case DISTRICT_ASIA_CHINESE:
+        *region = DistrictRegion_China;
+        *language = DistrictLanguage_Default;
+        break;
+    case DISTRICT_ASIA_JAPANESE:
+        *region = DistrictRegion_Japanese;
+        *language = DistrictLanguage_Default;
+        break;
+    default:
+        *region = DistrictRegion_America;
+        *language = DistrictLanguage_Default;
+        break;
+    }
+}
+
+DistrictRegion get_district_region(District district) {
+    if (district == DISTRICT_CURRENT)
+        district = GetDistrict();
+    DistrictRegion region = DistrictRegion_America;
+    DistrictLanguage language = DistrictLanguage_Default;
+    extract_district(district, &region, &language);
+    return region;
+}
+
+
+std::vector<BotPartySearches> map_ids_already_visited_by_other_bots;
 time_t party_searches_json_updated = 0;
 
 uint32_t wanted_map_id = 0;
@@ -132,8 +205,17 @@ static bool party_advertisements_pending = true;
 
 static std::vector<PartySearchAdvertisement*> party_search_advertisements;
 
-static bool is_map_already_visited(uint32_t map_id) {
-    return std::find(map_ids_already_visited_by_other_bots.begin(), map_ids_already_visited_by_other_bots.end(), map_id) != map_ids_already_visited_by_other_bots.end();
+static uint32_t get_original_map_id(uint32_t map_id);
+
+static bool is_map_already_visited(uint32_t _map_id, District district) {
+    auto region = get_district_region(district);
+    auto map_id = get_original_map_id(_map_id);
+    for (auto& other : map_ids_already_visited_by_other_bots) {
+        if (other.map_id == map_id
+            && get_district_region(other.district) == region)
+            return true;
+    }
+    return false;
 }
 
 static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, const std::string& url, const std::string& api_key = "");
@@ -265,7 +347,10 @@ static void on_party_searches_json(const nlohmann::json& j) {
         if (!(party_search.contains("map_id") && party_search["map_id"].is_number()))
             continue;
         const auto map_id = party_search["map_id"].get<uint32_t>();
-        map_ids_already_visited_by_other_bots.push_back(map_id);
+        if (!(party_search.contains("district") && party_search["district"].is_number()))
+            continue;
+        const auto district = party_search["district"].get<uint32_t>();
+        map_ids_already_visited_by_other_bots.push_back({ map_id,(District)district });
     }
     LogInfo("Party searches processed, %d maps already visited by other bots", map_ids_already_visited_by_other_bots.size());
 }
@@ -307,7 +392,7 @@ static int send_party_advertisements(easywsclient::WebSocket::pointer websocket)
     }
     assert(map_id != 0);
     nlohmann::json j;
-    j["map_id"] = map_id;
+    j["map_id"] = get_original_map_id(map_id);
     j["district"] = district;
     j["parties"] = ads;
     j["full_list"] = true;
@@ -328,51 +413,67 @@ static void collect_instance_info() {
 
 static uint32_t calculate_map_to_visit(uint32_t map_id_requested, District* district_out) {
     // @TODO: Figure out if a district for a map is available; this should already be given because we can see it on the world map
-    if (map_id_requested && IsMapUnlocked(map_id_requested)) {
-        if (!is_map_already_visited(map_id_requested)) {
-            // The map given is accessible
-            if (district_out && !*district_out)
-                *district_out = District::DISTRICT_CURRENT;
-            return map_id_requested;
-        }
+    if (map_id_requested 
+        && IsMapUnlocked(map_id_requested) 
+        && is_valid_outpost(map_id_requested)
+        && !is_map_already_visited(map_id_requested, *district_out)) {
+        // The map given is accessible
+        if (district_out && !*district_out)
+            *district_out = District::DISTRICT_CURRENT;
+        return map_id_requested;
     }
 
     time_t now = time_get_ms();
 
-    auto daily = DailyQuests::GetZaishenMission(now);
-    if (daily) {
-        if (!is_map_already_visited((uint32_t)daily->nearest_outpost_id)) {
-            if (IsMapUnlocked((uint32_t)daily->nearest_outpost_id))
-                return (uint32_t)daily->nearest_outpost_id;
-        }
-    }
-    daily = DailyQuests::GetZaishenVanquish(now);
-    if (daily) {
-        if (!is_map_already_visited((uint32_t)daily->nearest_outpost_id)) {
-            if (IsMapUnlocked((uint32_t)daily->nearest_outpost_id))
-                return (uint32_t)daily->nearest_outpost_id;
-        }
-    }
-    daily = DailyQuests::GetZaishenCombat(now);
-    if (daily) {
-        if (!is_map_already_visited((uint32_t)daily->nearest_outpost_id)) {
-            if (IsMapUnlocked((uint32_t)daily->nearest_outpost_id))
-                return (uint32_t)daily->nearest_outpost_id;
+    DailyQuests::DailyQuest* dailies[] = {
+        DailyQuests::GetZaishenMission(now),
+        DailyQuests::GetZaishenVanquish(now),
+        DailyQuests::GetZaishenCombat(now)
+    };
+    District districts[] = {
+        District::DISTRICT_AMERICAN,
+        District::DISTRICT_EUROPE_ENGLISH
+    };
+
+    for (auto district : districts) {
+        for (auto daily : dailies) {
+            if (!daily)
+                continue;
+            const auto map_id = get_original_map_id(daily->nearest_outpost_id);
+            if (is_map_already_visited(map_id, district))
+                continue;
+            if (!is_valid_outpost(map_id))
+                continue;
+            if (!IsMapUnlocked(map_id))
+                continue;
+            *district_out = district;
+            return map_id;
         }
     }
 
-    uint32_t fallback_map_ids[] = {
-        857, // Embark
-        148, // Gtob
+    GW::Constants::MapID fallback_map_ids[] = {
+        GW::Constants::MapID::Embark_Beach,
+        GW::Constants::MapID::Domain_of_Anguish,
+        GW::Constants::MapID::The_Deep,
+        GW::Constants::MapID::Urgozs_Warren,
+        GW::Constants::MapID::Kamadan_Jewel_of_Istan_outpost,
+        GW::Constants::MapID::Kaineng_Center_outpost
     };
-    for (auto fallback_id : fallback_map_ids) {
-        if(is_map_already_visited(fallback_id))
-            continue;
-        if (!IsMapUnlocked(fallback_id))
-            continue;
-        return fallback_id;
+    for (auto district : districts) {
+        for (auto fallback_id : fallback_map_ids) {
+            const auto map_id = get_original_map_id((uint32_t)fallback_id);
+            if (is_map_already_visited(map_id, district))
+                continue;
+            if (!is_valid_outpost(map_id))
+                continue;
+            if (!IsMapUnlocked(map_id))
+                continue;
+            *district_out = district;
+            return map_id;
+        }
     }
-    return GetMapId();
+
+    return get_original_map_id(map_id);
 }
 
 static void on_map_left(Event* event, void* params) {
@@ -477,12 +578,38 @@ static void load_configuration() {
 }
 // If the given map id isn't the normal one (i.e. festival, return the original. Useful for comparisons)
 static uint32_t get_original_map_id(uint32_t map_id) {
-    switch(map_id) {
-    case MapID_Kamadan_Halloween:
-    case MapID_Kamadan_Wintersday:
-    case MapID_Kamadan_Canthan_New_Year:
-        return MapID_Kamadan;
-        // TODO: Other outposts that have festival versions
+
+    using namespace GW::Constants;
+    switch((GW::Constants::MapID)map_id) {
+    case MapID::Kamadan_Jewel_of_Istan_Halloween_outpost:
+    case MapID::Kamadan_Jewel_of_Istan_Wintersday_outpost:
+    case MapID::Kamadan_Jewel_of_Istan_Canthan_New_Year_outpost:
+        return (uint32_t)MapID::Kamadan_Jewel_of_Istan_outpost;
+
+    case MapID::Lions_Arch_Halloween_outpost:
+    case MapID::Lions_Arch_Wintersday_outpost:
+    case MapID::Lions_Arch_Canthan_New_Year_outpost:
+        return (uint32_t)MapID::Lions_Arch_outpost;
+
+    case MapID::Ascalon_City_Wintersday_outpost:
+        return (uint32_t)MapID::Ascalon_City_outpost;
+
+    case MapID::Droknars_Forge_Halloween_outpost:
+    case MapID::Droknars_Forge_Wintersday_outpost:
+        return (uint32_t)MapID::Droknars_Forge_outpost;
+
+    case MapID::Tomb_of_the_Primeval_Kings_Halloween_outpost:
+        return (uint32_t)MapID::Tomb_of_the_Primeval_Kings;
+
+    case MapID::Shing_Jea_Monastery_Dragon_Festival_outpost:
+    case MapID::Shing_Jea_Monastery_Canthan_New_Year_outpost:
+        return (uint32_t)MapID::Shing_Jea_Monastery_outpost;
+
+    case MapID::Kaineng_Center_Canthan_New_Year_outpost:
+        return (uint32_t)MapID::Kaineng_Center_outpost;
+
+    case MapID::Eye_of_the_North_outpost_Wintersday_outpost:
+        return (uint32_t)MapID::Eye_of_the_North_outpost;
     }
     return map_id;
 }
