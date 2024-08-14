@@ -24,4 +24,4 @@ chmod -R 777 $BOT_FOLDER;
 # Clear any existing tmp folder
 rm -R /tmp$BOT_FOLDER;
 
-docker start $BOT_NAME;
+docker run -d --restart always --name $BOT_NAME -v "$BOT_FOLDER":/app:Z --replace partysearchbot_alpine ./run.sh
