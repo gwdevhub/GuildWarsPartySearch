@@ -65,6 +65,7 @@
 #include <mbedtls/debug.h>
 
 #include "easywsclient.hpp"
+#include <cassert>
 
 namespace { // private module-only namespace
 
@@ -395,7 +396,7 @@ namespace { // private module-only namespace
 
     };
 
-    easywsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, const std::string& user_agent, const std::string& api_key, const std::string& origin) {
+    easywsclient::WebSocket::pointer from_url(const std::string& url, const bool useMask, std::map<std::string, std::string> extra_headers) {
         char sc[128] = { 0 };
         char host[128] = { 0 };
         int port = 0;
@@ -403,10 +404,6 @@ namespace { // private module-only namespace
         bool is_ssl = false;
         if (url.size() >= 128) {
             log_error("ERROR: url size limit exceeded: %s\n", url.c_str());
-            return NULL;
-        }
-        if (origin.size() >= 200) {
-            log_error("ERROR: origin size limit exceeded: %s\n", origin.c_str());
             return NULL;
         }
         if (sscanf(url.c_str(), "w%[s]://%[^:/]:%d/%s", sc, host, &port, path) != 4 &&
@@ -483,21 +480,29 @@ namespace { // private module-only namespace
             int i;
             snprintf(line, len, "GET /%s HTTP/1.1\r\n", path); kWrite(ptConnCtx, line, strlen(line), 0);
             if (port == 80) {
-                snprintf(line, len, "Host: %s\r\n", host); kWrite(ptConnCtx, line, strlen(line), 0);
+                snprintf(line, len, "%s", host);
             }
             else {
-                snprintf(line, len, "Host: %s:%d\r\n", host, port); kWrite(ptConnCtx, line, strlen(line), 0);
+                snprintf(line, len, "%s:%d", host, port);
             }
-            snprintf(line, len, "Upgrade: websocket\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
-            snprintf(line, len, "User-Agent: %s\r\n", user_agent.c_str()); kWrite(ptConnCtx, line, strlen(line), 0);
-            if (!api_key.empty())
-                snprintf(line, len, "X-Api-Key: %s\r\n", api_key.c_str()); kWrite(ptConnCtx, line, strlen(line), 0);
-            snprintf(line, len, "Connection: keep-alive, Upgrade\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
-            if (!origin.empty()) {
-                snprintf(line, len, "Origin: %s\r\n", origin.c_str()); kWrite(ptConnCtx, line, strlen(line), 0);
+            extra_headers["Host"] = line;
+            extra_headers["Upgrade"] = "websocket";
+            extra_headers["Connection"] = "keep-alive, Upgrade";
+            extra_headers["Sec-WebSocket-Key"] = "hLuO7MKwvHBxsv/ureQI9w==";
+            extra_headers["Sec-WebSocket-Version"] = "13";
+            for (auto it : extra_headers) {
+                int ret = snprintf(line, len, "%s: %s\r\n", it.first.c_str(), it.second.c_str());
+                if (ret < 1) {
+                    log_error("ERROR: failed to write one of the extra headers; ensure header length isn't too long\n");
+                    klose(ptConnCtx);
+                    return NULL;
+                }
+                if (!kWrite(ptConnCtx, line, strlen(line), 0)) {
+                    log_error("ERROR: failed to write to socket: %s\n", line);
+                    klose(ptConnCtx);
+                    return NULL;
+                }
             }
-            snprintf(line, len, "Sec-WebSocket-Key: hLuO7MKwvHBxsv/ureQI9w==\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
-            snprintf(line, len, "Sec-WebSocket-Version: 13\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
             snprintf(line, len, "\r\n"); kWrite(ptConnCtx, line, strlen(line), 0);
             for (i = 0; i < 2 || (i < len-1 && line[i - 2] != '\r' && line[i - 1] != '\n'); ++i) {
                 if (kRead(ptConnCtx, line + i, 1, 0) == 0) { return NULL; }
@@ -542,12 +547,12 @@ namespace easywsclient {
         return dummy;
     }
 
-    WebSocket::pointer WebSocket::from_url(const std::string& url, const std::string& user_agent, const std::string& api_key, const std::string& origin) {
-        return ::from_url(url, true, user_agent, api_key, origin);
+    WebSocket::pointer WebSocket::from_url(const std::string& url, const std::map<std::string,std::string>& extra_headers) {
+        return ::from_url(url, true, extra_headers);
     }
 
-    WebSocket::pointer WebSocket::from_url_no_mask(const std::string& url, const std::string& user_agent, const std::string& api_key, const std::string& origin) {
-        return ::from_url(url, false, user_agent, api_key, origin);
+    WebSocket::pointer WebSocket::from_url_no_mask(const std::string& url, const std::map<std::string, std::string>& extra_headers) {
+        return ::from_url(url, false, extra_headers);
     }
 
 } // namespace easywsclient

@@ -476,12 +476,17 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
     }
     assert(snprintf(user_agent, ARRAY_SIZE(user_agent), "%s-%d-%d", uuid_less_hyphens, map_id, static_cast<uint32_t>(district)) > 0);
 
+    std::map<std::string, std::string> extra_headers = {
+        {"User-Agent",user_agent },
+        {"X-Api-Key",api_key }
+    };
+
     const auto connect_retries = 10;
 
     for (auto i = 0; i < connect_retries; i++) {
         if(i > 0)
             LogInfo("Attempting to connect to %s. Try %d/%d", url.c_str(), i + 1, connect_retries);
-        auto websocket = easywsclient::WebSocket::from_url(url, user_agent, api_key);
+        auto websocket = easywsclient::WebSocket::from_url(url, extra_headers);
         // Wait for websocket to open
         for (auto j = 0; websocket && j < 5000; j+=50) {
             websocket->poll();
