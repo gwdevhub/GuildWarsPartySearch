@@ -21,7 +21,7 @@ public sealed class PermissionService : IPermissionService
     public async Task<string?> CreateApiKey(string description, PermissionLevel permissionLevel, CancellationToken cancellationToken)
     {
         var key = GetNewApiKey();
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.CreateApiKey), key);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.CreateApiKey), string.Empty);
         scopedLogger.LogDebug($"Creating API key with permission {permissionLevel}");
         var result = await this.apiKeyDatabase.StoreApiKey(key, permissionLevel, description, cancellationToken);
         if (!result)
@@ -34,7 +34,7 @@ public sealed class PermissionService : IPermissionService
 
     public async Task<bool> DeleteApiKey(string apiKey, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.DeleteApiKey), apiKey);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.DeleteApiKey), string.Empty);
         scopedLogger.LogDebug($"Deleting API key");
         var result = await this.apiKeyDatabase.DeleteApiKey(apiKey, cancellationToken);
         if (!result)
@@ -47,7 +47,7 @@ public sealed class PermissionService : IPermissionService
 
     public async Task<PermissionLevel> GetPermissionLevel(string apiKey, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.DeleteApiKey), apiKey);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetPermissionLevel), string.Empty);
         scopedLogger.LogDebug($"Retrieving API key");
         var key = await this.apiKeyDatabase.GetApiKey(apiKey, cancellationToken);
         if (key is null)
@@ -61,7 +61,7 @@ public sealed class PermissionService : IPermissionService
 
     public async Task<bool> RecordUsage(string apiKey, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.DeleteApiKey), apiKey);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.DeleteApiKey), string.Empty);
         scopedLogger.LogDebug($"Recording API key usage");
         var result = await this.apiKeyDatabase.RecordUsage(apiKey, cancellationToken);
         if (!result)

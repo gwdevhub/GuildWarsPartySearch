@@ -1,6 +1,4 @@
 ﻿using GuildWarsPartySearch.Server.Extensions;
-using System.Core.Extensions;
-using System.Extensions;
 
 namespace GuildWarsPartySearch.Server.Middleware;
 
@@ -9,18 +7,13 @@ public sealed class IPExtractingMiddleware : IMiddleware
     private const string XForwardedForHeaderKey = "X-Forwarded-For";
     private const string CFConnectingIPHeaderKey = "CF-Connecting-IP";
 
-    private readonly ILogger<IPExtractingMiddleware> logger;
-
-    public IPExtractingMiddleware(
-        ILogger<IPExtractingMiddleware> logger)
+    public IPExtractingMiddleware()
     {
-        this.logger = logger.ThrowIfNull();
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         var address = context.Connection.RemoteIpAddress?.ToString();
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InvokeAsync), address ?? string.Empty);
         context.Request.Headers.TryGetValue(CFConnectingIPHeaderKey, out var cfConnectingIpValues);
         if (cfConnectingIpValues.FirstOrDefault() is string xCfIpAddress)
         {

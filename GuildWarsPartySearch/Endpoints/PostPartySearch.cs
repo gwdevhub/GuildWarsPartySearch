@@ -77,7 +77,7 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
             throw new InvalidOperationException("Unable to extract user agent on client disconnect");
         }
 
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ExecuteAsync), userAgent);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ExecuteAsync), string.Empty);
         try
         {
             var currentBot = await this.botStatusService.GetBot(userAgent, cancellationToken);

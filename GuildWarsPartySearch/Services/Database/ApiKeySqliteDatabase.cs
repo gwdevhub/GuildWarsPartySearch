@@ -43,7 +43,7 @@ public sealed class ApiKeySqliteDatabase : IApiKeyDatabase
 
     public async Task<ApiKey?> GetApiKey(string apiKey, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetApiKey), apiKey);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetApiKey), string.Empty);
         try
         {
             var key = await this.GetApiKeyInternal(apiKey, cancellationToken);
@@ -74,7 +74,7 @@ public sealed class ApiKeySqliteDatabase : IApiKeyDatabase
             Deletable = true
         };
 
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.StoreApiKey), apiKey);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.StoreApiKey), string.Empty);
         try
         {
             return await this.InsertApiKeyInternal(apiKeyModel, cancellationToken);
@@ -88,7 +88,7 @@ public sealed class ApiKeySqliteDatabase : IApiKeyDatabase
 
     public async Task<bool> RecordUsage(string apiKey, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.RecordUsage), apiKey);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.RecordUsage), string.Empty);
         try
         {
             return await this.UpdateLastUsedTimeInternal(apiKey, cancellationToken);
@@ -102,7 +102,7 @@ public sealed class ApiKeySqliteDatabase : IApiKeyDatabase
 
     public async Task<bool> DeleteApiKey(string apiKey, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.DeleteApiKey), apiKey);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.DeleteApiKey), string.Empty);
         try
         {
             return await this.DeleteApiKeyInternal(apiKey, cancellationToken);
@@ -188,7 +188,7 @@ public sealed class ApiKeySqliteDatabase : IApiKeyDatabase
 
     private async Task<bool> UpdateLastUsedTimeInternal(string apiKey, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.UpdateLastUsedTimeInternal), apiKey);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.UpdateLastUsedTimeInternal), string.Empty);
         try
         {
             using var command = this.connection.CreateCommand();
@@ -199,7 +199,15 @@ public sealed class ApiKeySqliteDatabase : IApiKeyDatabase
                     ";
             command.Parameters.AddWithValue("key", apiKey);
             var result = await command.ExecuteNonQueryAsync(cancellationToken);
-            scopedLogger.LogInformation($"Updated last used time. Result {result}");
+            if (result == 1)
+            {
+                scopedLogger.LogDebug($"Updated last used time. Result {result}");
+            }
+            else
+            {
+                scopedLogger.LogError($"Updated last used time. Result {result}");
+            }
+
             return result == 1;
         }
         catch (Exception e)
@@ -211,7 +219,7 @@ public sealed class ApiKeySqliteDatabase : IApiKeyDatabase
 
     private async Task<bool> DeleteApiKeyInternal(string apiKey, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.DeleteApiKeyInternal), apiKey);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.DeleteApiKeyInternal), string.Empty);
         try
         {
             using var command = this.connection.CreateCommand();
@@ -221,7 +229,16 @@ public sealed class ApiKeySqliteDatabase : IApiKeyDatabase
                     ";
             command.Parameters.AddWithValue("key", apiKey);
             var result = await command.ExecuteNonQueryAsync(cancellationToken);
-            scopedLogger.LogInformation($"Deleted api key. Result {result}");
+
+            if (result == 1)
+            {
+                scopedLogger.LogDebug($"Deleted api key. Result {result}");
+            }
+            else
+            {
+                scopedLogger.LogError($"Deleted api key. Result {result}");
+            }
+
             return result == 1;
         }
         catch (Exception e)
@@ -241,7 +258,7 @@ public sealed class ApiKeySqliteDatabase : IApiKeyDatabase
             Description = apiKey.Description,
             LastUsedTime = apiKey.LastUsedTime
         };
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InsertApiKeyInternal), apiKeyModel.Key ?? string.Empty);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InsertApiKeyInternal), string.Empty);
         try
         {
             using var command = this.connection.CreateCommand();
@@ -255,7 +272,15 @@ public sealed class ApiKeySqliteDatabase : IApiKeyDatabase
             command.Parameters.AddWithValue("creationTime", apiKeyModel.CreationTime);
             command.Parameters.AddWithValue("lastUsedTime", apiKeyModel.LastUsedTime);
             var result = await command.ExecuteNonQueryAsync(cancellationToken);
-            scopedLogger.LogInformation($"Inserting key. Result {result}");
+            if (result == 1)
+            {
+                scopedLogger.LogDebug($"Inserting key. Result {result}");
+            }
+            else
+            {
+                scopedLogger.LogInformation($"Inserting key. Result {result}");
+            }
+
             return result == 1;
         }
         catch (Exception e)

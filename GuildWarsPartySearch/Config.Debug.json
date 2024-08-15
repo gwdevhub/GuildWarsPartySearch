@@ -1,9 +1,16 @@
 {
   "Logging": {
-    "LogLevel": {
+    "MinimumLevel": {
       "Default": "Debug",
-      "Microsoft": "Warning",
-      "Microsoft.Hosting.Lifetime": "Information"
+      "Override": {
+        "Microsoft": "Warning",
+        "Microsoft.Hosting.Lifetime": "Information",
+        "GuildWarsPartySearch.Server.Middleware": "Information",
+        "GuildWarsPartySearch.Server.Services.Permissions.PermissionService": "Information",
+        "GuildWarsPartySearch.Server.Services.Database": "Information",
+        "GuildWarsPartySearch.Server.Endpoints.LiveFeed": "Information",
+        "GuildWarsPartySearch.Server.Endpoints.PostPartySearch": "Debug"
+      }
     }
   },
   "EnvironmentOptions": {
@@ -12,8 +19,7 @@
   "ServerOptions": {
     "InactivityTimeout": "0:0:5",
     "HeartbeatFrequency": "0:0:1",
-    "Port": 80,
-    "LogHeaders": true
+    "Port": 80
   },
   "SQLiteDatabaseOptions": {
     "Path": "partysearches.db"

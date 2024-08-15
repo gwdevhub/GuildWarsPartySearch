@@ -33,10 +33,10 @@ public sealed class BotStatusService : IBotStatusService
 
     public async Task<bool> AddBot(string botId, WebSocket client, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.AddBot), botId);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.AddBot), string.Empty);
         if (botId.IsNullOrWhiteSpace())
         {
-            scopedLogger.LogInformation("Unable to add bot. Null id");
+            scopedLogger.LogError("Unable to add bot. Null id");
             return false;
         }
 
@@ -50,7 +50,7 @@ public sealed class BotStatusService : IBotStatusService
 
         if (!this.connectedBots.TryAdd(botId, bot))
         {
-            scopedLogger.LogInformation("Unable to add bot. Failed to add to cache");
+            scopedLogger.LogError("Unable to add bot. Failed to add to cache");
             return false;
         }
 
@@ -77,7 +77,7 @@ public sealed class BotStatusService : IBotStatusService
 
     public async Task<IEnumerable<BotActivityResponse>> GetActivitiesForMap(int mapId, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetActivitiesForMap), mapId.ToString());
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetActivitiesForMap), string.Empty);
         if (!Map.TryParse(mapId, out var map))
         {
             scopedLogger.LogError("Failed to parse map id");
@@ -100,7 +100,7 @@ public sealed class BotStatusService : IBotStatusService
 
     public async Task<IEnumerable<BotActivityResponse>> GetActivitiesForMap(string mapName, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetActivitiesForMap), mapName);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetActivitiesForMap), string.Empty);
         if (!Map.TryParse(mapName, out var map))
         {
             scopedLogger.LogError("Failed to parse map id");
@@ -154,7 +154,7 @@ public sealed class BotStatusService : IBotStatusService
 
     public async Task<bool> RecordBotUpdateActivity(string botId, Map map, int district, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.RecordBotUpdateActivity), botId);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.RecordBotUpdateActivity), string.Empty);
         if (!this.connectedBots.TryGetValue(botId, out var bot))
         {
             scopedLogger.LogError("Failed to find bot by id");
@@ -170,17 +170,17 @@ public sealed class BotStatusService : IBotStatusService
 
     public async Task<bool> RemoveBot(string botId, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.RemoveBot), botId);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.RemoveBot), string.Empty);
         if (botId.IsNullOrEmpty())
         {
-            scopedLogger.LogInformation("Unable to remove bot. Null id");
+            scopedLogger.LogError("Unable to remove bot. Null id");
             return false;
         }
 
         if (!this.connectedBots.TryRemove(botId, out var bot) || 
             bot is null)
         {
-            scopedLogger.LogInformation("Unable to remove bot. Failed to remove bot from cache");
+            scopedLogger.LogError("Unable to remove bot. Failed to remove bot from cache");
             return false;
         }
 

@@ -13,6 +13,9 @@ using GuildWarsPartySearch.Server.Services.Permissions;
 using GuildWarsPartySearch.Server.Services.Processing;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Options;
+using Serilog;
+using Serilog.Settings.Configuration;
+using Serilog.Sinks.File;
 using System.Core.Extensions;
 using System.Extensions;
 using System.Text.Json.Serialization;
@@ -38,18 +41,34 @@ public static class ServerConfiguration
     public static IConfigurationBuilder SetupConfiguration(this IConfigurationBuilder builder)
     {
         builder.ThrowIfNull()
-            .SetBasePath(Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? throw new InvalidOperationException("Unable to figure out base directory"))
+            .SetBasePath(GetBasePath())
             .AddJsonFile("Config.json", false)
             .AddEnvironmentVariables();
 
         return builder;
     }
 
-    public static ILoggingBuilder SetupLogging(this ILoggingBuilder builder)
+    public static ILoggingBuilder SetupLogging(this ILoggingBuilder builder, IConfigurationRoot config)
     {
         builder.ThrowIfNull()
             .ClearProviders()
-            .AddConsole(o => o.TimestampFormat = "[yyyy-MM-dd HH:mm:ss] ");
+            .AddSerilog(logger: new LoggerConfiguration()
+                .ReadFrom.Configuration(config, readerOptions: new ConfigurationReaderOptions
+                {
+                    SectionName = "Logging"
+                })
+                .Enrich.FromLogContext()
+                .WriteTo.Console(
+                    outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss}] {Level:u4}: [{ClientIP}] [{ApiKey}] [{CorrelationVector}] [{SourceContext}]{NewLine}{Message:lj}{NewLine}{Exception}",
+                    theme: Serilog.Sinks.SystemConsole.Themes.SystemConsoleTheme.Colored)
+                .WriteTo.File(
+                    path: Path.Combine(GetBasePath(), "logs/log-.txt"),
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 7,
+                    fileSizeLimitBytes: 10 * 1024 * 1024,
+                    rollOnFileSizeLimit: true,
+                    outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss}] {Level:u4}: [{ClientIP}] [{ApiKey}] [{CorrelationVector}] [{SourceContext}] - {Message:lj}{NewLine}{Exception}")
+                .CreateLogger());
 
         return builder;
     }
@@ -76,8 +95,7 @@ public static class ServerConfiguration
         services.AddSingleton(sp =>
         {
             var options = sp.GetRequiredService<IOptions<SQLiteDatabaseOptions>>();
-            var absolutePath = Path.Combine(
-                Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? throw new InvalidOperationException("Unable to figure out base directory"), options.Value.Path);
+            var absolutePath = Path.Combine(GetBasePath(), options.Value.Path);
             SQLitePCL.raw.SetProvider(new SQLitePCL.SQLite3Provider_e_sqlite3());
             var connection = new SqliteConnection($"Data Source={absolutePath}");
             connection.Open();
@@ -90,9 +108,11 @@ public static class ServerConfiguration
         services.AddScoped<IPExtractingMiddleware>();
         services.AddScoped<PermissioningMiddleware>();
         services.AddScoped<HeaderLoggingMiddleware>();
+        services.AddScoped<CorrelationVectorMiddleware>();
         services.AddScoped<UserAgentRequired>();
         services.AddScoped<AdminPermissionRequired>();
         services.AddScoped<BotPermissionRequired>();
+        services.AddScoped<LoggingEnrichmentMiddleware>();
         services.AddScoped<IPartySearchService, PartySearchService>();
         services.AddScoped<ICharNameValidator, CharNameValidator>();
         services.AddScoped<IPermissionService, PermissionService>();
@@ -106,5 +126,10 @@ public static class ServerConfiguration
            .MapWebSocket<PostPartySearch>("party-search/update");
 
         return app;
+    }
+
+    private static string GetBasePath()
+    {
+        return Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? throw new InvalidOperationException("Unable to get base path");
     }
 }

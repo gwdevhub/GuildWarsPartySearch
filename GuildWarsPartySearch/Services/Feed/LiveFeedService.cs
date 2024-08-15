@@ -58,7 +58,7 @@ public sealed class LiveFeedService : ILiveFeedService
 
     private async Task<bool> AddClientInternal(WebSocket client, string? ipAddress, PermissionLevel permissionLevel, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.AddClientInternal), ipAddress ?? string.Empty);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.AddClientInternal), string.Empty);
 
         await this.semaphore.WaitAsync(cancellationToken);
         try

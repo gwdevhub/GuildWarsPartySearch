@@ -7,6 +7,7 @@ namespace GuildWarsPartySearch.Server.Middleware;
 
 public sealed class PermissioningMiddleware : IMiddleware
 {
+    private const string EmptyApiKey = "-";
     private const string XApiKeyHeaderKey = "X-Api-Key";
 
     private readonly IPermissionService permissionService;
@@ -23,7 +24,7 @@ public sealed class PermissioningMiddleware : IMiddleware
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         var address = context.Request.HttpContext.GetClientIP();
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InvokeAsync), address ?? string.Empty);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InvokeAsync), string.Empty);
         if (context.Request.Headers.TryGetValue(XApiKeyHeaderKey, out var xApiKeyvalues))
         {
             scopedLogger.LogDebug($"X-Api-Key {string.Join(',', xApiKeyvalues.Select(s => s))}");
@@ -32,11 +33,13 @@ public sealed class PermissioningMiddleware : IMiddleware
         if (xApiKeyvalues.FirstOrDefault() is not string apiKey)
         {
             context.SetPermissionLevel(Models.PermissionLevel.None, "No API Key found in X-Api-Key header");
+            context.SetApiKey(EmptyApiKey);
             await next(context);
             return;
         }
 
         var permissionLevel = await this.permissionService.GetPermissionLevel(apiKey, context.RequestAborted);
+        context.SetApiKey(apiKey);
         context.SetPermissionLevel(permissionLevel, $"Api key {apiKey} is associated with {permissionLevel} permission level");
         await next(context);
     }

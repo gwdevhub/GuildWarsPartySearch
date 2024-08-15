@@ -14,6 +14,12 @@ public static class WebApplicationBuilderExtensions
         return builder;
     }
 
+    public static IConfigurationSection GetRequiredSection<TOptions>(this ConfigurationManager configurationManager)
+    {
+        configurationManager.ThrowIfNull();
+        return configurationManager.GetRequiredSection(GetOptionsName<TOptions>());
+    }
+
     private static string GetOptionsName<TOptions>()
     {
         var maybeAttribute = typeof(TOptions).GetCustomAttributes(false).OfType<OptionsNameAttribute>().FirstOrDefault();

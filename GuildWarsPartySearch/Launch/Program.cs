@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using App.Metrics;
+using GuildWarsPartySearch.Server.Extensions;
 using GuildWarsPartySearch.Server.Middleware;
 using GuildWarsPartySearch.Server.Options;
 using Microsoft.Extensions.FileProviders;
@@ -26,9 +27,9 @@ public class Program
 
         builder.Configuration.AddConfiguration(config);
 
-        var options = builder.Configuration.GetRequiredSection(nameof(ServerOptions)).Get<ServerOptions>();
-        var environmentOptions = builder.Configuration.GetRequiredSection(nameof(EnvironmentOptions)).Get<EnvironmentOptions>()!;
-        var contentOptions = builder.Configuration.GetRequiredSection(nameof(ContentOptions)).Get<ContentOptions>()!;
+        var options = builder.Configuration.GetRequiredSection<ServerOptions>().Get<ServerOptions>();
+        var environmentOptions = builder.Configuration.GetRequiredSection<EnvironmentOptions>().Get<EnvironmentOptions>()!;
+        var contentOptions = builder.Configuration.GetRequiredSection<ContentOptions>().Get<ContentOptions>()!;
 
         builder.Environment.EnvironmentName = environmentOptions.Name?.ThrowIfNull()!;
 
@@ -56,7 +57,7 @@ public class Program
             c.EnableAnnotations();
         });
         builder.Services.AddSingleton(jsonOptions);
-        builder.Logging.SetupLogging();
+        builder.Logging.SetupLogging(config);
         builder.Services.SetupServices();
         builder.Services.AddControllers();
         builder.Services.AddMetrics(metrics);
@@ -78,8 +79,10 @@ public class Program
         }
 
         var app = builder.Build();
-        app.UseMiddleware<IPExtractingMiddleware>()
+        app.UseMiddleware<CorrelationVectorMiddleware>()
+           .UseMiddleware<IPExtractingMiddleware>()
            .UseMiddleware<PermissioningMiddleware>()
+           .UseMiddleware<LoggingEnrichmentMiddleware>()
            .UseMiddleware<HeaderLoggingMiddleware>()
            .UseSwagger()
            .UseWebSockets()

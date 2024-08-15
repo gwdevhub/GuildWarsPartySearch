@@ -21,13 +21,9 @@ public sealed class HeaderLoggingMiddleware : IMiddleware
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        if (this.options.LogHeaders)
-        {
-            var clientIp = context.Request.HttpContext.GetClientIP();
-            var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InvokeAsync), clientIp);
-            scopedLogger.LogDebug(string.Join("\n", context.Request.Headers.Select(kvp => $"{kvp.Key}: {string.Join(",", kvp.Value.OfType<string>())}")));
-        }
-
+        var clientIp = context.Request.HttpContext.GetClientIP();
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InvokeAsync), string.Empty);
+        scopedLogger.LogDebug(string.Join("\n", context.Request.Headers.Select(kvp => $"{kvp.Key}: {string.Join(",", kvp.Value.OfType<string>())}")));
         await next(context);
     }
 }
