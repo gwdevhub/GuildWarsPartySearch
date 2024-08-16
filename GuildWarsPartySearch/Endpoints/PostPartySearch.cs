@@ -85,7 +85,7 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
             if (message?.Map == Map.None &&
                 message.District == 0)
             {
-                scopedLogger.LogError("Detected faulty update. Will not update location");
+                scopedLogger.LogDebug("Detected empty update message. Will not update location");
                 var faultyResponse = await Success;
                 if (message.GetFullList)
                 {
