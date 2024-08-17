@@ -2,7 +2,7 @@ FROM alpine:3.20
 
 WORKDIR /app
 
-RUN apk update && apk add bash nodejs npm && npm install
+RUN apk update && apk add bash nodejs npm
 
 EXPOSE 80
 
