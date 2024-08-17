@@ -763,6 +763,8 @@ static int main_bot(void* param)
 
     easywsclient::WebSocket::pointer sending_websocket = NULL;
 
+    msec_t last_calculated_map_check = 0;
+
     while (running) {
         wait_until_ingame();
         if (!connect_websocket(&sending_websocket, bot_configuration.web_socket_url, bot_configuration.api_key)) {
@@ -774,7 +776,11 @@ static int main_bot(void* param)
             continue;
         }
         auto old_wanted_map_id = wanted_map_id;
-        wanted_map_id = get_original_map_id(calculate_map_to_visit(wanted_map_id, &wanted_district));
+        // Check for new map every 2 mins
+        if (!last_calculated_map_check && time_get_ms() - last_calculated_map_check > 120000) {
+            last_calculated_map_check = time_get_ms();
+            wanted_map_id = get_original_map_id(calculate_map_to_visit(wanted_map_id, &wanted_district));
+        }
         if (old_wanted_map_id != wanted_map_id) {
             LogInfo("Wanted map id changed from %d to %d", old_wanted_map_id, wanted_map_id);
         }
