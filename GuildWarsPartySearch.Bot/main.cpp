@@ -363,9 +363,7 @@ static void on_available_maps_json(const std::vector<nlohmann::json>& j) {
         if (!(available_map_json.contains("district") && available_map_json["district"].is_number()))
             continue;
         const auto visited_district = available_map_json["district"].get<uint32_t>();
-        if (map_id == visited_map_id && district == visited_district)
-            continue; // This is me?
-        map_ids_already_visited_by_other_bots.push_back({ map_id,(District)district });
+        map_ids_already_visited_by_other_bots.push_back({ visited_map_id,(District)visited_district });
     }
     LogInfo("Party searches processed, %d maps already visited by other bots", map_ids_already_visited_by_other_bots.size());
     party_searches_json_updated = time_get_ms();
