@@ -725,6 +725,7 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
             websocket->poll();
             if (is_websocket_ready(websocket)) {
                 *websocket_pt = websocket;
+                party_advertisements_pending = true;
                 return true;
             }
             time_sleep_ms(50);
