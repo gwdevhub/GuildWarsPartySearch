@@ -48,7 +48,7 @@ public abstract class WebSocketRouteBase<TReceiveType> : WebSocketRouteBase
         }
         catch(Exception ex)
         {
-            var scoppedLogger = this.Context!.RequestServices.GetRequiredService<ILogger<WebSocketRouteBase>>().CreateScopedLogger(nameof(this.ExecuteAsync), string.Empty);
+            var scoppedLogger = this.Context!.RequestServices.GetRequiredService<ILogger<WebSocketRouteBase<TReceiveType>>>().CreateScopedLogger(nameof(this.ExecuteAsync), string.Empty);
             scoppedLogger.LogError(ex, "Failed to process data");
             throw;
         }
@@ -109,7 +109,7 @@ public abstract class WebSocketRouteBase<TReceiveType, TSendType> : WebSocketRou
         }
         catch(Exception ex )
         {
-            var scoppedLogger = this.Context!.RequestServices.GetRequiredService<ILogger<WebSocketRouteBase>>().CreateScopedLogger(nameof(this.SendMessage), typeof(TSendType).Name);
+            var scoppedLogger = this.Context!.RequestServices.GetRequiredService<ILogger<WebSocketRouteBase<TReceiveType, TSendType>>>().CreateScopedLogger(nameof(this.SendMessage), string.Empty);
             scoppedLogger.LogError(ex, "Failed to send data");
             throw;
         }

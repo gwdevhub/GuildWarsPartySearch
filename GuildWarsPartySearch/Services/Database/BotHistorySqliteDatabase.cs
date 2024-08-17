@@ -31,7 +31,7 @@ public sealed class BotHistorySqliteDatabase : IBotHistoryDatabase
 
     public async Task<bool> RecordBotActivity(Bot bot, BotActivity.ActivityType activityType, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.RecordBotActivity), bot.Name);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.RecordBotActivity), string.Empty);
         var activity = new BotActivity
         {
             Activity = activityType,
@@ -51,7 +51,7 @@ public sealed class BotHistorySqliteDatabase : IBotHistoryDatabase
 
     public async Task<IEnumerable<BotActivity>> GetBotActivity(string botName, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetAllBotsActivity), botName);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetAllBotsActivity), string.Empty);
         try
         {
             return await this.GetBotActivityInternal(botName, cancellationToken);
@@ -65,7 +65,7 @@ public sealed class BotHistorySqliteDatabase : IBotHistoryDatabase
 
     public async Task<IEnumerable<BotActivity>> GetBotActivity(Bot bot, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetAllBotsActivity), bot.Name);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetAllBotsActivity), string.Empty);
         try
         {
             return await this.GetBotActivityInternal(bot.Name, cancellationToken);
@@ -79,7 +79,7 @@ public sealed class BotHistorySqliteDatabase : IBotHistoryDatabase
 
     public async Task<IEnumerable<BotActivity>> GetBotsActivityOnMap(Map map, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetAllBotsActivity), map.Id.ToString());
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetAllBotsActivity), string.Empty);
         try
         {
             return await this.GetBotsActivityOnMapInternal(map.Id, cancellationToken);
@@ -130,7 +130,7 @@ public sealed class BotHistorySqliteDatabase : IBotHistoryDatabase
 
     private async Task<bool> InsertActivity(BotActivity activity, CancellationToken cancellationToken)
     {
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InsertActivity), activity.Name);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.InsertActivity), string.Empty);
         try
         {
             using var command = this.connection.CreateCommand();
@@ -143,7 +143,15 @@ public sealed class BotHistorySqliteDatabase : IBotHistoryDatabase
             command.Parameters.AddWithValue("activity", (int)activity.Activity);
             command.Parameters.AddWithValue("timestamp", activity.TimeStamp);
             var result = await command.ExecuteNonQueryAsync(cancellationToken);
-            scopedLogger.LogInformation($"Logging bot activity. Result {result}");
+            if (result == 1)
+            {
+                scopedLogger.LogDebug($"Logging bot activity. Result {result}");
+            }
+            else
+            {
+                scopedLogger.LogError($"Logging bot activity. Result {result}");
+            }
+
             return result == 1;
         }
         catch (Exception e)

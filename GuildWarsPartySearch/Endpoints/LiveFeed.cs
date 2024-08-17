@@ -45,7 +45,7 @@ public sealed class LiveFeed : WebSocketRouteBase<LiveFeedRequest, PartySearchLi
     public override async Task SocketAccepted(CancellationToken cancellationToken)
     {
         var ipAddress = this.Context?.Request.HttpContext.GetClientIP();
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), ipAddress ?? string.Empty);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketAccepted), string.Empty);
         if (!await this.liveFeedService.AddClient(this.WebSocket!, ipAddress, this.Context?.GetPermissionLevel() ?? Models.PermissionLevel.None, cancellationToken))
         {
             scopedLogger.LogError("Client rejected");
@@ -66,7 +66,7 @@ public sealed class LiveFeed : WebSocketRouteBase<LiveFeedRequest, PartySearchLi
     public override Task SocketClosed()
     {
         var ipAddress = this.Context?.Request.HttpContext.GetClientIP();
-        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketClosed), ipAddress ?? string.Empty);
+        var scopedLogger = this.logger.CreateScopedLogger(nameof(this.SocketClosed), string.Empty);
         this.liveFeedService.RemoveClient(this.WebSocket!, ipAddress);
         scopedLogger.LogDebug("Client removed from livefeed");
         return Task.CompletedTask;

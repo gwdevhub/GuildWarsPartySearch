@@ -8,6 +8,8 @@ public class MapActivity
     public int MapId { get; set; }
     [JsonProperty(nameof(District))]
     public int District {  get; set; }
+    [JsonProperty(nameof(MapName))]
+    public string? MapName { get; set; }
     [JsonProperty(nameof(LastUpdate))]
     public DateTime LastUpdate { get; set; }
 }

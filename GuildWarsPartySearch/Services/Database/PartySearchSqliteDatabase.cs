@@ -184,7 +184,7 @@ public class PartySearchSqliteDatabase : IPartySearchDatabase
                 }));
             if (actions.None())
             {
-                scopedLogger.LogInformation("No change detected. Skipping operation");
+                scopedLogger.LogDebug("No change detected. Skipping operation");
                 return true;
             }
 
@@ -192,7 +192,15 @@ public class PartySearchSqliteDatabase : IPartySearchDatabase
             foreach(var command in actions)
             {
                 var result = await command.ExecuteNonQueryAsync(cancellationToken);
-                scopedLogger.LogInformation($"Database operation returned {result}");
+                if (result == 1)
+                {
+                    scopedLogger.LogDebug($"Database operation returned {result}");
+                }
+                else
+                {
+                    scopedLogger.LogError($"Database operation returned {result}");
+                }
+                
                 results.Add(result);
             }
 
@@ -232,7 +240,7 @@ public class PartySearchSqliteDatabase : IPartySearchDatabase
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.GetAllPartySearchesInternal), string.Empty);
         try
         {
-            scopedLogger.LogInformation("Refreshing party search cache");
+            scopedLogger.LogDebug("Refreshing party search cache");
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             return await this.GetSearchesInternal(cts.Token);
         }

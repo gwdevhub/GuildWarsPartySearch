@@ -97,7 +97,8 @@ public class StatusController : Controller
         {
             District = b.District,
             MapId = b.Map?.Id ?? -1,
-            LastUpdate = b.LastSeen ?? DateTime.MinValue
+            MapName = b?.Map?.Name ?? default,
+            LastUpdate = b?.LastSeen ?? DateTime.MinValue
         }));
     }
 }

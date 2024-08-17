@@ -71,27 +71,29 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
 
     public override async Task ExecuteAsync(PostPartySearchRequest? message, CancellationToken cancellationToken)
     {
+        if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
+                userAgentValue is not string userAgent)
+        {
+            throw new InvalidOperationException("Unable to extract user agent on client disconnect");
+        }
+
         var scopedLogger = this.logger.CreateScopedLogger(nameof(this.ExecuteAsync), string.Empty);
         try
         {
-            if (this.Context?.Items.TryGetValue(UserAgentRequired.UserAgentKey, out var userAgentValue) is not true ||
-                userAgentValue is not string userAgent)
-            {
-                throw new InvalidOperationException("Unable to extract user agent on client disconnect");
-            }
-
             var currentBot = await this.botStatusService.GetBot(userAgent, cancellationToken);
             var allBots = (await this.botStatusService.GetBots(cancellationToken)).ToList();
             if (message?.Map == Map.None &&
                 message.District == 0)
             {
-                scopedLogger.LogError("Detected faulty update. Will not update location");
+                scopedLogger.LogDebug("Detected empty update message. Will not update location");
                 var faultyResponse = await Success;
                 if (message.GetFullList)
                 {
-                    var party_searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
-                    faultyResponse.PartySearches = FilterResults(party_searches, currentBot, allBots);
-                    
+                    faultyResponse.PartySearches = allBots.Where(b => b.Id != currentBot?.Id).Select(b => new PartySearch
+                    {
+                        Map = b.Map,
+                        District = b.District
+                    }).ToList();
                 }
 
                 await this.SendMessage(faultyResponse, cancellationToken);
@@ -99,6 +101,7 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
             }
 
             await this.botStatusService.RecordBotUpdateActivity(userAgent, message?.Map ?? Map.None, message?.District ?? -1, this.Context.RequestAborted);
+            scopedLogger.LogDebug($"Posted update. Map: {message?.Map?.Id}. District: {message?.District}. Searches: {message?.PartySearchEntries?.Count}");
             var result = await this.partySearchService.PostPartySearch(message, cancellationToken);
             var response = await result.Switch<Task<PostPartySearchResponse>>(
                 onSuccess: async parsedResult =>
@@ -118,8 +121,11 @@ public sealed class PostPartySearch : WebSocketRouteBase<PostPartySearchRequest,
                     var response = await Success;
                     if (parsedResult?.GetFullList is true)
                     {
-                        var party_searches = await this.partySearchService.GetAllPartySearches(cancellationToken);
-                        response.PartySearches = FilterResults(party_searches, currentBot, allBots);
+                        response.PartySearches = allBots.Where(b => b.Id != currentBot?.Id).Select(b => new PartySearch
+                        {
+                            Map = b.Map,
+                            District = b.District
+                        }).ToList();
                     }
                     return response;
                 },

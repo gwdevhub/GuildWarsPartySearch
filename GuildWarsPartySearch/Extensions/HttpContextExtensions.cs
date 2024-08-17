@@ -1,10 +1,14 @@
 ﻿using GuildWarsPartySearch.Server.Models;
+using Microsoft.CorrelationVector;
+using Serilog.Context;
 using System.Core.Extensions;
 
 namespace GuildWarsPartySearch.Server.Extensions;
 
 public static class HttpContextExtensions
 {
+    private const string CorrelationVectorKey = "CorrelationVector";
+    private const string ApiKey = "ApiKey";
     private const string PermissionLevelKey = "PermissionLevel";
     private const string PermissionReasonKey = "PermissionReason";
     private const string ClientIPKey = "ClientIP";
@@ -56,5 +60,41 @@ public static class HttpContextExtensions
         }
 
         return ipStr;
+    }
+
+    public static void SetApiKey(this HttpContext context, string apiKey)
+    {
+        context.ThrowIfNull()
+            .Items.Add(ApiKey, apiKey);
+    }
+
+    public static string GetApiKey(this HttpContext context)
+    {
+        context.ThrowIfNull();
+        if (!context.Items.TryGetValue(ApiKey, out var apiKey) ||
+            apiKey is not string apiKeyStr)
+        {
+            throw new InvalidOperationException("Unable to extract API Key from context");
+        }
+
+        return apiKeyStr;
+    }
+
+    public static void SetCorrelationVector(this HttpContext context, CorrelationVector cv)
+    {
+        context.ThrowIfNull()
+            .Items.Add(CorrelationVectorKey, cv);
+    }
+
+    public static CorrelationVector GetCorrelationVector(this HttpContext context)
+    {
+        context.ThrowIfNull();
+        if (!context.Items.TryGetValue(CorrelationVectorKey, out var cvVal) ||
+            cvVal is not CorrelationVector cv)
+        {
+            throw new InvalidOperationException("Unable to extract API Key from context");
+        }
+
+        return cv;
     }
 }
