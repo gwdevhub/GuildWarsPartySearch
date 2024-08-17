@@ -83,20 +83,41 @@ typedef struct {
 } PartySearchAdvertisement;
 
 void to_json(nlohmann::json& j, const PartySearchAdvertisement& p) {
+    /*
+const json_keys = {
+    'party_id':'i',
+    'party_size':'ps',
+    'sender':'s',
+    'message':'ms',
+    'hero_count':'hc',
+    'search_type':'t',
+    'map_id':'m',
+    'district':'d',
+    'hardmode':'hm',
+    'district_number':'dn',
+    'district_region':'dr',
+    'district_language':'dl',
+    'level':'1',
+    'primary':'p',
+    'secondary':'sc'
+}
+*/
     j = nlohmann::json{
-        {"party_id", p.party_id},
-        {"party_size", p.party_size},
-        {"hero_count", p.hero_count},
-        {"search_type", p.search_type},
-        {"hardmode", p.hardmode},
-        {"district_number", p.district_number},
-        {"language", p.language},
-        {"primary", p.primary},
-        {"secondary", p.secondary},
-        {"level", p.level},
-        {"message", p.message},
-        {"sender", p.sender}
+        {"i", p.party_id},
+        {"t", p.search_type},
+        {"dn", p.district_number},
+        {"p", p.primary},
+        {"s", p.sender}
     };
+
+    // The following fields can be assumed to be reasonable defaults by the server, so only need to send if they're not standard.
+    if (p.party_size > 1)j["ps"] = p.party_size;
+    if (p.hero_count)j["hc"] = p.hero_count;
+    if (p.hardmode)j["hm"] = p.hardmode;
+    if (p.language)j["dl"] = p.language;
+    if (p.secondary)j["sc"] = p.secondary;
+    if (p.message.size())j["ms"] = p.message;
+    if (p.level != 20)j["l"] = p.level;
 }
 
 static struct thread  bot_thread;
@@ -333,41 +354,38 @@ static void send_ping(easywsclient::WebSocket::pointer websocket) {
     websocket->sendPing();
 }
 
-static void on_party_searches_json(const nlohmann::json& j) {
-    if (j == nlohmann::json::value_t::discarded)
-        return;
-    if (!(j.contains("PartySearches") && j["PartySearches"].is_array()))
-        return;
-    auto results = j["PartySearches"].get<std::vector<nlohmann::json>>();
-
-    party_searches_json_updated = time_get_ms();
-
+static void on_available_maps_json(const std::vector<nlohmann::json>& j) {
     map_ids_already_visited_by_other_bots.clear();
-    for (auto& party_search : results) {
-        if (!(party_search.contains("map_id") && party_search["map_id"].is_number()))
+    for (auto& available_map_json : j) {
+        if (!(available_map_json.contains("map_id") && available_map_json["map_id"].is_number()))
             continue;
-        const auto map_id = party_search["map_id"].get<uint32_t>();
-        if (!(party_search.contains("district") && party_search["district"].is_number()))
+        const auto visited_map_id = available_map_json["map_id"].get<uint32_t>();
+        if (!(available_map_json.contains("district") && available_map_json["district"].is_number()))
             continue;
-        const auto district = party_search["district"].get<uint32_t>();
+        const auto visited_district = available_map_json["district"].get<uint32_t>();
+        if (map_id == visited_map_id && district == visited_district)
+            continue; // This is me?
         map_ids_already_visited_by_other_bots.push_back({ map_id,(District)district });
     }
     LogInfo("Party searches processed, %d maps already visited by other bots", map_ids_already_visited_by_other_bots.size());
+    party_searches_json_updated = time_get_ms();
 }
 
 static void on_websocket_message(const std::string& message);
 
-static bool get_party_searches_from_websocket(easywsclient::WebSocket::pointer websocket, bool force = false) {
+/// <summary>
+/// Update the list of already visited areas that are being listened to, excluding the area I'm currently in
+/// </summary>
+/// <param name="websocket"></param>
+/// <param name="force"></param>
+/// <returns></returns>
+static bool get_already_visited_areas(easywsclient::WebSocket::pointer websocket, bool force = false) {
     if (!force && party_searches_json_updated > 0 && time_get_ms() - party_searches_json_updated < 60000)
         return true; // 1 min cache
     if (!is_websocket_ready(websocket))
         return false;
     nlohmann::json j;
-    j["map_id"] = 0;
-    j["district"] = 0;
-    j["parties"] = std::vector<uint32_t>();
-    j["full_list"] = true;
-
+    j["type"] = "available_maps";
     const auto payload = j.dump();
     auto old_party_searches_json_updated = party_searches_json_updated;
     if (!send_websocket(websocket, payload))
@@ -387,15 +405,14 @@ static int send_party_advertisements(easywsclient::WebSocket::pointer websocket)
         if (!ad) {
             continue;
         }
-
         ads.push_back(*ad);
     }
     assert(map_id != 0);
     nlohmann::json j;
+    j["type"] = "client_parties";
     j["map_id"] = get_original_map_id(map_id);
     j["district"] = district;
     j["parties"] = ads;
-    j["full_list"] = true;
 
     const auto payload = j.dump();
     return send_websocket(websocket, payload);
@@ -655,8 +672,8 @@ static void on_websocket_message(const std::string& message) {
     nlohmann::json j = nlohmann::json::parse(message);
     if (j == nlohmann::json::value_t::discarded)
         return;
-    if (j.contains("PartySearches"))
-        on_party_searches_json(j);
+    if (j.contains("available_maps") && j["available_maps"].is_array())
+        on_available_maps_json(j["available_maps"].get<std::vector<nlohmann::json>>());
 }
 
 static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt) {
@@ -692,7 +709,9 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
 
     std::map<std::string, std::string> extra_headers = {
         {"User-Agent",user_agent },
-        {"X-Api-Key",api_key }
+        {"X-Api-Key",api_key },
+        {"X-Account-Uuid",account_uuid},
+        {"X-Bot-Version","1"}
     };
 
     const auto connect_retries = 10;
@@ -749,9 +768,9 @@ static int main_bot(void* param)
             // Connection to server failed, continue the loop until we connect
             continue;
         }
-        if (!get_party_searches_from_websocket(sending_websocket)) {
+        if (!get_already_visited_areas(sending_websocket)) {
             LogInfo("Failed to get party searches from server");
-            break;
+            continue;
         }
         auto old_wanted_map_id = wanted_map_id;
         wanted_map_id = get_original_map_id(calculate_map_to_visit(bot_configuration.map_id, &wanted_district));
