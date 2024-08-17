@@ -652,6 +652,7 @@ static void ensure_correct_outpost() {
     size_t retries = 4;
     for (size_t i = 0; i < retries && !in_correct_outpost(); i++) {
         LogInfo("Travel attempt %d of %d", i + 1, retries);
+        clear_party_search_advertisements();
         res = travel_wait(wanted_map_id, wanted_district, bot_configuration.district_number);
         if (res == 38) {
             retries = 50; // District full, more retries
