@@ -342,7 +342,8 @@ static int travel_wait(int map_id, District district, uint16_t district_number)
         && (GetDistrictNumber() == district_number)) {
         return 0;
     }
-    Travel(map_id, district, district_number);
+    RedirectMap(map_id, district, district_number);
+    //Travel(map_id, district, district_number);
     return wait_map_loading(map_id, 20000);
 }
 

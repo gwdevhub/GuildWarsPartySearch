@@ -773,7 +773,7 @@ static int main_bot(void* param)
             continue;
         }
         auto old_wanted_map_id = wanted_map_id;
-        wanted_map_id = get_original_map_id(calculate_map_to_visit(bot_configuration.map_id, &wanted_district));
+        wanted_map_id = get_original_map_id(calculate_map_to_visit(wanted_map_id, &wanted_district));
         if (old_wanted_map_id != wanted_map_id) {
             LogInfo("Wanted map id changed from %d to %d", old_wanted_map_id, wanted_map_id);
         }

@@ -17,6 +17,9 @@ namespace DailyQuests {
             if (nearest_outpost_id == 0) {
                 nearest_outpost_id = get_nearest_outpost_id(map_id);
             }
+            if (nearest_outpost_id == 0) {
+                nearest_outpost_id = map_id;
+            }
         }
     };
     DailyQuest zaishen_bounty_cycles[] = {
