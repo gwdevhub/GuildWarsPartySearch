@@ -14,8 +14,9 @@ export default defineConfig({
             closeBundle: async () => {
                 ['tiles','resources','cards'].forEach((folder) => {
                     const from = path.join(__dirname,'src',folder);
-                    if(!fs.existsSync(from))
-                        fs.cpSync(from, path.join(__dirname,'dist',folder), {recursive: true});
+                    const to = path.join(__dirname,'dist',folder);
+                    if(!fs.existsSync(to))
+                        fs.cpSync(from, to, {recursive: true});
                 });
             }
         },
