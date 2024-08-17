@@ -29,7 +29,7 @@ rm -R "/tmp$BOT_FOLDER";
 cd "$BOT_FOLDER";
 
 RUN_CMD=$(cat <<EOF
-docker run -d --restart always --name "$BOT_NAME" -v "$BOT_FOLDER":/app:Z --replace partysearchbot_alpine ./run.sh
+docker run -d --restart always --name "$BOT_NAME" -p8080:80 -v "$BOT_FOLDER":/app:Z --replace partysearchbot_alpine ./run.sh
 EOF
 )
 echo $RUN_CMD;
