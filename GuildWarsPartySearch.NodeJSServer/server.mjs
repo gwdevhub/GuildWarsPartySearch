@@ -26,7 +26,19 @@ import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import LZString from "./src/js/lz-string.min.mjs";
 
+import "./src/js/date_functions.js";
+
 import config from "./config.json" with { type: "json" };
+
+console.logDefault = console.log;
+console.log = (...args) => {
+    console.logDefault(`[${(new Date()).format('H:i:s')}]`,...args);
+}
+console.errorDefault = console.error;
+console.error = (...args) => {
+    console.errorDefault(`[${(new Date()).format('H:i:s')}]`,...args);
+}
+
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -104,11 +116,13 @@ function send_map_parties(map_id, request_or_websocket = null) {
     const ret = JSON.stringify({
         "type":"map_parties",
         "map_id":map_id,
-        "parties":parties_by_map.map((party) => {
-            let json = party.toJSON();
-            delete json.map_id; // No need to send map id twice
-            return json;
-        })
+        "parties":unique(parties_by_map,(party) => {
+                    return `${party.party_id}-${party.district_region}`;
+                }).map((party) => {
+                    let json = party.toJSON();
+                    delete json.map_id; // No need to send map id twice
+                    return json;
+                })
     });
 
     if(request_or_websocket === null) {
@@ -211,9 +225,13 @@ function on_recv_parties(ws, data) {
         party_json.map_id = map_id;
         return new PartySearch(party_json);
     });
+
+    let maps_affected = {};
+    maps_affected[map_id] = 1;
     // Remove any current parties for this client
     all_parties.filter((party) => { return party.client_id === client_id; })
         .forEach((party) => {
+            maps_affected[party.map_id] = 1;
             remove_party(party);
         })
     // Cycle and add the parties to the system
@@ -224,7 +242,9 @@ function on_recv_parties(ws, data) {
     //send_map_parties(map_id);
     // Broadcast the summary list to all connected clients
     send_available_maps();
-    send_map_parties(map_id);
+    Object.keys(maps_affected).forEach((map_id) => {
+        send_map_parties(map_id);
+    })
 }
 
 /**
@@ -440,12 +460,12 @@ const wss = start_websocket_server(http_server);
 wss.on('connection', function connection(ws, request) {
     ws.headers = request.headers;
     ws.ip = get_ip_from_request(request);
-    console.log(`Websocket connected: ${ws.ip}`)
+    console.log(`[websocket]`,ws.ip,"connected");
     if(get_client_id(ws)) {
         try {
             add_bot_client(ws);
         } catch(e) {
-            console.error(e.message);
+            console.error(`[websocket]`,ws.ip,e.message);
             ws.ignore = 1;
             send_header(ws, 403,e.message);
             setTimeout(() => ws.close(),5000);
@@ -455,7 +475,7 @@ wss.on('connection', function connection(ws, request) {
     ws.originalSend = ws.send;
     ws.send = (data) => {
         if(ws.ignore) return;
-        console.log(`Websocket send to ${ws.ip}:\n${data}`);
+        console.log(`[websocket]`,ws.ip,`-->`,data);
         ws.originalSend(data);
     }
     ws.map_id = 0;
@@ -481,13 +501,14 @@ wss.on('connection', function connection(ws, request) {
                 return;
             }
         }
-        console.log(`Websocket message from ${ws.ip}:\n${data}`);
+
+        console.log(`[websocket]`,ws.ip,`<--`,data);
         on_websocket_message(data,ws).catch((e) => {
             console.error(e);
         })
     });
     ws.on('close',() => {
-        console.log(`Websocket closed: ${ws.ip}`)
+        console.log(`[websocket]`,ws.ip,"closed");
         if(get_client_id(ws))
             on_bot_disconnected(ws);
     })

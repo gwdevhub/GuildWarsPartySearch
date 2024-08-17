@@ -37,7 +37,6 @@ export function start_websocket_server(http_server) {
         wss = null;
     });
     wss.on('connection', function connection(ws) {
-        console.log(`Websocket client connected`);
         ws.last_message = new Date();
         ws.isAlive = true;
         ws.on('error', console.error);
@@ -48,10 +47,9 @@ export function start_websocket_server(http_server) {
         ws.on('message', function message(data) {
             ws.last_message = new Date();
             ws.isAlive = true;
-            console.log('received: %s', data);
         });
         ws.on('close',() => {
-            console.log(`Websocket client closed`);
+            //console.log(`Websocket client closed`);
         });
     });
     return wss;
