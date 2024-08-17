@@ -1,0 +1,474 @@
+{
+  "id": 3,
+  "name": "Elona",
+  "zoom": 2,
+  "minZoom": 2,
+  "maxZoom": 4,
+  "dims": [ 6144, 4608 ],
+  "center": [ 2150, 3235 ],
+  "regions": [
+    {
+      "name": "Istan",
+      "areas": [
+        {
+          "name": "Churrhir Fields",
+          "coordinates": [ 2181, 3360 ]
+        },
+        {
+          "name": "Consulate",
+          "coordinates": [ 2225, 3184 ]
+        },
+        {
+          "name": "Sun Docks",
+          "coordinates": [ 2225, 3210 ]
+        },
+        {
+          "name": "Plains of Jarin",
+          "coordinates": [ 1984, 3196 ]
+        },
+        {
+          "name": "Zehlon Reach",
+          "coordinates": [ 1488, 2966 ]
+        },
+        {
+          "name": "Cliffs of Dohjok",
+          "coordinates": [ 1559, 3408 ]
+        },
+        {
+          "name": "Fahranur, The First City",
+          "coordinates": [ 935, 3319 ]
+        },
+        {
+          "name": "Lahtenda Bog",
+          "coordinates": [ 1149, 3837 ]
+        },
+        {
+          "name": "Issnur Isles",
+          "coordinates": [ 1955, 3780 ]
+        },
+        {
+          "name": "Mehtani Keys",
+          "coordinates": [ 2536, 3841 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Kamadan, Jewel of Istan",
+          "type": "city_elona",
+          "coordinates": [ 2150, 3235 ],
+          "mapId": 449
+        },
+        {
+          "name": "Sunspear Arena",
+          "type": "arena_elona",
+          "coordinates": [ 2208, 3085 ],
+          "wiki": "Sunspear_Arena_(outpost)",
+          "mapId": 497
+        },
+        {
+          "name": "Sunspear Great Hall",
+          "type": "outpost_elona",
+          "coordinates": [ 1957, 3095 ],
+          "mapId": 431
+        },
+        {
+          "name": "The Astralarium",
+          "type": "outpost_elona",
+          "coordinates": [ 1737, 2979 ],
+          "mapId": 502
+        },
+        {
+          "name": "Champion's Dawn",
+          "type": "outpost_elona",
+          "coordinates": [ 1794, 3333 ],
+          "mapId": 479
+        },
+        {
+          "name": "Beknur Harbor",
+          "type": "outpost_elona",
+          "coordinates": [ 1728, 3657 ],
+          "mapId": 457
+        },
+        {
+          "name": "Kodlonu Hamlet",
+          "type": "outpost_elona",
+          "coordinates": [ 2276, 3696 ],
+          "mapId": 489
+        },
+        {
+          "name": "Consulate Docks",
+          "type": "mission_elona",
+          "coordinates": [ 2328, 3191 ],
+          "wiki": "Consulate_Docks_(outpost)",
+          "mapId": 493
+        },
+        {
+          "name": "Chahbek Village",
+          "type": "mission_elona",
+          "coordinates": [ 2325, 3409 ],
+          "wiki": "Chahbek_Village_(outpost)",
+          "mapId": 544
+        },
+        {
+          "name": "Jokanur Diggings",
+          "type": "mission_elona",
+          "coordinates": [ 1238, 3240 ],
+          "wiki": "Jokanur_Diggings_(outpost)",
+          "mapId": 491
+        },
+        {
+          "name": "Blacktide Den",
+          "type": "mission_elona",
+          "coordinates": [ 1220, 3580 ],
+          "wiki": "Blacktide_Den_(outpost)",
+          "mapId": 492
+        },
+        {
+          "name": "Travel",
+          "type": "travel",
+          "coordinates": [ 2598, 2995 ],
+          "wiki": "Campaign_travel"
+        },
+        {
+          "name": "Asura Gate",
+          "type": "gate",
+          "coordinates": [ 2080, 3349 ]
+        }
+      ]
+    },
+    {
+      "name": "Kourna",
+      "areas": [
+        {
+          "name": "Marga Coast",
+          "coordinates": [ 3245, 2845 ]
+        },
+        {
+          "name": "Sunward Marches",
+          "coordinates": [ 3112, 2448 ]
+        },
+        {
+          "name": "Arkjok Ward",
+          "coordinates": [ 3776, 2945 ]
+        },
+        {
+          "name": "Dejarin Estate",
+          "coordinates": [ 4290, 2955 ]
+        },
+        {
+          "name": "Gandara, the Moon Fortress",
+          "coordinates": [ 3952, 3428 ]
+        },
+        {
+          "name": "Barbarous Shore",
+          "coordinates": [ 4699, 3361 ]
+        },
+        {
+          "name": "Jahai Bluffs",
+          "coordinates": [ 3937, 2462 ]
+        },
+        {
+          "name": "The Floodplain of Mahnkelon",
+          "coordinates": [ 4504, 2469 ]
+        },
+        {
+          "name": "Bahdok Caverns",
+          "coordinates": [ 4719, 2090 ]
+        },
+        {
+          "name": "Turai's Procession",
+          "coordinates": [ 3541, 2012 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Sunspear Sanctuary",
+          "type": "city_elona",
+          "coordinates": [ 3538, 2532 ],
+          "mapId": 387
+        },
+        {
+          "name": "Dajkah Inlet",
+          "type": "challenge_elona",
+          "coordinates": [ 2918, 2675 ],
+          "wiki": "Dajkah_Inlet_(outpost)",
+          "mapId": 554
+        },
+        {
+          "name": "Nundu Bay",
+          "type": "mission_elona",
+          "coordinates": [ 3046, 2956 ],
+          "wiki": "Nundu_Bay_(outpost)",
+          "mapId": 464
+        },
+        {
+          "name": "Yohlon Haven",
+          "type": "outpost_elona",
+          "coordinates": [ 3524, 3114 ],
+          "mapId": 381
+        },
+        {
+          "name": "Pogahn Passage",
+          "type": "mission_elona",
+          "coordinates": [ 4037, 3195 ],
+          "wiki": "Pogahn_Passage_(outpost)",
+          "mapId": 426
+        },
+        {
+          "name": "Camp Hojanu",
+          "type": "outpost_elona",
+          "coordinates": [ 4530, 3166 ],
+          "mapId": 376
+        },
+        {
+          "name": "Venta Cemetery",
+          "type": "mission_elona",
+          "coordinates": [ 3364, 2307 ],
+          "wiki": "Venta_Cemetery_(outpost)",
+          "mapId": 421
+        },
+        {
+          "name": "Kodonur Crossroads",
+          "type": "mission_elona",
+          "coordinates": [ 4225, 2674 ],
+          "wiki": "Kodonur_Crossroads_(outpost)",
+          "mapId": 424
+        },
+        {
+          "name": "Rilohn Refuge",
+          "type": "mission_elona",
+          "coordinates": [ 4344, 2338 ],
+          "wiki": "Rilohn_Refuge_(outpost)",
+          "mapId": 425
+        },
+        {
+          "name": "Moddok Crevice",
+          "type": "mission_elona",
+          "coordinates": [ 4663, 2315 ],
+          "wiki": "Moddok_Crevice_(outpost)",
+          "mapId": 427
+        },
+        {
+          "name": "Gate of Desolation",
+          "type": "mission_elona",
+          "coordinates": [ 3327, 1697 ],
+          "wiki": "Gate_of_Desolation_(outpost)",
+          "mapId": 478
+        }
+      ]
+    },
+    {
+      "name": "Vabbi",
+      "areas": [
+        {
+          "name": "Yatendi Canyons",
+          "coordinates": [ 4303, 2077 ]
+        },
+        {
+          "name": "Vehtendi Valley",
+          "coordinates": [ 4632, 1525 ]
+        },
+        {
+          "name": "Forum Highlands",
+          "coordinates": [ 4174, 1475 ]
+        },
+        {
+          "name": "Vehjin Mines",
+          "coordinates": [ 3516, 1022 ]
+        },
+        {
+          "name": "Garden of Seborhin",
+          "coordinates": [ 4060, 1021 ]
+        },
+        {
+          "name": "Holdings of Chokhin",
+          "coordinates": [ 4156, 582 ]
+        },
+        {
+          "name": "Halls of Chokhin",
+          "coordinates": [ 4214, 452 ]
+        },
+        {
+          "name": "Ahmtur Arena",
+          "coordinates": [ 4357, 221 ]
+        },
+        {
+          "name": "The Hidden City of Ahdashim",
+          "coordinates": [ 4683, 473 ]
+        },
+        {
+          "name": "The Mirror of Lyss",
+          "coordinates": [ 4657, 1105 ]
+        },
+        {
+          "name": "Wilderness of Bahdza",
+          "coordinates": [ 5191, 895 ]
+        },
+        {
+          "name": "Resplendent Makuun",
+          "coordinates": [ 5031, 1365 ]
+        },
+        {
+          "name": "Bokka Amphitheatre",
+          "coordinates": [ 5090, 1446 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "The Kodash Bazaar",
+          "type": "city_elona",
+          "coordinates": [ 4448, 1258 ],
+          "mapId": 414
+        },
+        {
+          "name": "Chantry of Secrets",
+          "type": "outpost_elona",
+          "coordinates": [ 4176, 1972 ],
+          "mapId": 393
+        },
+        {
+          "name": "Wehhan Terraces",
+          "type": "outpost_elona",
+          "coordinates": [ 4537, 2016 ],
+          "mapId": 378
+        },
+        {
+          "name": "Yahnur Market",
+          "type": "outpost_elona",
+          "coordinates": [ 4832, 1640 ],
+          "mapId": 407
+        },
+        {
+          "name": "Honur Hill",
+          "type": "outpost_elona",
+          "coordinates": [ 4915, 1236 ],
+          "mapId": 403
+        },
+        {
+          "name": "Jennur's Horde",
+          "type": "mission_elona",
+          "coordinates": [ 3869, 1260 ],
+          "wiki": "Jennur's_Horde_(outpost)",
+          "mapId": 476
+        },
+        {
+          "name": "Tihark Orchard",
+          "type": "mission_elona",
+          "coordinates": [ 4152, 1332 ],
+          "wiki": "Tihark_Orchard_(outpost)",
+          "mapId": 428
+        },
+        {
+          "name": "Basalt Grotto",
+          "type": "outpost_elona",
+          "coordinates": [ 3266, 850 ],
+          "mapId": 398
+        },
+        {
+          "name": "Mihanu Township",
+          "type": "outpost_elona",
+          "coordinates": [ 4373, 799 ],
+          "mapId": 396
+        },
+        {
+          "name": "Grand Court of Sebelkeh",
+          "type": "mission_elona",
+          "coordinates": [ 4659, 930 ],
+          "wiki": "Grand_Court_of_Sebelkeh_(outpost)",
+          "mapId": 435
+        },
+        {
+          "name": "Dasha Vestibule",
+          "type": "mission_elona",
+          "coordinates": [ 4690, 700 ],
+          "wiki": "Dasha_Vestibule_(outpost)",
+          "mapId": 434
+        },
+        {
+          "name": "Dzagonur Bastion",
+          "type": "mission_elona",
+          "coordinates": [ 4942, 897 ],
+          "wiki": "Dzagonur_Bastion_(outpost)",
+          "mapId": 433
+        }
+      ]
+    },
+    {
+      "name": "The Desolation",
+      "areas": [
+        {
+          "name": "The Sulfurous Wastes",
+          "coordinates": [ 3024, 1484 ]
+        },
+        {
+          "name": "Joko's Domain",
+          "coordinates": [ 3009, 1032 ]
+        },
+        {
+          "name": "Dynastic Tombs",
+          "coordinates": [ 2531, 1378 ]
+        },
+        {
+          "name": "The Alkali Pan",
+          "coordinates": [ 2504, 933 ]
+        },
+        {
+          "name": "Crystal Overlook",
+          "coordinates": [ 2063, 736 ]
+        },
+        {
+          "name": "The Ruptured Heart",
+          "coordinates": [ 2516, 429 ]
+        },
+        {
+          "name": "Poisoned Outcrops",
+          "coordinates": [ 2988, 272 ]
+        },
+        {
+          "name": "The Shattered Ravines",
+          "coordinates": [ 3065, 610 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Vortex",
+          "type": "vortex",
+          "coordinates": [ 2488, 520 ],
+          "mapId": 374
+        },
+        {
+          "name": "Remains of Sahlahja",
+          "type": "challenge_elona",
+          "coordinates": [ 2942, 1280 ],
+          "wiki": "Remains_of_Sahlahja_(outpost)",
+          "mapId": 545
+        },
+        {
+          "name": "Bone Palace",
+          "type": "outpost_elona",
+          "coordinates": [ 2861, 955 ],
+          "mapId": 438
+        },
+        {
+          "name": "Lair of the Forgotten",
+          "type": "outpost_elona",
+          "coordinates": [ 3115, 438 ],
+          "mapId": 442
+        },
+        {
+          "name": "The Mouth of Torment",
+          "type": "outpost_elona",
+          "coordinates": [ 2488, 620 ],
+          "mapId": 440
+        },
+        {
+          "name": "Ruins of Morah",
+          "type": "mission_elona",
+          "coordinates": [ 2462, 769 ],
+          "wiki": "Ruins_of_Morah_(outpost)",
+          "mapId": 480
+        }
+      ]
+    }
+  ]
+}

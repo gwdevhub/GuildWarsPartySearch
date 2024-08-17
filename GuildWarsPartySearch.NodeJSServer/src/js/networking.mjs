@@ -108,3 +108,20 @@ export function get_ip_from_request(request) {
         ip = '127.0.0.1';
     return ip.split(':').pop();
 }
+
+/**
+ * @param {number} cache_time_ms
+ * @return {{setHeaders: setHeaders, etag: string}}
+ */
+export function build_express_cache_options(cache_time_ms) {
+    let headers = {
+        'Cache-Control': 'max-age='+(cache_time_ms/1000)+', immutable',
+        'Expires':new Date(Date.now()+cache_time_ms).toUTCString()
+    }
+    return {
+        etag:'strong',
+        setHeaders:function(res) {
+            res.set(headers);
+        }
+    }
+}

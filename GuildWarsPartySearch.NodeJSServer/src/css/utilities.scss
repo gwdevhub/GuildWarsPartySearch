@@ -1,0 +1,44 @@
+.d-flex {
+  display:flex;
+}
+.text-start {
+  text-align:left !important;
+}
+.ps-1 {
+  padding-left:1rem;
+}
+.pe-1 {
+  padding-right:1rem;
+}
+.collapsed {
+  display: none !important;
+}
+
+.unclickable{
+  cursor: initial !important;
+}
+
+.centered {
+  text-align: center;
+}
+
+.small {
+  font-size: 10pt;
+}
+.animate-opacity {
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
+.seethru{
+  opacity: 0.4;
+}
+
+.hidden {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.cursor-pointer {
+  cursor:pointer;
+}

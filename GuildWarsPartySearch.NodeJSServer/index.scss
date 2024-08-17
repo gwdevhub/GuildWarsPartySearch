@@ -1,0 +1,352 @@
+@import 'src/libs/leaflet/1.9.4/leaflet.css';
+@import 'src/libs/leaflet.draw/0.2.3/leaflet.draw.css';
+
+@import 'src/css/utilities';
+
+@font-face{
+    font-family: "Fremont";
+    src: url(./src/fonts/Fremont.woff)
+}
+
+body, html {
+    height: 100%;
+    width: 100%;
+}
+body, html,.leaflet-container,
+.holder .label {
+    font-family: "Fremont", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#mapdiv {
+    /*cursor: crosshair;*/
+    background-color: black !important;
+}
+
+
+.legal {
+    font-size: 8pt;
+    color: #808080;
+    text-align: left;
+    position: relative;
+    bottom: 0;
+    margin-left: 5px;
+    margin-right: 5px;
+    flex: 0 0 auto;
+}
+
+.logo {
+    width: 90%;
+    margin: 5%;
+}
+
+#menu_button {
+    position: absolute;
+    color: #ffffff;
+    right: 10px;
+    top: 10px;
+    z-index: 1000;
+    font-weight: bold;
+    a {
+        text-decoration: none;
+        color: #ffffff;
+    }
+}
+
+#menu {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 100%;
+    min-height: 100%;
+    width: 300px;
+    z-index: 9999;
+    padding: 0;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.90);
+    opacity: 1;
+    transition: right 0.3s, opacity 0.3s;
+    border-left: solid 1px #808080;
+    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.9);
+    color: #ffffff;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    a {
+        color: #ffffff;
+        text-decoration: none;
+    }
+    &.hidden {
+        right: -300px;
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+.menuHeader {
+    font-size: 14pt;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+    flex: 0 0 auto;
+}
+
+.partyList {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    border-bottom: solid 1px #808080;
+    div {
+        .mapRow {
+            border-bottom: solid 1px #808080;
+            font-size: 12pt;
+            padding-left: 15px;
+            cursor: pointer;
+            height: 30px;
+            line-height: 30px;
+            &:hover {
+                background: #1d1d1d;
+            }
+        }
+        .district {
+            border-bottom: solid 1px #808080;
+            font-size: 9pt;
+            padding-left: 25px;
+        }
+        .searchType {
+            border-bottom: solid 1px #808080;
+            font-size: 8pt;
+            padding-left: 35px;
+        }
+        .partySearch {
+            border-bottom: solid 1px #808080;
+            font-size: 8pt;
+            padding-left: 45px;
+        }
+    }
+}
+
+.maplist {
+    flex: 0 0 auto;
+}
+.maplist div {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 15px;
+    padding-right: 5px;
+    margin: 0;
+    border-bottom: solid 1px #808080;
+    font-size: 12pt;
+    &:hover {
+        background: #1d1d1d;
+    }
+    img {
+        float: left;
+        height: 20px;
+        width: 20px;
+    }
+    &.disabled {
+        color: #808080;
+        user-select: none;
+
+        img {
+            filter: grayscale(50%);
+            opacity: 0.5;
+        }
+    }
+}
+
+.mapLink.selected, .mapLink.selected:hover {
+    background: rgba(64, 64, 64, 0.90);
+}
+/*
+    *
+    * Markers
+    *
+*/
+.marker .holder {
+    font-family: 'Fremont Segoe UI', sans-serif;
+    display: block;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+/*
+    *
+    * Areas
+    *
+*/
+
+
+.marker_area .holder {
+    min-width: 200px;
+    min-height: 32px;
+    width: 200px;
+    height: 32px;
+    font-size: 12pt;
+    line-height: 32px;
+    color: #ffeedd;
+    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black, 0px 0px 2px black;
+    a {
+        color: #ffeedd;
+    }
+}
+
+
+
+/*
+    *
+    * Outposts
+    *
+*/
+
+.marker_location {
+    font-size: 14pt;
+    color: #ffeebb;
+    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black, 0px 0px 2px black;
+    .label {
+        position: absolute;
+        min-width:200px;
+        max-width:200px;
+        width:200px;
+        white-space: nowrap;
+        transform: none !important;
+        left:50%;
+        margin-left:-100px;
+    }
+    .holder > a {
+        color: #ffeebb;
+    }
+    &.small .label {
+        transform: translateX(calc(-50% + 32px));
+    }
+    &.medium .label {
+        transform: translateX(calc(-50% + 48px));
+    }
+    &.large .label {
+        transform: translateX(calc(-50% + 96px));
+        bottom: 2px;
+    }
+}
+
+.label {
+    margin: 0;
+    padding: 0;
+    &.hidden {
+        pointer-events: none;
+    }
+}
+
+
+.icon {
+    display: inline-block;
+    white-space: normal;
+    margin: 0;
+    padding: 0;
+    transition: opacity 0.5s, transform 0.5s;
+
+    &.scaled_70 {
+        transform: scale(0.7, 0.7);
+    }
+
+    &.scaled_40 {
+        transform: scale(0.4, 0.4);
+    }
+
+    &.hidden {
+        transform: scale(0.5, 0.5);
+        display: none;
+    }
+}
+
+.popupWindow {
+    position: absolute;
+    right: 25%;
+    top: 15vh;
+    height:70vh;
+    width: 50%;
+    z-index: 10000;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.90);
+    opacity: 1;
+    transition: opacity 0.3s;
+
+    color: #ffffff;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: solid 1px #808080;
+    display:flex;
+    flex-direction:column;
+    &.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    .popupContent {
+        overflow-y: auto;
+        overflow-x: hidden;
+        flex: 1 1 auto !important;
+    }
+    .closeButton {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 2px 8px 2px 8px;
+        background: #00000000;
+        cursor: pointer;
+        &:hover {
+            background: #1d1d1d;
+        }
+    }
+    .table {
+        display: table;
+        overflow-wrap: anywhere;
+        width: 100%;
+        .row{
+            display: table-row;
+            margin-left: 5px;
+            .header{
+                display: table-cell;
+                text-align: center;
+                font-size: 12pt;
+            }
+            .cell {
+                display: table-cell;
+                text-align: center;
+                font-size: 10pt;
+            }
+        }
+        tr.divider td {
+            border-top: solid 1px #808080;
+        }
+    }
+    .divider {
+        font-size: 12pt;
+        margin: 5px;
+    }
+}
+
+#partyWindowTableHeader th,
+#partyWindowTable td {
+    min-width:5rem;
+}
+#partyWindowTableHeader th:last-child,
+#partyWindowTable td:last-child {
+    width:100%;
+}
+#partyWindowTableHeader th:first-child,
+#partyWindowTable td:first-child {
+    min-width:15rem;
+    padding-left: 1rem;
+}
+

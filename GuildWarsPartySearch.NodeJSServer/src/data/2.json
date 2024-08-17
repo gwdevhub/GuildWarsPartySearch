@@ -1,0 +1,556 @@
+{
+  "id": 2,
+  "name": "Cantha",
+  "zoom": 2,
+  "minZoom": 2,
+  "maxZoom": 4,
+  "dims": [ 6120, 4584 ],
+  "center": [ 1519, 2659 ],
+  "regions": [
+    {
+      "name": "Shing Jea Island",
+      "areas": [
+        {
+          "name": "Sunqua Vale",
+          "coordinates": [ 1244, 2517 ]
+        },
+        {
+          "name": "Panjiang Peninsula",
+          "coordinates": [ 1014, 2841 ]
+        },
+        {
+          "name": "Kinya Province",
+          "coordinates": [ 867, 2447 ]
+        },
+        {
+          "name": "Minister Cho's Estate",
+          "coordinates": [ 1239, 2229 ],
+          "wiki": "Minister_Cho's_Estate_(explorable_area)"
+        },
+        {
+          "name": "Jaya Bluffs",
+          "coordinates": [ 1700, 2414 ]
+        },
+        {
+          "name": "Jaya Bluffs",
+          "coordinates": [ 1700, 2414 ]
+        },
+        {
+          "name": "Haiju Lagoon",
+          "coordinates": [ 2072, 2327 ]
+        },
+        {
+          "name": "Zen Daijun",
+          "coordinates": [ 2048, 2692 ],
+          "wiki": "Zen_Daijun_(explorable_area)"
+        },
+        {
+          "name": "Saoshang Trail",
+          "coordinates": [ 1738, 2581 ]
+        },
+        {
+          "name": "Linnok Courtyard",
+          "coordinates": [ 1615, 2623 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Shing Jea Monastery",
+          "type": "city_cantha",
+          "coordinates": [ 1519, 2659 ],
+          "mapId": 242
+        },
+        {
+          "name": "Tsumei Village",
+          "type": "outpost_cantha",
+          "coordinates": [ 1160, 2680 ],
+          "mapId": 249
+        },
+        {
+          "name": "Ran Musu Gardens",
+          "type": "outpost_cantha",
+          "coordinates": [ 996, 2263 ],
+          "mapId": 251
+        },
+        {
+          "name": "Seitung Harbor",
+          "type": "outpost_cantha",
+          "coordinates": [ 1810, 2623 ],
+          "mapId": 250
+        },
+        {
+          "name": "Minister Cho's Estate",
+          "type": "mission_cantha",
+          "coordinates": [ 1333, 2324 ],
+          "wiki": "Minister_Cho's_Estate_(outpost)",
+          "mapId": 214
+        },
+        {
+          "name": "Zen Daijun",
+          "type": "mission_cantha",
+          "coordinates": [ 2222, 2569 ],
+          "wiki": "Zen_Daijun_(outpost)",
+          "mapId": 213
+        },
+        {
+          "name": "Shing Jea Arena",
+          "type": "arena_cantha",
+          "coordinates": [ 1393, 3221 ],
+          "wiki": "Shing_Jea_Arena_(outpost)",
+          "mapId": 243
+        }
+      ]
+    },
+    {
+      "name": "Kaineng City",
+      "areas": [
+        {
+          "name": "Bejunkan Pier",
+          "coordinates": [ 2901, 724 ]
+        },
+        {
+          "name": "Raisu Pavilion",
+          "coordinates": [ 3056, 732 ]
+        },
+        {
+          "name": "Raisu Palace",
+          "coordinates": [ 3312, 735 ],
+          "wiki": "Raisu_Palace_(explorable_area)"
+        },
+        {
+          "name": "Divine Path",
+          "coordinates": [ 3305, 852 ]
+        },
+        {
+          "name": "Shadow's Passage",
+          "coordinates": [ 3304, 889 ]
+        },
+        {
+          "name": "Bukdek Byway",
+          "coordinates": [ 3081, 1068 ]
+        },
+        {
+          "name": "Kaineng Docks",
+          "coordinates": [ 2865, 1197 ]
+        },
+        {
+          "name": "Waijun Bazaar",
+          "coordinates": [ 2762, 1410 ]
+        },
+        {
+          "name": "Nahpui Quarter",
+          "coordinates": [ 3200, 1710 ],
+          "wiki": "Nahpui_Quarter_(explorable_area)"
+        },
+        {
+          "name": "Xaquang Skyway",
+          "coordinates": [ 3141, 1454 ]
+        },
+        {
+          "name": "Shenzun Tunnels",
+          "coordinates": [ 3481, 1617 ]
+        },
+        {
+          "name": "Tahnnakai Temple",
+          "coordinates": [ 3777, 1247 ],
+          "wiki": "Tahnnakai_Temple_(explorable_area)"
+        },
+        {
+          "name": "Sunjiang District",
+          "coordinates": [ 3926, 1686 ],
+          "wiki": "Sunjiang_District_(explorable_area)"
+        },
+        {
+          "name": "Pongmei Valley",
+          "coordinates": [ 3772, 1993 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Kaineng Center",
+          "type": "city_cantha",
+          "coordinates": [ 2962, 800 ],
+          "mapId": 194
+        },
+        {
+          "name": "The Marketplace",
+          "type": "outpost_cantha",
+          "coordinates": [ 2915, 1244 ],
+          "mapId": 303
+        },
+        {
+          "name": "Senji's Corner",
+          "type": "outpost_cantha",
+          "coordinates": [ 3217, 1612 ],
+          "mapId": 50
+        },
+        {
+          "name": "Zin Ku Corridor",
+          "type": "outpost_cantha",
+          "coordinates": [ 3851, 1452 ],
+          "mapId": 284
+        },
+        {
+          "name": "Maatu Keep",
+          "type": "outpost_cantha",
+          "coordinates": [ 3621, 1865 ],
+          "mapId": 283
+        },
+        {
+          "name": "Dragon's Throat",
+          "type": "challenge_cantha",
+          "coordinates": [ 3424, 951 ],
+          "wiki": "Dragon's_Throat_(outpost)",
+          "mapId": 274
+        },
+        {
+          "name": "Raisu Palace",
+          "type": "mission_cantha",
+          "coordinates": [ 3112, 803 ],
+          "wiki": "Raisu_Palace_(outpost)",
+          "mapId": 225
+        },
+        {
+          "name": "Imperial Sanctum",
+          "type": "mission_cantha",
+          "coordinates": [ 3581, 803 ],
+          "wiki": "Imperial_Sanctum_(outpost)",
+          "mapId": 226
+        },
+        {
+          "name": "Vizunah Square (Foreign Quarter)",
+          "type": "mission_cantha",
+          "coordinates": [ 3272, 996 ],
+          "label": "Vizunah Square<br/>(Foreign Quarter)",
+          "mapId": 292
+        },
+        {
+          "name": "Vizunah Square (Local Quarter)",
+          "type": "mission_cantha",
+          "coordinates": [ 3332, 1257 ],
+          "label": "Vizunah Square<br/>(Local Quarter)",
+          "mapId": 291
+        },
+        {
+          "name": "Nahpui Quarter",
+          "type": "mission_cantha",
+          "coordinates": [ 2884, 1685 ],
+          "wiki": "Nahpui_Quarter_(outpost)",
+          "mapId": 216
+        },
+        {
+          "name": "Sunjiang District",
+          "type": "mission_cantha",
+          "coordinates": [ 3683, 1706 ],
+          "wiki": "Sunjiang_District_(outpost)",
+          "mapId": 254
+        },
+        {
+          "name": "Tahnnakai Temple",
+          "type": "mission_cantha",
+          "coordinates": [ 3675, 1385 ],
+          "wiki": "Tahnnakai_Temple_(outpost)",
+          "mapId": 217
+        },
+        {
+          "name": "Travel",
+          "type": "travel",
+          "coordinates": [ 2680, 870 ],
+          "wiki": "Campaign_travel"
+        },
+        {
+          "name": "Asura Gate",
+          "type": "gate",
+          "coordinates": [ 2975, 902 ]
+        }
+      ]
+    },
+    {
+      "name": "Echovald Forest",
+      "areas": [
+        {
+          "name": "Arborstone",
+          "coordinates": [ 3408, 2368 ],
+          "wiki": "Arborstone_(explorable_area)"
+        },
+        {
+          "name": "Ferndale",
+          "coordinates": [ 3717, 2819 ]
+        },
+        {
+          "name": "Melandru's Hope",
+          "coordinates": [ 4030, 3084 ]
+        },
+        {
+          "name": "Drazach Thicket",
+          "coordinates": [ 3710, 3262 ]
+        },
+        {
+          "name": "The Eternal Grove",
+          "coordinates": [ 3724, 3583 ],
+          "wiki": "The_Eternal_Grove_(explorable_area)"
+        },
+        {
+          "name": "Mourning Veil Falls",
+          "coordinates": [ 3954, 3811 ]
+        },
+        {
+          "name": "Morostav Trail",
+          "coordinates": [ 4213, 3595 ]
+        }
+      ],
+      "locations": [
+        {
+          "name": "Tanglewood Copse",
+          "type": "outpost_cantha_kurzick",
+          "coordinates": [ 3587, 2117 ],
+          "mapId": 348
+        },
+        {
+          "name": "Arborstone",
+          "type": "mission_cantha_kurzick",
+          "coordinates": [ 3378, 2277 ],
+          "wiki": "Arborstone_(outpost)",
+          "mapId": 218
+        },
+        {
+          "name": "Altrumm Ruins",
+          "type": "challenge_cantha_kurzick",
+          "coordinates": [ 3455, 2593 ],
+          "wiki": "Altrumm_Ruins_(outpost)",
+          "mapId": 270
+        },
+        {
+          "name": "House zu Heltzer",
+          "type": "city_cantha_kurzick",
+          "coordinates": [ 3511, 2715 ],
+          "mapId": 77
+        },
+        {
+          "name": "Aspenwood Gate (Kurzick)",
+          "type": "outpost_cantha_kurzick",
+          "coordinates": [ 3850, 2635 ],
+          "mapId": 388
+        },
+        {
+          "name": "Fort Aspenwood (Kurzick)",
+          "type": "challenge_cantha_kurzick",
+          "coordinates": [ 3867, 2540 ],
+          "mapId": 294
+        },
+        {
+          "name": "Jade Flats (Kurzick)",
+          "type": "outpost_cantha_kurzick",
+          "coordinates": [ 4187, 2845 ],
+          "mapId": 390
+        },
+        {
+          "name": "The Jade Quarry (Kurzick)",
+          "type": "challenge_cantha_kurzick",
+          "coordinates": [ 4221, 2737 ],
+          "mapId": 296
+        },
+        {
+          "name": "Saint Anjeka's Shrine",
+          "type": "outpost_cantha_kurzick",
+          "coordinates": [ 3567, 3040 ],
+          "mapId": 349
+        },
+        {
+          "name": "Lutgardis Conservatory",
+          "type": "outpost_cantha_kurzick",
+          "coordinates": [ 3907, 3093 ],
+          "mapId": 129
+        },
+        {
+          "name": "Brauer Academy",
+          "type": "outpost_cantha_kurzick",
+          "coordinates": [ 3857, 3248 ],
+          "mapId": 286
+        },
+        {
+          "name": "The Eternal Grove",
+          "type": "mission_cantha_kurzick",
+          "coordinates": [ 3712, 3469 ],
+          "wiki": "The_Eternal_Grove_(outpost)",
+          "mapId": 128
+        },
+        {
+          "name": "Vasburg Armory",
+          "type": "outpost_cantha_kurzick",
+          "coordinates": [ 3943, 3509 ],
+          "mapId": 130
+        },
+        {
+          "name": "Durheim Archives",
+          "type": "outpost_cantha_kurzick",
+          "coordinates": [ 4248, 3727 ],
+          "mapId": 287
+        },
+        {
+          "name": "Amatz Basin",
+          "type": "challenge_cantha_kurzick",
+          "coordinates": [ 3813, 3947 ],
+          "wiki": "Amatz_Basin_(outpost)",
+          "mapId": 229
+        },
+        {
+          "name": "Unwaking Waters (Kurzick)",
+          "type": "mission_cantha_kurzick",
+          "coordinates": [ 4493, 3445 ],
+          "mapId": 298
+        }
+      ]
+    },
+    {
+      "name": "The Jade Sea",
+      "areas": [
+        {
+          "name": "Boreas Seabed",
+          "coordinates": [ 4301, 2024 ],
+          "wiki": "Boreas_Seabed_(explorable_area)"
+        },
+        {
+          "name": "Mount Qinkai",
+          "coordinates": [ 3974, 2260 ]
+        },
+        {
+          "name": "Maishang Hills",
+          "coordinates": [ 4793, 2157 ]
+        },
+        {
+          "name": "Archipelagos",
+          "coordinates": [ 4405, 2419 ]
+        },
+        {
+          "name": "Gyala Hatchery",
+          "coordinates": [ 4897, 2580 ],
+          "wiki": "Gyala_Hatchery_(explorable_area)"
+        },
+        {
+          "name": "Rhea's Crater",
+          "coordinates": [ 5184, 2890 ]
+        },
+        {
+          "name": "Silent Surf",
+          "coordinates": [ 4896, 3107 ]
+        },
+        {
+          "name": "Unwaking Waters",
+          "coordinates": [ 4647, 3415 ],
+          "wiki": "Unwaking_Waters_(explorable_area)"
+        }
+      ],
+      "locations": [
+        {
+          "name": "Boreas Seabed",
+          "type": "mission_cantha_luxon",
+          "coordinates": [ 4023, 2021 ],
+          "wiki": "Boreas_Seabed_(outpost)",
+          "mapId": 219
+        },
+        {
+          "name": "Bai Paasu Reach",
+          "type": "outpost_cantha_luxon",
+          "coordinates": [ 4599, 2031 ],
+          "mapId": 288
+        },
+        {
+          "name": "Eredon Terrace",
+          "type": "outpost_cantha_luxon",
+          "coordinates": [ 4971, 2044 ],
+          "mapId": 350
+        },
+        {
+          "name": "Zos Shivros Channel",
+          "type": "challenge_cantha_luxon",
+          "coordinates": [ 4387, 2140 ],
+          "mapId": 273
+        },
+        {
+          "name": "Cavalon",
+          "type": "city_cantha_luxon",
+          "coordinates": [ 4451, 2259 ],
+          "mapId": 192
+        },
+        {
+          "name": "Breaker Hollow",
+          "type": "outpost_cantha_luxon",
+          "coordinates": [ 4173, 2298 ],
+          "mapId": 278
+        },
+        {
+          "name": "Aspenwood Gate (Luxon)",
+          "type": "outpost_cantha_luxon",
+          "coordinates": [ 3890, 2360 ],
+          "mapId": 389
+        },
+        {
+          "name": "Fort Aspenwood (Luxon)",
+          "type": "challenge_cantha_luxon",
+          "coordinates": [ 3955, 2441 ],
+          "mapId": 293
+        },
+        {
+          "name": "Jade Flats (Luxon)",
+          "type": "outpost_cantha_luxon",
+          "coordinates": [ 4341, 2546 ],
+          "mapId": 391
+        },
+        {
+          "name": "The Jade Quarry (Luxon)",
+          "type": "challenge_cantha_luxon",
+          "coordinates": [ 4318, 2626 ],
+          "mapId": 295
+        },
+        {
+          "name": "Gyala Hatchery",
+          "type": "mission_cantha_luxon",
+          "coordinates": [ 4888, 2342 ],
+          "wiki": "Gyala_Hatchery_(outpost)",
+          "mapId": 143
+        },
+        {
+          "name": "Leviathan Pits",
+          "type": "outpost_cantha_luxon",
+          "coordinates": [ 4990, 2810 ],
+          "mapId": 279
+        },
+        {
+          "name": "Seafarer's Rest",
+          "type": "outpost_cantha_luxon",
+          "coordinates": [ 5067, 3124 ],
+          "mapId": 289
+        },
+        {
+          "name": "The Aurios Mines",
+          "type": "challenge_cantha_luxon",
+          "coordinates": [ 5368, 2953 ],
+          "wiki": "The_Aurios_Mines_(outpost)",
+          "mapId": 234
+        },
+        {
+          "name": "Unwaking Waters (Luxon)",
+          "type": "mission_cantha_luxon",
+          "coordinates": [ 4741, 3266 ],
+          "mapId": 297
+        },
+        {
+          "name": "Harvest Temple",
+          "type": "outpost_cantha",
+          "coordinates": [ 4628, 3343 ],
+          "mapId": 277
+        }
+      ]
+    },
+    {
+      "name": "Bonus Mission Pack",
+      "areas": [
+        {
+          "name": "The Tengu Accords",
+          "coordinates": [ 2773, 4175 ]
+        }
+      ]
+    }
+  ]
+}
