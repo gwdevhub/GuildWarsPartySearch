@@ -263,7 +263,7 @@ function send_available_maps(ws = null, force = false, exclude_ws = null) {
     })
     let unique_bots = Object.values(bot_clients).filter((bot_client) => {
         // Exclude current websocket from the list
-        return bot_client.map_id && (!ws && bot_client.client_id !== ws.client_id);
+        return bot_client.map_id && (!ws || bot_client.client_id !== ws.client_id);
     })
     const available_maps = unique(unique_bots,(bot_client) => {
             return `${bot_client.map_id}-${bot_client.district}`;
