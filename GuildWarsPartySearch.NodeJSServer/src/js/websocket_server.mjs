@@ -49,7 +49,8 @@ export function start_websocket_server(http_server) {
             ws.isAlive = true;
         });
         ws.on('close',() => {
-            //console.log(`Websocket client closed`);
+            //wss on close
+            // console.log(`Websocket client closed`);
         });
     });
     return wss;

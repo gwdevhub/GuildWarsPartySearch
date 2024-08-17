@@ -100,6 +100,7 @@ function add_bot_client(request) {
         bot_clients[client_id].close();
     }
     request.is_bot_client = 1;
+    request.client_id = client_id;
     bot_clients[client_id] = request;
     console.log(`Bot client added: ${JSON.stringify(request.headers,null,1)}`)
 }
@@ -180,7 +181,7 @@ function on_bot_disconnected(request) {
     delete_if(bot_clients,(entry) => {
         return entry === request;
     });
-    const client_id = get_client_id(request);
+    const client_id = request.client_id;
     if(!client_id)
         return; // Valid error; could be in response to a bad connection
     let maps_affected = {};
@@ -259,14 +260,17 @@ function send_available_maps(ws = null, force = false, exclude_ws = null) {
     })
     const available_maps = unique(Object.values(bot_clients),(bot_client) => {
         return `${bot_client.map_id}-${bot_client.district}`;
+    }).filter((bot_client) => {
+        return bot_client.map_id;
     }).map((bot_client) => {
-        const key = `${bot_client.map_id}-${bot_client.district}`;
-        return {
-            map_id:bot_client.map_id,
-            district:bot_client.district,
-            party_count:(parties_by_district[key] || []).length
-        };
-    })
+            const key = `${bot_client.map_id}-${bot_client.district}`;
+            return {
+                map_id:bot_client.map_id,
+                district:bot_client.district,
+                party_count:(parties_by_district[key] || []).length
+            };
+        })
+    }
     const res = JSON.stringify({
         "type":"available_maps",
         "available_maps":available_maps
@@ -509,7 +513,7 @@ wss.on('connection', function connection(ws, request) {
     });
     ws.on('close',() => {
         console.log(`[websocket]`,ws.ip,"closed");
-        if(get_client_id(ws))
+        if(ws.client_id)
             on_bot_disconnected(ws);
     })
 });
