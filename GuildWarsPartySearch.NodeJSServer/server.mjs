@@ -261,10 +261,12 @@ function send_available_maps(ws = null, force = false, exclude_ws = null) {
     const parties_by_district = groupBy(unique_parties,(party) => {
         return `${party.map_id}-${party.district}`;
     })
-    const available_maps = unique(Object.values(bot_clients),(bot_client) => {
+    let unique_bots = Object.values(bot_clients).filter((bot_client) => {
+        // Exclude current websocket from the list
+        return bot_client.map_id && bot_client.client_id !== ws.client_id;
+    })
+    const available_maps = unique(unique_bots,(bot_client) => {
             return `${bot_client.map_id}-${bot_client.district}`;
-        }).filter((bot_client) => {
-            return bot_client.map_id;
         }).map((bot_client) => {
             const key = `${bot_client.map_id}-${bot_client.district}`;
             return {
