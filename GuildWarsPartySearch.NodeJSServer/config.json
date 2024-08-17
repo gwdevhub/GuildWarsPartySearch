@@ -1,5 +1,0 @@
-{
-  "whitelisted_ips": ["127.0.0.1"],
-  "blacklisted_ips": [],
-  "bot_api_keys": ["development"]
-}
