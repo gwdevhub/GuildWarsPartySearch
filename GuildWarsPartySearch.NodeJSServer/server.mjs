@@ -255,7 +255,10 @@ function on_recv_parties(ws, data) {
  */
 function send_available_maps(ws = null, force = false, exclude_ws = null) {
 
-    const parties_by_district = groupBy(all_parties,(party) => {
+    const unique_parties = unique(all_parties,(party) => {
+        return `${party.map_id}-${party.district_region}-${party.party_id}`;
+    })
+    const parties_by_district = groupBy(unique_parties,(party) => {
         return `${party.map_id}-${party.district}`;
     })
     const available_maps = unique(Object.values(bot_clients),(bot_client) => {
