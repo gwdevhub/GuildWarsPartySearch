@@ -243,9 +243,30 @@ function on_recv_parties(ws, data) {
     //send_map_parties(map_id);
     // Broadcast the summary list to all connected clients
     send_available_maps();
+    send_client_locations();
     Object.keys(maps_affected).forEach((map_id) => {
         send_map_parties(map_id);
     })
+}
+
+function send_client_locations(ws = null) {
+    const data = Object.values(bot_clients).map((bot_client) => {
+            return {
+                client_id:bot_client.client_id.substring(0,8), // Only provide the first 8 characters
+                map_id:bot_client.map_id,
+                district:bot_client.district
+            }
+        })
+    const res = JSON.stringify({
+        "type":"client_locations",
+        "client_locations":data
+    });
+    if(ws === null) {
+        send_to_websockets(get_bot_websockets(), res);
+        return;
+    }
+    assert(ws.is_bot_client);
+    send_json(ws,res);
 }
 
 /**
@@ -263,7 +284,7 @@ function send_available_maps(ws = null, force = false, exclude_ws = null) {
     })
     let unique_bots = Object.values(bot_clients).filter((bot_client) => {
         // Exclude current websocket from the list
-        return bot_client.map_id && (!ws || bot_client.client_id !== ws.client_id);
+        return bot_client.map_id;
     })
     const available_maps = unique(unique_bots,(bot_client) => {
             return `${bot_client.map_id}-${bot_client.district}`;
@@ -380,6 +401,13 @@ async function on_request_message(request, data) {
             request.map_id = map_id;
             send_map_parties(map_id, request);
             break;
+        case "client_locations":
+            if(!request.is_bot_client) {
+                send_header(request, 403,"Not a client");
+                return;
+            }
+            send_client_locations(request);
+            break;
         case "client_parties":
             on_recv_parties(request, data);
             break;
@@ -472,6 +500,7 @@ wss.on('connection', function connection(ws, request) {
     if(get_client_id(ws)) {
         try {
             add_bot_client(ws);
+            send_client_locations(ws);
         } catch(e) {
             console.error(`[websocket]`,ws.ip,e.message);
             ws.ignore = 1;

@@ -134,6 +134,7 @@ char character_name[42] = { 0 };
 char account_uuid[128] = { 0 };
 
 struct BotPartySearches {
+    char client_id_prefix[9] = { 0 };
     uint32_t map_id = 0;
     District district = (District)0;
 };
@@ -231,9 +232,12 @@ static uint32_t get_original_map_id(uint32_t map_id);
 static bool is_map_already_visited(uint32_t _map_id, District district) {
     auto region = get_district_region(district);
     auto map_id = get_original_map_id(_map_id);
+    // So to make sure bots in the same outpost(s) don't start travelling all over the place at the same time,
+    // do a little strcmp on the uuid - highest one has to move
     for (auto& other : map_ids_already_visited_by_other_bots) {
         if (other.map_id == map_id
-            && get_district_region(other.district) == region)
+            && get_district_region(other.district) == region
+            && (!*other.client_id_prefix || strncmp(other.client_id_prefix, account_uuid, ARRAY_SIZE(other.client_id_prefix) - 1) > 0))
             return true;
     }
     return false;
@@ -354,7 +358,7 @@ static void send_ping(easywsclient::WebSocket::pointer websocket) {
     websocket->sendPing();
 }
 
-static void on_available_maps_json(const std::vector<nlohmann::json>& j) {
+static void on_client_locations_json(const std::vector<nlohmann::json>& j) {
     map_ids_already_visited_by_other_bots.clear();
     for (auto& available_map_json : j) {
         if (!(available_map_json.contains("map_id") && available_map_json["map_id"].is_number()))
@@ -363,9 +367,16 @@ static void on_available_maps_json(const std::vector<nlohmann::json>& j) {
         if (!(available_map_json.contains("district") && available_map_json["district"].is_number()))
             continue;
         const auto visited_district = available_map_json["district"].get<uint32_t>();
-        map_ids_already_visited_by_other_bots.push_back({ visited_map_id,(District)visited_district });
+        if (!(available_map_json.contains("client_id") && available_map_json["client_id"].is_string()))
+            continue;
+        const auto visited_client_id = available_map_json["client_id"].get<std::string>();
+        BotPartySearches s;
+        s.map_id = visited_map_id;
+        s.district = (District)visited_district;
+        snprintf(s.client_id_prefix,ARRAY_SIZE(s.client_id_prefix), "%s",visited_client_id.c_str());
+        map_ids_already_visited_by_other_bots.push_back(s);
     }
-    LogInfo("Party searches processed, %d maps already visited by other bots", map_ids_already_visited_by_other_bots.size());
+    LogInfo("client_locations processed, %d maps already visited by other bots", map_ids_already_visited_by_other_bots.size());
     party_searches_json_updated = time_get_ms();
 }
 
@@ -383,7 +394,7 @@ static bool get_already_visited_areas(easywsclient::WebSocket::pointer websocket
     if (!is_websocket_ready(websocket))
         return false;
     nlohmann::json j;
-    j["type"] = "available_maps";
+    j["type"] = "client_locations";
     const auto payload = j.dump();
     auto old_party_searches_json_updated = party_searches_json_updated;
     if (!send_websocket(websocket, payload))
@@ -455,33 +466,33 @@ static uint32_t calculate_map_to_visit(uint32_t map_id_requested, District* dist
             if (!daily)
                 continue;
             const auto map_id = get_original_map_id(daily->nearest_outpost_id);
-            if (is_map_already_visited(map_id, district))
-                continue;
             if (!is_valid_outpost(map_id))
                 continue;
             if (!IsMapUnlocked(map_id))
+                continue;
+            if (is_map_already_visited(map_id, district))
                 continue;
             *district_out = district;
             return map_id;
         }
     }
-
+    // Ordered by rarity of having outpost available
     GW::Constants::MapID fallback_map_ids[] = {
-        GW::Constants::MapID::Embark_Beach,
         GW::Constants::MapID::Domain_of_Anguish,
         GW::Constants::MapID::The_Deep,
         GW::Constants::MapID::Urgozs_Warren,
-        GW::Constants::MapID::Kamadan_Jewel_of_Istan_outpost,
-        GW::Constants::MapID::Kaineng_Center_outpost
+        GW::Constants::MapID::Embark_Beach,
+        GW::Constants::MapID::Kaineng_Center_outpost,
+        GW::Constants::MapID::Kamadan_Jewel_of_Istan_outpost
     };
     for (auto district : districts) {
         for (auto fallback_id : fallback_map_ids) {
             const auto map_id = get_original_map_id((uint32_t)fallback_id);
-            if (is_map_already_visited(map_id, district))
-                continue;
             if (!is_valid_outpost(map_id))
                 continue;
             if (!IsMapUnlocked(map_id))
+                continue;
+            if (is_map_already_visited(map_id, district))
                 continue;
             *district_out = district;
             return map_id;
@@ -666,13 +677,13 @@ static void ensure_correct_outpost() {
 
 static void on_websocket_message(const std::string& message) {
     LogInfo("Websocket recv, %d len",message.size());
-    //printf("%s\n", message.c_str());
+    printf("%s\n", message.c_str());
     last_websocket_message = time_get_ms();
     nlohmann::json j = nlohmann::json::parse(message);
     if (j == nlohmann::json::value_t::discarded)
         return;
-    if (j.contains("available_maps") && j["available_maps"].is_array())
-        on_available_maps_json(j["available_maps"].get<std::vector<nlohmann::json>>());
+    if (j.contains("client_locations") && j["client_locations"].is_array())
+        on_client_locations_json(j["client_locations"].get<std::vector<nlohmann::json>>());
 }
 
 static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt) {
