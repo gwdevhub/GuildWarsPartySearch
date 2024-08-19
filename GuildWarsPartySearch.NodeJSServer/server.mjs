@@ -116,7 +116,7 @@ function send_map_parties(map_id, request_or_websocket = null) {
         "type":"map_parties",
         "map_id":map_id,
         "parties":unique(parties_by_map,(party) => {
-                    return `${party.party_id}-${party.district_region}`;
+                    return `${party.sender}`;
                 }).map((party) => {
                     let json = party.toJSON();
                     delete json.map_id; // No need to send map id twice
