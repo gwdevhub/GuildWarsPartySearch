@@ -414,10 +414,6 @@ static void collect_instance_info() {
     assert(GetAccountUuid(account_uuid, ARRAY_SIZE(account_uuid)) > 0);
 }
 
-static void on_map_left(Event* event, void* params) {
-    party_search_advertisements_map_id = 0;
-}
-
 static void on_map_entered(Event* event, void* params) {
     collect_instance_info();
     party_advertisements_pending = true;
@@ -427,6 +423,7 @@ static void on_map_entered(Event* event, void* params) {
 
 static void add_party_search_advertisement(Event* event, void* params) {
     assert(event && event->type == EventType_PartySearchAdvertisement && event->PartySearchAdvertisement.party_id);
+    map_id = GetMapId();
     if (party_search_advertisements_map_id != map_id)
         clear_party_search_advertisements();
     party_search_advertisements_map_id = map_id;
@@ -436,6 +433,7 @@ static void add_party_search_advertisement(Event* event, void* params) {
 
 static void update_party_search_advertisement(Event* event, void* params) {
     assert(event && event->PartySearchAdvertisement.party_id);
+    map_id = GetMapId();
     if (party_search_advertisements_map_id != map_id)
         clear_party_search_advertisements();
     party_search_advertisements_map_id = map_id;
@@ -714,8 +712,6 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
 
 static int main_bot(void* param)
 {
-    CallbackEntry_Init(&EventType_WorldMapLeave_entry, on_map_left, NULL);
-    RegisterEvent(EventType_WorldMapLeave, &EventType_WorldMapLeave_entry);
 
     CallbackEntry_Init(&EventType_WorldMapEnter_entry, on_map_entered, NULL);
     RegisterEvent(EventType_WorldMapEnter, &EventType_WorldMapEnter_entry);
@@ -742,6 +738,8 @@ static int main_bot(void* param)
 
     while (running) {
         wait_until_ingame();
+        if (!map_id)
+            collect_instance_info();
         if (!wanted_map_id)
             wanted_map_id = map_id;
         if (!is_websocket_ready(sending_websocket)) {
@@ -793,7 +791,6 @@ static int main_bot(void* param)
     UnRegisterEvent(&EventType_PartySearchSize_entry);
     UnRegisterEvent(&EventType_PartySearchType_entry);
     UnRegisterEvent(&EventType_WorldMapEnter_entry);
-    UnRegisterEvent(&EventType_WorldMapLeave_entry);
 
     clear_party_search_advertisements();
 
