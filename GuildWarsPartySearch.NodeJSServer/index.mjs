@@ -112,8 +112,7 @@ async function onMapChanged() {
     redrawPartyWindow();
     redrawPartyList();
     await navigateToLocation(chosen_map_id, true);
-    if(get_parties_for_map(chosen_map_id).length)
-        toggleElement(partyWindow,true);
+    toggleElement(partyWindow,true);
 }
 
 async function selectMapId(map_id) {
@@ -277,16 +276,21 @@ function project(coord) {
     return map.project(coord, map.getMaxZoom());
 }
 
-async function loadMap(mapIndex) {
+/**
+ * Trigger a (re)draw of the world map to view a new continent
+ * @param continent {number}
+ * @return {Promise<void>}
+ */
+async function loadMap(continent) {
     toggleElement(menu,false);
-    currentContinent = mapIndex;
+    currentContinent = continent;
 
     let maplinks = document.querySelectorAll(".mapLink");
     for (let m = 0; m < maplinks.length; m++) {
         maplinks[m].classList.remove("selected");
     }
 
-    let mapLink = document.querySelector(".mapLink[data-id='" + mapIndex + "']");
+    let mapLink = document.querySelector(".mapLink[data-id='" + continent + "']");
 
     if (mapLink !== null) {
         mapLink.classList.add("selected");
@@ -298,9 +302,7 @@ async function loadMap(mapIndex) {
     }
 
     loading = true;
-    const mapData = leafletData[mapIndex];
-
-    //console.log(mapData);
+    const mapData = leafletData[continent];
 
     document.title = "Guild Wars Party Search [" + mapData.name + "]";
 
@@ -438,31 +440,23 @@ function areaLabel(data) {
 }
 
 function locationMarker(data) {
-
-    let wiki = data.name.replace(/ /g, "_");
-    if (data.wiki !== undefined) {
-        wiki = data.wiki;
-    }
-
-    let label = data.name;
-    if (data.label !== undefined) {
-        label = data.label;
-    }
-
+    let label = data.label || data.name;
     let divId = data.mapId ? " id='" + data.mapId + "'" : "";
-
+    const icon_html = `<div class="holder" data-map-id="${data.mapId || ''}">
+<img class='icon' alt="Icon ${data.type}" src='resources/icons/${data.type}.png'/>
+<div class='label'>${data.label || data.name}</div>
+</div>`;
     return L.marker(unproject(data.coordinates), {
         icon: L.divIcon({
             iconSize: null,
-            className: "marker marker_location " + markerSize[data.type] + " seethru",
-            html: "<div" + divId + " class='holder'><img class='icon' src='resources/icons/" + data.type + ".png'/><div class='label'>" + label + "</div></div>"
+            className: `marker marker_location ${markerSize[data.type] || ''} seethru`,
+            html:icon_html
         }),
         options: {
-            wiki: wiki,
-            mapId: data.mapId
+            wiki: data.wiki || data.name.replace(/ /g, "_"),
+            mapId: data.mapId || 0
         }
     }).on('click', function (e) {
-
         if (map.getZoom() > 1) {
             selectMapId(e.target.options.options.mapId);
         }
@@ -490,8 +484,6 @@ function updateMarkers() {
  * @param {string} data
  */
 function onWebsocketMessage(data) {
-    console.log("onWebsocketMessage",data);
-
     if(data === 'pong')
         return;
     try {
@@ -547,34 +539,53 @@ function onWebsocketMessage(data) {
     }
 }
 
+/**
+ * Let the server know we're viewing a new map id
+ */
 function send_map_id() {
     const ws = get_websocket_client();
     if(chosen_map_id && is_websocket_ready(ws))
         ws.send(JSON.stringify({"type":"map_id","map_id":chosen_map_id}));
 }
 
+/**
+ * Periodically make sure the websocket connection is maintained
+ * @return {Promise<void>}
+ */
 async function check_websocket() {
     try {
         if(!is_websocket_ready(get_websocket_client())) {
             const ws = await start_websocket_client();
             if(!ws) return;
-
-            ws.send(JSON.stringify({"compression":"lz"}));
             ws.addEventListener('message',(event) => {
                 let data = event.data;
-                console.log(event);
-                const decompressed = LZString.decompressFromUTF16(data);
-                if(decompressed && decompressed !== "@@@\u0000")
+                let decompressed = LZString.decompressFromUTF16(data);
+                if(decompressed === "@@@\u0000")
+                    decompressed = null;
+                if(decompressed) {
                     data = decompressed;
+                    console.log(`[websocket]`,`!-->`,decompressed);
+                } else {
+                    console.log(`[websocket]`,`-->`,data);
+                }
+
                 onWebsocketMessage(data);
             });
             ws.sendOriginal = ws.send;
             ws.send = (data) => {
-                const compressed = LZString.compressToUTF16(data);
-                const decompressed = LZString.decompressFromUTF16(compressed);
-                assert(decompressed === data);
-                ws.sendOriginal(compressed);
+                if(ws.compression === 'lz') {
+                    const compressed = LZString.compressToUTF16(data);
+                    const decompressed = LZString.decompressFromUTF16(compressed);
+                    assert(decompressed === data);
+                    console.log(`[websocket]`,`!<--`,data);
+                    data = compressed;
+                } else {
+                    console.log(`[websocket]`,`<--`,data);
+                }
+                ws.sendOriginal(data);
             }
+            ws.send(JSON.stringify({"compression":"lz"}));
+            ws.compression = "lz";
             console.log("Websocket message compression set to LZW, see https://pieroxy.net/blog/pages/lz-string/index.html for examples");
             send_map_id();
         }

@@ -1,5 +1,5 @@
 
-import {is_uuid, json_parse, to_number} from "./src/js/string_functions.mjs";
+import {is_numeric, is_uuid, json_parse, to_number} from "./src/js/string_functions.mjs";
 import express from "express";
 import bodyParser from "body-parser";
 import {is_quarantine_hit} from "./src/js/spam_filter.mjs";
@@ -19,7 +19,7 @@ import {
     build_express_cache_options
 } from "./src/js/networking.mjs";
 import * as path from "path";
-import {district_from_region, region_from_district} from "./src/js/gw_constants.mjs";
+import {district_from_region, district_regions, map_ids, region_from_district} from "./src/js/gw_constants.mjs";
 import {unique,groupBy, find_if, delete_if} from "./src/js/array_functions.mjs";
 
 import { dirname } from 'node:path';
@@ -86,10 +86,8 @@ function get_bot_client(request) {
     return found.length ? found[0] : null;
 }
 /**
- *
- * @param client_id {string}
+ * Try to add this websocket to the list of clients
  * @param request {http.IncomingMessage|WebSocket}
- * @returns bot_client
  */
 function add_bot_client(request) {
     const client_id = get_client_id(request);
@@ -114,7 +112,7 @@ function send_map_parties(map_id, request_or_websocket = null) {
     const parties_by_map = all_parties.filter((party) => {
         return map_id === 0 || party.map_id === map_id;
     });
-    const ret = JSON.stringify({
+    const json = JSON.stringify({
         "type":"map_parties",
         "map_id":map_id,
         "parties":unique(parties_by_map,(party) => {
@@ -126,14 +124,10 @@ function send_map_parties(map_id, request_or_websocket = null) {
                 })
     });
 
-    if(request_or_websocket === null) {
-        send_to_websockets(get_user_websockets().filter((ws) => {
-            return ws.map_id === map_id;
-        }),ret);
-        return;
-    }
-    request_or_websocket.map_id = map_id;
-    send_json(request_or_websocket,ret);
+    const send_to = request_or_websocket ? request_or_websocket : get_user_websockets().filter((ws) => {
+        return ws.map_id === map_id;
+    });
+    send_to_websockets(send_to,json);
 }
 
 /**
@@ -174,7 +168,7 @@ function add_party(party) {
 
 /**
  *
- * @param client_id {string}
+ * @param request
  */
 function on_bot_disconnected(request) {
     console.log("on_bot_disconnected",request.headers);
@@ -194,6 +188,100 @@ function on_bot_disconnected(request) {
         send_map_parties(to_number(map_id));
     });
     send_available_maps();
+    reassign_bot_clients();
+}
+
+/**
+ * Record the maps that this client has unlocked, using it to request map travel later
+ * @param request
+ * @param data
+ */
+function on_client_unlocked_maps(request,data) {
+    assert(request.is_bot_client, "Not bot client");
+    assert(Array.isArray(data.unlocked_maps),"No unlocked_maps array");
+    request.unlocked_maps = data.unlocked_maps;
+    reassign_bot_clients(request);
+}
+
+/**
+ *
+ * @param maps_unlocked {Array<number>}
+ * @param map_id {number}
+ */
+function is_map_unlocked(maps_unlocked, map_id) {
+    if(map_id <= map_ids.None || map_id >= map_ids.Count)
+        return false;
+    const realIndex = Math.floor(map_id / 32);
+    if (realIndex >= maps_unlocked.length) return false;
+    const shift = map_id % 32;
+    const flag = 1 << shift;
+    return (maps_unlocked[realIndex] & flag) !== 0;
+}
+
+/**
+ * Based on today's quests and a set of fixed map ids, cycle all bot clients and decide who should go where.
+ * @param request
+ */
+function reassign_bot_clients(request) {
+    console.log('reassign_bot_clients');
+    let check_district_regions = [
+        district_regions.America,
+        district_regions.Europe
+    ];
+    // TODO: Daily quests
+    let check_map_ids = [
+        map_ids.Domain_of_Anguish,
+        map_ids.The_Deep,
+        map_ids.Urgozs_Warren,
+        map_ids.Embark_Beach,
+        map_ids.Kaineng_Center_outpost,
+        map_ids.Kamadan_Jewel_of_Istan_outpost,
+    ];
+    let bots_to_reassign = Object.values(bot_clients);
+    let bots_assigned = [];
+
+    const is_assigned = (map_id, district_region) => {
+        return bots_assigned.filter((map_assigned) => {
+            return map_assigned.map_id === map_id && map_assigned.district_region === district_region;
+        }).length > 0;
+    };
+
+    const assign_bot = (bot_client, map_id, district_region) => {
+        assert(!is_assigned(map_id, district_region), `is_assigned(${map_id},${district_region})`);
+        bots_assigned.push({bot_client:bot_client,map_id:map_id, district_region:district_region});
+        const idx = bots_to_reassign.findIndex((reassign_bot_client) => {
+            return reassign_bot_client === bot_client;
+        });
+        assert(idx !== -1, "bots_to_reassign contains bot to assign");
+        bots_to_reassign.splice(idx,1);
+    };
+    // Assign bots in order of map importance (map, then district)
+    check_district_regions.forEach((district_region) => {
+        check_map_ids.forEach((map_id) => {
+            if(is_assigned(map_id,district_region))
+                return;
+            const available_bots_to_assign = bots_to_reassign.filter((bot_client) => {
+                return is_map_unlocked(bot_client.unlocked_maps || [], map_id);
+            });
+            if(!available_bots_to_assign.length)
+                return;
+            assign_bot(available_bots_to_assign[0], map_id, district_region);
+        })
+    });
+
+    console.log("bots_assigned",bots_assigned);
+    bots_assigned.forEach((map_assigned) => {
+        if(map_assigned.bot_client.map_id === map_assigned.map_id
+            && map_assigned.bot_client.district_region === map_assigned.district_region) {
+            return; // Already in the map
+        }
+        send_json(map_assigned.bot_client, {
+            type: "server_requested_travel",
+            map_id: map_assigned.map_id,
+            district_region:map_assigned.district_region,
+            district:district_from_region(map_assigned.district_region)
+        });
+    });
 }
 
 /**
@@ -203,12 +291,13 @@ function on_bot_disconnected(request) {
  */
 function on_recv_parties(ws, data) {
     const client_id = get_client_id(ws);
+    assert(client_id, "on_recv_parties: no client_id");
     const bot_client = get_bot_client(ws);
-    assert(bot_client, "on_recv_parties: not a bot client");
+    assert(bot_client, "on_recv_parties: get_bot_client failed");
     const map_id = to_number(data.map_id);
     assert(map_id, "on_recv_parties: invalid map_id");
     if(!data.hasOwnProperty('district_region')) {
-        assert(data.hasOwnProperty('district'));
+        assert(data.hasOwnProperty('district'),"on_recv_parties: no district or district_region");
         // Extract district region from district
         data.district_region = region_from_district(data.district);
     }
@@ -239,42 +328,21 @@ function on_recv_parties(ws, data) {
     parties.forEach((party) => {
         add_party(party);
     });
-    // Broadcast the update to all connected clients
-    //send_map_parties(map_id);
-    // Broadcast the summary list to all connected clients
+
+    // Broadcast to other connections
     send_available_maps();
-    send_client_locations();
     Object.keys(maps_affected).forEach((map_id) => {
         send_map_parties(map_id);
-    })
-}
-
-function send_client_locations(ws = null) {
-    const data = Object.values(bot_clients).map((bot_client) => {
-            return {
-                client_id:bot_client.client_id.substring(0,8), // Only provide the first 8 characters
-                map_id:bot_client.map_id,
-                district:bot_client.district
-            }
-        })
-    const res = JSON.stringify({
-        "type":"client_locations",
-        "client_locations":data
     });
-    if(ws === null) {
-        send_to_websockets(get_bot_websockets(), res);
-        return;
-    }
-    assert(ws.is_bot_client);
-    send_json(ws,res);
+    reassign_bot_clients();
 }
 
 /**
  * Send a summary list of map_ids that have available parties to a http request or endpoint
- * @param ws {WebSocket|Request}
+ * @param request_or_websocket {WebSocket|Request}
  * @param force
  */
-function send_available_maps(ws = null, force = false, exclude_ws = null) {
+function send_available_maps(request_or_websocket = null, force = false) {
 
     const unique_parties = unique(all_parties,(party) => {
         return `${party.map_id}-${party.district_region}-${party.party_id}`;
@@ -282,11 +350,11 @@ function send_available_maps(ws = null, force = false, exclude_ws = null) {
     const parties_by_district = groupBy(unique_parties,(party) => {
         return `${party.map_id}-${party.district}`;
     })
-    let unique_bots = Object.values(bot_clients).filter((bot_client) => {
-        // Exclude current websocket from the list
-        return bot_client.map_id;
-    })
-    const available_maps = unique(unique_bots,(bot_client) => {
+    const available_maps = unique(Object.values(bot_clients).filter((bot_client) => {
+            // Exclude bots without a map_id
+            return bot_client.map_id;
+        }),(bot_client) => {
+            // Unique by map id and region (may be more than 1 bot in a region)
             return `${bot_client.map_id}-${bot_client.district}`;
         }).map((bot_client) => {
             const key = `${bot_client.map_id}-${bot_client.district}`;
@@ -296,73 +364,19 @@ function send_available_maps(ws = null, force = false, exclude_ws = null) {
                 party_count:(parties_by_district[key] || []).length
             };
         });
-    const res = JSON.stringify({
+    const json = JSON.stringify({
         "type":"available_maps",
         "available_maps":available_maps
     });
 
-    if(ws === null) {
-
-        if(!force && last_available_maps_broadcasted === res)
-            return; // Don't broadcast unless the available maps array has changed
-        const websockets = Array.from(wss.clients).filter((ws) => {
-            return ws !== exclude_ws;
-        });
-        send_to_websockets(websockets, res);
-        last_available_maps_broadcasted = res;
+    if(request_or_websocket) {
+        send_to_websockets([request_or_websocket],json);
         return;
     }
-    send_json(ws,res);
-}
-
-/**
- * LEGACY: Send array of currently covered maps by the system
- * @param request_or_websocket {WebSocket|Request|null}
- */
-function send_map_activity(request_or_websocket = null) {
-    const maps_by_client = Object.keys(bot_clients).map((key) => {
-        const bot = bot_clients[key];
-        return {
-            mapId:bot.map_id,
-            district:district_from_region(bot.district_region),
-            lastUpdate:(new Date(bot.last_message)).toJSON(),
-            party_count:(parties_by_client[key] || []).length
-        };
-    });
-
-    const ret = JSON.stringify(maps_by_client);
-
-    if(request_or_websocket === null) {
-        send_to_websockets(get_user_websockets(), ret);
-        return;
-    }
-    send_json(request_or_websocket,ret);
-}
-
-/**
- * LEGACY: Send all party searches to legacy clients
- * @param request_or_websocket
- */
-function send_searches(request_or_websocket = null) {
-    const parties_by_map_and_district = {};
-    all_parties.forEach((party) => {
-        if(parties_by_map_and_district[`${party.map_id}-${party.district}`])
-            return;
-        parties_by_map_and_district[`${party.map_id}-${party.district}`] = {
-            map_id:party.map_id,
-            district:party.district,
-            parties:all_parties.filter((checkParty) => {
-                return checkParty.map_id === party.map_id && checkParty.district === party.district;
-            })
-        };
-    });
-    const ret = JSON.stringify(Object.values(parties_by_map_and_district));
-
-    if(request_or_websocket === null) {
-        send_to_websockets(get_user_websockets(), ret);
-        return;
-    }
-    send_json(request_or_websocket,ret);
+    if(!force && last_available_maps_broadcasted === json)
+        return; // Don't broadcast unless the available maps array has changed
+    send_to_websockets(get_user_websockets(), json);
+    last_available_maps_broadcasted = json;
 }
 
 /**
@@ -370,16 +384,12 @@ function send_searches(request_or_websocket = null) {
  * @param request_or_websocket {WebSocket|Request}
  */
 function send_all_parties(request_or_websocket = null) {
-    const ret = JSON.stringify({
+    const json = JSON.stringify({
         "type":"all_parties",
         "parties":all_parties
     });
-
-    if(request_or_websocket === null) {
-        send_to_websockets(get_user_websockets(), ret);
-        return;
-    }
-    send_json(request_or_websocket,ret);
+    const send_to = request_or_websocket ? [request_or_websocket] : get_user_websockets();
+    send_to_websockets(send_to,json);
 }
 
 /**
@@ -397,25 +407,22 @@ async function on_request_message(request, data) {
     }
     switch(data.type || '') {
         case "map_id":
+        case "map_parties":
+            assert(is_numeric(data.map_id),"Invalid or missing map_id");
             const map_id = to_number(data.map_id);
             request.map_id = map_id;
             send_map_parties(map_id, request);
             break;
-        case "client_locations":
-            if(!request.is_bot_client) {
-                send_header(request, 403,"Not a client");
-                return;
-            }
-            send_client_locations(request);
+        case "client_unlocked_maps":
+            assert(request.is_bot_client,"Not a client");
+            on_client_unlocked_maps(request,data);
             break;
         case "client_parties":
+            assert(request.is_bot_client,"Not a client");
             on_recv_parties(request, data);
             break;
         case "available_maps":
             send_available_maps(request);
-            break;
-        case "map_parties":
-            send_map_parties(to_number(data.map_id),request);
             break;
         case "all_parties":
             send_all_parties(request);
@@ -477,14 +484,6 @@ app.use(function (req, res, next) {
 });
 app.use('/', express.static(path.join(__dirname,'dist'),two_week_cache));
 app.use('/api', on_http_message);
-app.use('/status/map-activity',(request,response) => {
-    try {
-        send_map_activity(request);
-    } catch(e) {
-        console.error(e);
-        send_header(request, 500,e.message);
-    }
-});
 
 const http_server = http.createServer();
 http_server.on('request', app);
@@ -500,7 +499,7 @@ wss.on('connection', function connection(ws, request) {
     if(get_client_id(ws)) {
         try {
             add_bot_client(ws);
-            send_client_locations(ws);
+            reassign_bot_clients();
         } catch(e) {
             console.error(`[websocket]`,ws.ip,e.message);
             ws.ignore = 1;
@@ -512,26 +511,35 @@ wss.on('connection', function connection(ws, request) {
     ws.originalSend = ws.send;
     ws.send = (data) => {
         if(ws.ignore) return;
-        console.log(`[websocket]`,ws.ip,`-->`,data);
+        if(ws.compression === 'lz') {
+            return ws.sendCompressed(LZString.compressToUTF16(data),data);
+        }
+        console.log(`[websocket]`,ws.ip,`<--`,data);
+        ws.originalSend(data);
+    }
+    ws.sendCompressed = (data, original) => {
+        if(ws.ignore) return;
+        console.log(`[websocket]`,ws.ip,`!<--`,original);
         ws.originalSend(data);
     }
     ws.map_id = 0;
     send_available_maps(ws, true);
-    if(!ws.is_bot_client) {
-        send_all_parties(ws);
-    }
     ws.on('message',(data) => {
         if(ws.ignore)
             return;
         ws.last_message = new Date();
         data = data.toString();
-
-        if(ws.compression === 'lz') {
+        let compressed = ws.compression === 'lz';
+        if(compressed) {
             try {
                 const decompressed = LZString.decompressFromUTF16(data.toString());
-                if(decompressed && decompressed !== "@@@\u0000")
+                if(decompressed && decompressed !== "@@@\u0000") {
                     data = decompressed;
-                console.log("Decompressed");
+                } else {
+                    // Compression set, but this message doesn't seem to be compressed!
+                    compressed = false;
+                }
+
             } catch(e) {
                 console.error(e.message);
                 send_header(ws, 500, e.message);
@@ -539,7 +547,7 @@ wss.on('connection', function connection(ws, request) {
             }
         }
 
-        console.log(`[websocket]`,ws.ip,`<--`,data);
+        console.log(`[websocket]`,ws.ip,`${(compressed ? '!' : '')}-->`,data);
         on_websocket_message(data,ws).catch((e) => {
             console.error(e);
         })
@@ -562,10 +570,14 @@ function get_user_websockets() {
     });
 }
 function send_to_websockets(websockets, obj) {
+    if(!(obj && Array.isArray(websockets) && websockets.length))
+        return;
+    if(typeof obj !== 'string')
+        obj = JSON.stringify(obj);
     const compressed = LZString.compressToUTF16(obj);
     websockets.forEach((ws) => {
         if(ws.compression === 'lz')
-            ws.send(compressed);
+            ws.sendCompressed(compressed,obj);
         else
             ws.send(obj);
     })

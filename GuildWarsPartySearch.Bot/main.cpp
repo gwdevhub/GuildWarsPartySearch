@@ -224,8 +224,10 @@ static CallbackEntry EventType_WorldMapEnter_entry;
 static CallbackEntry EventType_WorldMapLeave_entry;
 
 static bool party_advertisements_pending = true;
+static bool maps_unlocked_pending = true;
 
 static std::vector<PartySearchAdvertisement*> party_search_advertisements;
+static uint32_t party_search_advertisements_map_id = 0;
 
 static uint32_t get_original_map_id(uint32_t map_id);
 
@@ -344,7 +346,7 @@ static bool send_websocket(easywsclient::WebSocket::pointer websocket, const std
         return false;
     }
     LogInfo("Websocket send, %d len:", payload.size());
-    //printf("%s\n", payload.c_str());
+    printf("%s\n", payload.c_str());
     last_websocket_message = time_get_ms();
     websocket->send(payload);
     return true;
@@ -382,32 +384,7 @@ static void on_client_locations_json(const std::vector<nlohmann::json>& j) {
 
 static void on_websocket_message(const std::string& message);
 
-/// <summary>
-/// Update the list of already visited areas that are being listened to, excluding the area I'm currently in
-/// </summary>
-/// <param name="websocket"></param>
-/// <param name="force"></param>
-/// <returns></returns>
-static bool get_already_visited_areas(easywsclient::WebSocket::pointer websocket, bool force = false) {
-    if (!force && party_searches_json_updated > 0 && time_get_ms() - party_searches_json_updated < 60000)
-        return true; // 1 min cache
-    if (!is_websocket_ready(websocket))
-        return false;
-    nlohmann::json j;
-    j["type"] = "client_locations";
-    const auto payload = j.dump();
-    auto old_party_searches_json_updated = party_searches_json_updated;
-    if (!send_websocket(websocket, payload))
-        return false;
-    for (time_t i = 0; i < 5000 && party_searches_json_updated == old_party_searches_json_updated; i += 50) {
-        websocket->poll();
-        websocket->dispatch(on_websocket_message);
-        time_sleep_ms(50);
-    }
-    return party_searches_json_updated != old_party_searches_json_updated;
-}
-
-static int send_party_advertisements(easywsclient::WebSocket::pointer websocket) {
+static bool send_party_advertisements(easywsclient::WebSocket::pointer websocket) {
     assert(is_websocket_ready(websocket));
     std::vector<PartySearchAdvertisement> ads;
     for (const auto& ad : party_search_advertisements) {
@@ -437,91 +414,31 @@ static void collect_instance_info() {
     assert(GetAccountUuid(account_uuid, ARRAY_SIZE(account_uuid)) > 0);
 }
 
-static uint32_t calculate_map_to_visit(uint32_t map_id_requested, District* district_out) {
-    // @TODO: Figure out if a district for a map is available; this should already be given because we can see it on the world map
-    if (map_id_requested 
-        && IsMapUnlocked(map_id_requested) 
-        && is_valid_outpost(map_id_requested)
-        && !is_map_already_visited(map_id_requested, *district_out)) {
-        // The map given is accessible
-        if (district_out && !*district_out)
-            *district_out = District::DISTRICT_CURRENT;
-        return map_id_requested;
-    }
-
-    time_t now = time_get_ms();
-
-    DailyQuests::DailyQuest* dailies[] = {
-        DailyQuests::GetZaishenMission(now),
-        DailyQuests::GetZaishenVanquish(now),
-        DailyQuests::GetZaishenCombat(now)
-    };
-    District districts[] = {
-        District::DISTRICT_AMERICAN,
-        District::DISTRICT_EUROPE_ENGLISH
-    };
-
-    for (auto district : districts) {
-        for (auto daily : dailies) {
-            if (!daily)
-                continue;
-            const auto map_id = get_original_map_id(daily->nearest_outpost_id);
-            if (!is_valid_outpost(map_id))
-                continue;
-            if (!IsMapUnlocked(map_id))
-                continue;
-            if (is_map_already_visited(map_id, district))
-                continue;
-            *district_out = district;
-            return map_id;
-        }
-    }
-    // Ordered by rarity of having outpost available
-    GW::Constants::MapID fallback_map_ids[] = {
-        GW::Constants::MapID::Domain_of_Anguish,
-        GW::Constants::MapID::The_Deep,
-        GW::Constants::MapID::Urgozs_Warren,
-        GW::Constants::MapID::Embark_Beach,
-        GW::Constants::MapID::Kaineng_Center_outpost,
-        GW::Constants::MapID::Kamadan_Jewel_of_Istan_outpost
-    };
-    for (auto district : districts) {
-        for (auto fallback_id : fallback_map_ids) {
-            const auto map_id = get_original_map_id((uint32_t)fallback_id);
-            if (!is_valid_outpost(map_id))
-                continue;
-            if (!IsMapUnlocked(map_id))
-                continue;
-            if (is_map_already_visited(map_id, district))
-                continue;
-            *district_out = district;
-            return map_id;
-        }
-    }
-
-    return get_original_map_id(map_id);
-}
-
 static void on_map_left(Event* event, void* params) {
-    clear_party_search_advertisements();
+    party_search_advertisements_map_id = 0;
 }
 
 static void on_map_entered(Event* event, void* params) {
     collect_instance_info();
     party_advertisements_pending = true;
     ready = true;
+    maps_unlocked_pending = true;
 }
 
 static void add_party_search_advertisement(Event* event, void* params) {
     assert(event && event->type == EventType_PartySearchAdvertisement && event->PartySearchAdvertisement.party_id);
-
+    if (party_search_advertisements_map_id != map_id)
+        clear_party_search_advertisements();
+    party_search_advertisements_map_id = map_id;
     create_party_search_advertisement(event);
     party_advertisements_pending = true;
 }
 
 static void update_party_search_advertisement(Event* event, void* params) {
     assert(event && event->PartySearchAdvertisement.party_id);
-
+    if (party_search_advertisements_map_id != map_id)
+        clear_party_search_advertisements();
+    party_search_advertisements_map_id = map_id;
     PartySearchAdvertisement* party = get_party_search_advertisement(event->PartySearchAdvertisement.party_id);
     if (party) {
         switch (event->type) {
@@ -655,7 +572,7 @@ static bool in_correct_outpost() {
 
 static void ensure_correct_outpost() {
     if (!wanted_map_id)
-        exit_with_status("calculate_map_to_visit failed, ensure this character has gtob unlocked", 1);
+        exit_with_status("No wanted_map_id in ensure_correct_outpost", 1);
     if (in_correct_outpost())
         return;
     LogInfo("Zoning into outpost");
@@ -663,7 +580,6 @@ static void ensure_correct_outpost() {
     size_t retries = 4;
     for (size_t i = 0; i < retries && !in_correct_outpost(); i++) {
         LogInfo("Travel attempt %d of %d", i + 1, retries);
-        clear_party_search_advertisements();
         res = travel_wait(wanted_map_id, wanted_district, bot_configuration.district_number);
         if (res == 38) {
             retries = 50; // District full, more retries
@@ -675,6 +591,50 @@ static void ensure_correct_outpost() {
     LogInfo("I should be in outpost %d %d %d", GetMapId(), GetDistrict(), GetDistrictNumber());
 }
 
+static bool send_maps_unlocked(easywsclient::WebSocket::pointer websocket) {
+    if (!is_websocket_ready(websocket))
+        return false;
+    std::vector<uint32_t> maps_unlocked;
+    maps_unlocked.resize(32,0);
+    const auto len = GetMapsUnlocked(maps_unlocked.data(), maps_unlocked.capacity());
+    maps_unlocked.resize(len);
+
+    nlohmann::json j;
+    j["type"] = "client_unlocked_maps";
+    j["unlocked_maps"] = maps_unlocked;
+
+    return send_websocket(websocket, j.dump());
+}
+
+// Server has send a websocket message asking this bot to travel
+static bool on_server_requested_travel(nlohmann::json& data) {
+    if (!data["map_id"].is_number()) {
+        LogWarn("on_server_requesting_travel: requested map_id is missing or not a number", data.dump());
+        return false;
+    }
+    const auto requested_map_id = data["map_id"].get<uint32_t>();
+    if (!is_valid_outpost(requested_map_id)) {
+        LogWarn("on_server_requesting_travel: requested map_id %d is not a valid outpost", requested_map_id);
+        return false;
+    }
+    if (!IsMapUnlocked(requested_map_id)) {
+        LogWarn("on_server_requesting_travel: requested map_id %d is not unlocked", requested_map_id);
+        return false;
+    }
+    if (!data["district"].is_number()) {
+        LogWarn("on_server_requesting_travel: requested district is missing or not a number", data.dump());
+        return false;
+    }
+    const auto requested_district = data["district"].get<uint32_t>();
+    if (requested_district > District::DISTRICT_ASIA_JAPANESE) {
+        LogWarn("on_server_requesting_travel: requested map_id %d is not a valid district", requested_district);
+        return false;
+    }
+
+    wanted_map_id = requested_map_id;
+    wanted_district = (District)requested_district;
+}
+
 static void on_websocket_message(const std::string& message) {
     LogInfo("Websocket recv, %d len",message.size());
     printf("%s\n", message.c_str());
@@ -682,8 +642,13 @@ static void on_websocket_message(const std::string& message) {
     nlohmann::json j = nlohmann::json::parse(message);
     if (j == nlohmann::json::value_t::discarded)
         return;
-    if (j.contains("client_locations") && j["client_locations"].is_array())
-        on_client_locations_json(j["client_locations"].get<std::vector<nlohmann::json>>());
+    if (j["type"].is_string()) {
+        const auto type = j["type"].get<std::string>();
+        if (type == "server_requested_travel") {
+            on_server_requested_travel(j);
+        }
+    }
+    // Unhandled request
 }
 
 static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt) {
@@ -777,32 +742,38 @@ static int main_bot(void* param)
 
     while (running) {
         wait_until_ingame();
-        if (!connect_websocket(&sending_websocket, bot_configuration.web_socket_url, bot_configuration.api_key)) {
-            // Connection to server failed, continue the loop until we connect
-            continue;
-        }
-        if (!get_already_visited_areas(sending_websocket)) {
-            LogInfo("Failed to get party searches from server");
-            continue;
-        }
-        auto old_wanted_map_id = wanted_map_id;
-        // Check for new map every 2 mins
-        if (!last_calculated_map_check && time_get_ms() - last_calculated_map_check > 120000) {
-            last_calculated_map_check = time_get_ms();
-            wanted_map_id = get_original_map_id(calculate_map_to_visit(wanted_map_id, &wanted_district));
-        }
-        if (old_wanted_map_id != wanted_map_id) {
-            LogInfo("Wanted map id changed from %d to %d", old_wanted_map_id, wanted_map_id);
-        }
-        ensure_correct_outpost();
+        if (!wanted_map_id)
+            wanted_map_id = map_id;
         if (!is_websocket_ready(sending_websocket)) {
             // Websocket not currently active, reset vars ready to send bits on sucessful connect later
             party_advertisements_pending = true;
             last_websocket_message = time_get_ms() - websocket_ping_interval;
+            maps_unlocked_pending = true;
         }
+        if (!connect_websocket(&sending_websocket, bot_configuration.web_socket_url, bot_configuration.api_key)) {
+            // Connection to server failed, continue the loop until we connect
+            continue;
+        }
+        //if (!get_already_visited_areas(sending_websocket)) {
+        //    LogInfo("Failed to get party searches from server");
+        //   continue;
+        //}
+        //auto old_wanted_map_id = wanted_map_id;
+        // Check for new map every 2 mins
+        // if (!last_calculated_map_check && time_get_ms() - last_calculated_map_check > 120000) {
+        //    last_calculated_map_check = time_get_ms();
+        //   wanted_map_id = get_original_map_id(calculate_map_to_visit(wanted_map_id, &wanted_district));
+        //}
+        //if (old_wanted_map_id != wanted_map_id) {
+        //    LogInfo("Wanted map id changed from %d to %d", old_wanted_map_id, wanted_map_id);
+        //}
+        ensure_correct_outpost();
+
         if (party_advertisements_pending) {
-            send_party_advertisements(sending_websocket);
-            party_advertisements_pending = false;
+            party_advertisements_pending = !send_party_advertisements(sending_websocket);
+        }
+        if (maps_unlocked_pending) {
+            maps_unlocked_pending = !send_maps_unlocked(sending_websocket);
         }
         if (sending_websocket) {
             if (time_get_ms() - last_websocket_message > websocket_ping_interval) {
