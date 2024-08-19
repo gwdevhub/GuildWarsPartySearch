@@ -347,7 +347,7 @@ function on_recv_parties(ws, data) {
 function send_available_maps(request_or_websocket = null, force = false) {
 
     const unique_parties = unique(all_parties,(party) => {
-        return `${party.map_id}-${party.district_region}-${party.party_id}`;
+        return `${party.map_id}-${party.district_region}-${party.sender}`;
     })
     const parties_by_district = groupBy(unique_parties,(party) => {
         return `${party.map_id}-${party.district}`;
