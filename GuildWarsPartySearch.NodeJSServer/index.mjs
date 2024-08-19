@@ -1,6 +1,13 @@
 import './src/libs/leaflet/1.9.4/leaflet.js';
 import './src/libs/moment/2.29.1/moment.min.js';
-import {getMapInfo, getMapName, party_search_types, districts } from "./src/js/gw_constants.mjs";
+import {
+    getMapInfo,
+    getMapName,
+    party_search_types,
+    districts,
+    district_regions,
+    getDistrictName
+} from "./src/js/gw_constants.mjs";
 import {is_numeric, to_number} from "./src/js/string_functions.mjs";
 import {groupBy} from "./src/js/array_functions.mjs";
 
@@ -96,9 +103,9 @@ document.querySelectorAll('.toggleElement').forEach((element) => {
         if(element) toggleElement(element);
     })
 })
-document.querySelectorAll('.search_type_toggle').forEach((element) => {
-    element.addEventListener('change',(event) => {
-        toggleSearchType(event.currentTarget.getAttribute('data-id'));
+document.querySelectorAll('input.search_type_toggle').forEach((element) => {
+    element.addEventListener('change',() => {
+        redrawPartyWindow();
     })
 })
 
@@ -241,31 +248,35 @@ function redrawPartyWindow() {
         return;
     const parties = get_parties_for_map(chosen_map_id);
     popupWindowTitle.textContent = `Party Search - ${getMapName(chosen_map_id)}`;
-    party_search_types.forEach((name,search_type_id) => {
+    let party_rows_html = '';
+    Object.keys(party_search_types).forEach((name) => {
+        const search_type_id = party_search_types[name];
+        const is_shown = partyWindow.querySelector(`input.search_type_toggle[data-id="${search_type_id}"]:checked`);
         const row_class = `search_type_${search_type_id}`;
-        const pivotRow = partyWindowTbody.querySelector(`#search_type_divider_${search_type_id}`);
-        if(!pivotRow)
-            return;
         const parties_by_type = parties.filter((party) => {
             return party.search_type === search_type_id;
         });
-        partyWindowTbody.querySelectorAll(`.${row_class}`).forEach(row => row.remove());
-        if(!pivotRow.classList.contains('hidden'))
-            pivotRow.classList.add('hidden', 'collapsed');
+        document.querySelector(`.search_type_count_${search_type_id}`).innerHTML = `${parties_by_type.length}`;
         if(!parties_by_type.length)
             return;
-        const party_rows_html = parties.map((party) => {
+        if(!is_shown)
+            return;
+        party_rows_html += `<tr class="divider row" id="search_type_divider_${search_type_id}">
+            <th colSpan="5">${name}</th>
+        </tr>`
+
+
+        party_rows_html += parties_by_type.map((party) => {
             return `<tr class="${row_class} row small centered">
             <td class="text-start">${party.sender || 'N/A'}</td>\
-            <td>${districts[party.district] || 'N/A'}</td>\
+            <td>${getDistrictName(party.district_region) || 'N/A'}</td>\
             <td>${party.party_size || 'N/A'}</td>\
             <td>${party.district_number || 'N/A'}</td>\
             <td class="text-start">${party.message || 'N/A'}</td>\
         </tr>`;
         }).join('');
-        pivotRow.classList.remove('hidden', 'collapsed');
-        pivotRow.insertAdjacentHTML( 'afterend', party_rows_html );
     });
+    partyWindowTbody.innerHTML = party_rows_html;
 }
 
 function unproject(coord) {

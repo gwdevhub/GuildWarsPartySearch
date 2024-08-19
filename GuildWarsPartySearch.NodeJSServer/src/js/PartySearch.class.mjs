@@ -40,7 +40,7 @@ export class PartySearch {
         this.search_type = to_number(json.search_type || json[json_keys['search_type']]);
         this.primary = to_number(json.primary || json[json_keys['primary']] || 0);
         this.secondary = to_number(json.secondary || json[json_keys['secondary']] || 0);
-        this.district_number = to_number(json.district_number || json[json_keys['district_number']] || 0);
+        this.district_number = to_number(json.district_number || json[json_keys['district_number']] || 1);
         this.district_region = to_number(json.district_region || json[json_keys['district_region']] || 0);
         this.district_language = to_number(json.district_language || json.language || json[json_keys['district_language']] || 0);
         this.map_id = to_number(json.map_id || json[json_keys['map_id']] || 0);
