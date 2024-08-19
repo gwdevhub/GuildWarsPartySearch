@@ -124,7 +124,7 @@ function send_map_parties(map_id, request_or_websocket = null) {
                 })
     });
 
-    const send_to = request_or_websocket ? request_or_websocket : get_user_websockets().filter((ws) => {
+    const send_to = request_or_websocket ? [request_or_websocket] : get_user_websockets().filter((ws) => {
         return ws.map_id === map_id;
     });
     send_to_websockets(send_to,json);
@@ -269,7 +269,9 @@ function reassign_bot_clients(request) {
         })
     });
 
-    console.log("bots_assigned",bots_assigned);
+    console.log("bots_assigned",bots_assigned.map((map_assigned) => {
+        return {map_id:map_assigned.map_id,district_region:map_assigned.district_region, client_id:map_assigned.bot_client.client_id};
+    }));
     bots_assigned.forEach((map_assigned) => {
         if(map_assigned.bot_client.map_id === map_assigned.map_id
             && map_assigned.bot_client.district_region === map_assigned.district_region) {
@@ -332,7 +334,7 @@ function on_recv_parties(ws, data) {
     // Broadcast to other connections
     send_available_maps();
     Object.keys(maps_affected).forEach((map_id) => {
-        send_map_parties(map_id);
+        send_map_parties(to_number(map_id));
     });
     reassign_bot_clients();
 }
