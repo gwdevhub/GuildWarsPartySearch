@@ -248,10 +248,11 @@ body {
     }
 }
 
-.holder {
+.marker_location .holder {
     line-height:0;
     .label {
         line-height:1.2;
+        bottom:unset;
     }
 }
 
@@ -281,13 +282,13 @@ body {
         display: none;
     }
 }
-.smallseethru {
+.small {
     .icon {
         height:32px;
         width:32px;
     }
 }
-.largeseethru {
+.large {
     .icon {
         height:128px;
         width:128px;

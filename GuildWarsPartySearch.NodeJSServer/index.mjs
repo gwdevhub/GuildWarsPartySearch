@@ -473,7 +473,7 @@ function locationMarker(data) {
 <div class="icon" style="background-image:url('resources/icons/${data.type}.png');"></div>
 <div class="label">${data.label || data.name}</div>
 </div>`;
-    let className = `marker marker_location ${markerSize[data.type] || ''}`;
+    let className = `marker marker_location ${markerSize[data.type] || ''} `;
     if(!is_map_available(data.mapId || 0)) {
         className += `seethru`;
     }
