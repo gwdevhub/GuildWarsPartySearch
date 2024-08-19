@@ -8,8 +8,6 @@ BOT_NAME=${PWD##*/}
 echo $BOT_NAME;
 echo $BOT_FOLDER;
 
-docker stop -f "$BOT_NAME";
-docker rm -f "$BOT_NAME";
 # Clear any existing tmp folder
 rm -R "/tmp$BOT_FOLDER";
 
@@ -19,6 +17,8 @@ cd "/tmp$BOT_FOLDER";
 chmod 777 .;
 git clone --recursive https://github.com/gwdevhub/GuildWarsPartySearch.git
 
+docker stop -t 1 "$BOT_NAME";
+docker rm -f "$BOT_NAME";
 # Copy new bot code back into original folder
 cp -ura ./GuildWarsPartySearch/GuildWarsPartySearch.NodeJSServer/* "$BOT_FOLDER";
 chmod -R 777 "$BOT_FOLDER";
