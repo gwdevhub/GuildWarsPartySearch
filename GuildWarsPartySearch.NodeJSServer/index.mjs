@@ -6,10 +6,10 @@ import {
     party_search_types,
     districts,
     district_regions,
-    getDistrictName
+    getDistrictName, district_region_info, region_from_district
 } from "./src/js/gw_constants.mjs";
 import {is_numeric, to_number} from "./src/js/string_functions.mjs";
-import {groupBy} from "./src/js/array_functions.mjs";
+import {groupBy, unique} from "./src/js/array_functions.mjs";
 
 import map_data_0 from  './src/data/0.json';
 import map_data_1 from  './src/data/1.json';
@@ -89,6 +89,7 @@ let map = null; // Leaflet map
 const menu = document.querySelector('#menu');
 const partyList = document.querySelector(".partyList");
 const popupWindowTitle = document.querySelector("#partyWindowTitle");
+const partyWindowDistricts = document.querySelector("#partyWindowDistricts");
 const partyWindow = document.querySelector("#partyWindow");
 const partyWindowTbody = document.querySelector("#partyWindowTable tbody");
 
@@ -248,6 +249,21 @@ function redrawPartyWindow() {
         return;
     const parties = get_parties_for_map(chosen_map_id);
     popupWindowTitle.textContent = `Party Search - ${getMapName(chosen_map_id)}`;
+
+    let listening_districts = unique(available_maps,(available_map) => {
+        return `${available_map.map_id}-${region_from_district(available_map.district)}`
+    }).filter((available_map) => {
+        return available_map.map_id === chosen_map_id;
+    }).map((available_map) => {
+        const district_region = region_from_district(available_map.district);
+        const info = district_region_info[district_region];
+        assert(info, `No district_region_info(${district_region})`);
+        return `<span title="${info.name}">${info.abbr}</span>`;
+    }).join(', ');
+    if(!listening_districts)
+        listening_districts = 'None';
+    partyWindowDistricts.innerHTML = listening_districts;
+
     let party_rows_html = '';
     Object.keys(party_search_types).forEach((name) => {
         const search_type_id = party_search_types[name];

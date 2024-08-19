@@ -38,7 +38,19 @@
   max-height: 0;
   overflow: hidden;
 }
+.flex-fill {
+  flex:1 1 auto!important;
+}
 
 .cursor-pointer {
   cursor:pointer;
+}
+.text-nowrap {
+  white-space: nowrap;
+}
+.align-items-center {
+  align-items: center;
+}
+.align-self-stretch {
+  align-self: stretch;
 }
