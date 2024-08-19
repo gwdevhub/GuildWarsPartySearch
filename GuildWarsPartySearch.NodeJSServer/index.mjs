@@ -93,6 +93,16 @@ const partyWindowDistricts = document.querySelector("#partyWindowDistricts");
 const partyWindow = document.querySelector("#partyWindow");
 const partyWindowTbody = document.querySelector("#partyWindowTable tbody");
 
+partyWindow.addEventListener('click',(event) => {
+    event.stopPropagation();
+    toggleElement(partyWindow);
+    return false;
+})
+partyWindow.querySelector('.popupInner').addEventListener('click',(event) => {
+    event.stopPropagation();
+    return false;
+})
+
 document.querySelectorAll('.mapLink').forEach((element) => {
     element.addEventListener('click',(event) => {
         loadMap(to_number(element.getAttribute('data-id')));
@@ -283,12 +293,18 @@ function redrawPartyWindow() {
 
 
         party_rows_html += parties_by_type.map((party) => {
-            return `<tr class="${row_class} row small centered">
+            return `<tr class="${row_class} hide-on-mobile row small centered">
             <td class="text-start">${party.sender || 'N/A'}</td>\
             <td>${getDistrictName(party.district_region) || 'N/A'}</td>\
             <td>${party.party_size || 'N/A'}</td>\
             <td>${party.district_number || 'N/A'}</td>\
             <td class="text-start">${party.message || 'N/A'}</td>\
+        </tr>
+        <tr class="${row_class} show-on-mobile row small centered">
+            <td class="text-start">
+                ${party.sender || ''}<br/>
+                ${getDistrictName(party.district_region)} ${party.district_number}<br/>
+            </td><td class="text-start">${party.message}</td>
         </tr>`;
         }).join('');
     });

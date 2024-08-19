@@ -1,0 +1,57 @@
+
+.show-on-mobile {
+  display:none !important;
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+
+  .show-on-mobile {
+    display:revert !important;
+  }
+  .hide-on-mobile {
+    display:none !important;
+  }
+
+  #partyWindowTableHeader th,
+  #partyWindowTable td {
+    min-width:50%;
+  }
+  #partyWindowTableHeader th:last-child,
+  #partyWindowTable td:last-child {
+    width:100%;
+  }
+  #partyWindowTableHeader th:first-child,
+  #partyWindowTable td:first-child {
+    min-width:50%;
+    padding-left: .1rem;
+  }
+  .popupWindow .popupInner {
+    width:98%;
+  }
+  .popupWindow .popupInner .table {
+    font-size:90%;
+    width:100%;
+    margin:0;
+    tr {
+      margin-left:0;
+      width:100%;
+    }
+    th {
+      padding:.1rem 0;
+    }
+    td, th {
+      width:50% !important;
+    }
+    .divider.row {
+      th {
+        font-weight:normal;
+      }
+      font-size:90%;
+    }
+  }
+  .districts_info,
+  .search_type_filters {
+    display:none;
+  }
+}

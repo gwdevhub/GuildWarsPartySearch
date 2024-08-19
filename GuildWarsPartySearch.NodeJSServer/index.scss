@@ -3,6 +3,8 @@
 
 @import 'src/css/utilities';
 
+
+
 @font-face{
     font-family: "Fremont";
     src: url(./src/fonts/Fremont.woff)
@@ -296,64 +298,73 @@ body {
 }
 .popupWindow {
     position: absolute;
-    right: 25%;
-    top: 15vh;
-    height:70vh;
-    width: 50%;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height:100vh;
+    width:100vw;
     z-index: 10000;
     padding: 0;
-    background: rgba(0, 0, 0, 0.90);
+    top:0;
+    left:0;
+
     opacity: 1;
     transition: opacity 0.3s;
+    .popupInner {
+        background: rgba(0, 0, 0, 0.90);
+        color: #ffffff;
+        overflow:hidden;
+        border: solid 1px #808080;
+        min-height:70%;
+        min-width:50%;
+        max-height:90%;
+        max-width:100%;
+        &.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .popupContent {
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex: 1 1 auto !important;
+        }
+        .closeButton {
+            margin-left:1rem;
+            padding: .25rem .5rem;
+            cursor: pointer;
+            &:hover {
+                background: #1d1d1d;
+            }
+        }
+        .table {
+            display: table;
+            overflow-wrap: anywhere;
+            width: 100%;
+            .row{
+                display: table-row;
+                margin-left: 5px;
+                .header{
+                    display: table-cell;
+                    text-align: center;
+                    font-size: 12pt;
+                }
+                .cell {
+                    display: table-cell;
+                    text-align: center;
+                    font-size: 10pt;
+                }
+            }
+            tr.divider td {
+                border-top: solid 1px #808080;
+            }
+        }
+        .divider {
+            font-size: 12pt;
+            margin: 5px;
+        }
+    }
 
-    color: #ffffff;
-    overflow:hidden;
-    border: solid 1px #808080;
-    display:flex;
-    flex-direction:column;
-    &.hidden {
-        opacity: 0;
-        pointer-events: none;
-    }
-    .popupContent {
-        overflow-y: auto;
-        overflow-x: hidden;
-        flex: 1 1 auto !important;
-    }
-    .closeButton {
-        margin-left:1rem;
-        padding: .25rem .5rem;
-        cursor: pointer;
-        &:hover {
-            background: #1d1d1d;
-        }
-    }
-    .table {
-        display: table;
-        overflow-wrap: anywhere;
-        width: 100%;
-        .row{
-            display: table-row;
-            margin-left: 5px;
-            .header{
-                display: table-cell;
-                text-align: center;
-                font-size: 12pt;
-            }
-            .cell {
-                display: table-cell;
-                text-align: center;
-                font-size: 10pt;
-            }
-        }
-        tr.divider td {
-            border-top: solid 1px #808080;
-        }
-    }
-    .divider {
-        font-size: 12pt;
-        margin: 5px;
-    }
 }
 #partyWindowTable {
     overflow:hidden;
@@ -399,3 +410,4 @@ table {
         font-size:90%;
     }
 }
+@import 'src/css/mobile';
