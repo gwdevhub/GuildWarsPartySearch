@@ -1,7 +1,7 @@
 import {assert} from "./assert.mjs";
 import {
     district_from_region,
-    district_regions,
+    district_regions, getDistrictAbbreviation,
     getDistrictName, getMapInfo,
     getMapName,
     languages, map_info,
@@ -97,9 +97,9 @@ export class PartySearch {
         assert(typeof this.hero_count === 'number' && this.hero_count < this.party_size);
         assert(typeof this.map_id === 'number' && this.map_id > 0 && map_info[this.map_id]);
         assert(typeof this.district_number === 'number');
-        assert(typeof this.search_type === 'number' && party_search_types[this.search_type]);
-        assert(typeof this.district_region === 'number' && district_regions[this.district_region] );
-        assert(typeof this.district_language === 'number' && languages[this.district_language]);
+        assert(typeof this.search_type === 'number' && Object.values(party_search_types).includes(this.search_type));
+        assert(typeof this.district_region === 'number' && Object.values(district_regions).includes(this.district_region));
+        assert(typeof this.district_language === 'number' && Object.values(languages).includes(this.district_language));
     }
 
     get map_name() {
