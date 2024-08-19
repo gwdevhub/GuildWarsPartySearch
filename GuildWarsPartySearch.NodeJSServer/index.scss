@@ -248,6 +248,13 @@ body {
     }
 }
 
+.holder {
+    line-height:0;
+    .label {
+        line-height:1.2;
+    }
+}
+
 
 .icon {
     display: inline-block;
@@ -255,6 +262,11 @@ body {
     margin: 0;
     padding: 0;
     transition: opacity 0.5s, transform 0.5s;
+
+    height:64px;
+    width:64px;
+    background-position:center;
+    background-repeat:no-repeat;
 
     &.scaled_70 {
         transform: scale(0.7, 0.7);
@@ -269,7 +281,18 @@ body {
         display: none;
     }
 }
-
+.smallseethru {
+    .icon {
+        height:32px;
+        width:32px;
+    }
+}
+.largeseethru {
+    .icon {
+        height:128px;
+        width:128px;
+    }
+}
 .popupWindow {
     position: absolute;
     right: 25%;

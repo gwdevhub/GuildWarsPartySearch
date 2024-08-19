@@ -27,6 +27,17 @@ export const groupBy = (arr,cb) => {
 
 /**
  *
+ * @param object {Object}
+ * @param value
+ * @return {string}
+ */
+export function find_key(object, value) {
+    return Object.keys(object).find(key =>
+        object[key] === value);
+}
+
+/**
+ *
  * @param obj Object
  * @param check function
  */

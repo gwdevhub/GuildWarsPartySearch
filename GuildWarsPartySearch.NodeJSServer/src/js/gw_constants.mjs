@@ -2628,6 +2628,8 @@ export const map_info = [
   });
 });
 
+
+
 /**
  *
  * @param map_id {number}
@@ -2637,6 +2639,30 @@ export function getMapInfo(map_id) {
   if(map_id >= map_info.length)
     return null;
   return map_info[map_id];
+}
+
+/**
+ *
+ * @param map_id
+ * @return {boolean}
+ */
+export function isValidOutpost(map_id) {
+  const map_info = getMapInfo(map_id);
+  if(!map_info) return false;
+  if ((map_info.flags & 0x5000000) === 0x5000000)
+    return false; // e.g. "wrong" augury rock is map 119, no NPCs
+  if ((map_info.flags & 0x80000000) === 0x80000000)
+    return false; // e.g. Debug map
+  switch (map_info.map_type) {
+    case map_types.City:
+    case map_types.CompetitiveMission:
+    case map_types.CooperativeMission:
+    case map_types.EliteMission:
+    case map_types.MissionOutpost:
+    case map_types.Outpost:
+      return true;
+  }
+  return false;
 }
 
 /**

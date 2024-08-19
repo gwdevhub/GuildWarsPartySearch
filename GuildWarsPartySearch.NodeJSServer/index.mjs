@@ -470,13 +470,17 @@ function locationMarker(data) {
     let label = data.label || data.name;
     let divId = data.mapId ? " id='" + data.mapId + "'" : "";
     const icon_html = `<div class="holder" data-map-id="${data.mapId || ''}">
-<img class='icon' alt="Icon ${data.type}" src='resources/icons/${data.type}.png'/>
-<div class='label'>${data.label || data.name}</div>
+<div class="icon" style="background-image:url('resources/icons/${data.type}.png');"></div>
+<div class="label">${data.label || data.name}</div>
 </div>`;
+    let className = `marker marker_location ${markerSize[data.type] || ''}`;
+    if(!is_map_available(data.mapId || 0)) {
+        className += `seethru`;
+    }
     return L.marker(unproject(data.coordinates), {
         icon: L.divIcon({
             iconSize: null,
-            className: `marker marker_location ${markerSize[data.type] || ''} seethru`,
+            className: className,
             html:icon_html
         }),
         options: {
@@ -490,19 +494,20 @@ function locationMarker(data) {
     });
 }
 
-function updateMarkers() {
-    document.querySelectorAll(".marker.marker_location:not(.seethru)").forEach((element) => {
-        element.classList.add('seethru','unclickable');
+function is_map_available(map_id) {
+    map_id = to_number(map_id);
+    return available_maps.find((available_map) => {
+        return available_map.map_id === map_id;
     });
+}
 
-    const availableMarkers = Array.from(document.querySelectorAll(".marker.marker_location .holder[id]")).filter((element) => {
-        const marker_map_id = to_number(element.id);
-        return available_maps.find((available_map) => {
-            return available_map.map_id === marker_map_id;
-        }) != null;
-    });
-    availableMarkers.forEach((element) => {
-        element.parentElement.classList.remove('seethru','unclickable');
+function updateMarkers() {
+    document.querySelectorAll(".marker.marker_location").forEach((element) => {
+        if(!is_map_available(element.id || 0)) {
+            element.classList.add('seethru');
+        } else {
+            element.classList.remove('seethru');
+        }
     });
 }
 

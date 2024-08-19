@@ -19,8 +19,14 @@ import {
     build_express_cache_options
 } from "./src/js/networking.mjs";
 import * as path from "path";
-import {district_from_region, district_regions, map_ids, region_from_district} from "./src/js/gw_constants.mjs";
-import {unique,groupBy, find_if, delete_if} from "./src/js/array_functions.mjs";
+import {
+    district_from_region,
+    district_regions,
+    isValidOutpost,
+    map_ids,
+    region_from_district
+} from "./src/js/gw_constants.mjs";
+import {unique, groupBy, find_if, delete_if, find_key} from "./src/js/array_functions.mjs";
 
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -29,6 +35,8 @@ import LZString from "./src/js/lz-string.min.mjs";
 import "./src/js/date_functions.js";
 
 import config from "./config.json" with { type: "json" };
+
+import {GetZaishenBounty, GetZaishenCombat, GetZaishenMission, GetZaishenVanquish} from "./src/js/DailyQuest.class.mjs";
 
 console.logDefault = console.log;
 console.log = (...args) => {
@@ -223,19 +231,30 @@ function is_map_unlocked(maps_unlocked, map_id) {
  * @param request
  */
 function reassign_bot_clients(request) {
-    console.log('reassign_bot_clients');
+    const zaishen_mission = GetZaishenMission();
+    const zaishen_bounty = GetZaishenBounty();
+    const zaishen_combat = GetZaishenCombat();
+    const zaishen_vanquish = GetZaishenVanquish();
+    console.log(`reassign_bot_clients; zm = ${find_key(map_ids,zaishen_mission.map_id)}, \
+    zb = ${find_key(map_ids,zaishen_bounty.map_id)}, \
+    zc = ${find_key(map_ids,zaishen_combat.map_id)}, \
+    zv = ${find_key(map_ids,zaishen_vanquish.map_id)}`);
     let check_district_regions = [
         district_regions.America,
         district_regions.Europe
     ];
-    // TODO: Daily quests
+
     let check_map_ids = [
+        zaishen_mission.nearest_outpost_id,
         map_ids.Domain_of_Anguish,
         map_ids.The_Deep,
         map_ids.Urgozs_Warren,
         map_ids.Embark_Beach,
         map_ids.Kaineng_Center_outpost,
         map_ids.Kamadan_Jewel_of_Istan_outpost,
+        zaishen_bounty.nearest_outpost_id,
+        zaishen_vanquish.nearest_outpost_id,
+        zaishen_combat.nearest_outpost_id
     ];
     let bots_to_reassign = Object.values(bot_clients);
     let bots_assigned = [];
@@ -258,6 +277,8 @@ function reassign_bot_clients(request) {
     // Assign bots in order of map importance (map, then district)
     check_district_regions.forEach((district_region) => {
         check_map_ids.forEach((map_id) => {
+            if(!isValidOutpost(map_id))
+                return;
             if(is_assigned(map_id,district_region))
                 return;
             const available_bots_to_assign = bots_to_reassign.filter((bot_client) => {
