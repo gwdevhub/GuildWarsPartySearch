@@ -502,11 +502,11 @@ function is_map_available(map_id) {
 }
 
 function updateMarkers() {
-    document.querySelectorAll(".marker.marker_location").forEach((element) => {
-        if(!is_map_available(element.id || 0)) {
-            element.classList.add('seethru');
+    document.querySelectorAll(".marker.marker_location .holder[data-map-id]").forEach((element) => {
+        if(!is_map_available(element.getAttribute('data-map-id') || 0)) {
+            element.parentElement.classList.add('seethru');
         } else {
-            element.classList.remove('seethru');
+            element.parentElement.classList.remove('seethru');
         }
     });
 }
