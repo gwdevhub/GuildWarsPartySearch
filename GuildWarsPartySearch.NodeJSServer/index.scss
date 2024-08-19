@@ -312,6 +312,8 @@ body {
     opacity: 1;
     transition: opacity 0.3s;
     .popupInner {
+        display:flex;
+        flex-direction: column;
         background: rgba(0, 0, 0, 0.90);
         color: #ffffff;
         overflow:hidden;
