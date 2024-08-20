@@ -67,20 +67,20 @@ struct BotConfiguration {
     int32_t             connection_retries = 10;
 };
 
-typedef struct {
-    uint16_t            party_id;
-    uint8_t             party_size;
-    uint8_t             hero_count;
-    uint8_t             search_type; // 0=hunting, 1=mission, 2=quest, 3=trade, 4=guild
-    uint8_t             hardmode;
-    uint16_t            district_number;
-    uint8_t             language;
-    uint8_t             primary;
-    uint8_t             secondary;
-    uint8_t             level;
+struct PartySearchAdvertisement {
+    uint32_t            party_id = 0;
+    uint8_t             party_size = 0;
+    uint8_t             hero_count = 0;
+    uint8_t             search_type = 0; // 0=hunting, 1=mission, 2=quest, 3=trade, 4=guild
+    uint8_t             hardmode = 0;
+    uint16_t            district_number = 0;
+    uint8_t             language = 0;
+    uint8_t             primary = 0;
+    uint8_t             secondary = 0;
+    uint8_t             level = 0;
     std::string         message;
     std::string         sender;
-} PartySearchAdvertisement;
+};
 
 void to_json(nlohmann::json& j, const PartySearchAdvertisement& p) {
     /*
@@ -221,7 +221,8 @@ static CallbackEntry EventType_PartySearchRemoved_entry;
 static CallbackEntry EventType_PartySearchSize_entry;
 static CallbackEntry EventType_PartySearchType_entry;
 static CallbackEntry EventType_WorldMapEnter_entry;
-static CallbackEntry EventType_WorldMapLeave_entry;
+static CallbackEntry EventType_PartyMembersChanged_entry;
+static CallbackEntry EventType_PlayerPartySize_entry;
 
 static bool party_advertisements_pending = true;
 static bool maps_unlocked_pending = true;
@@ -285,6 +286,14 @@ static PartySearchAdvertisement* get_party_search_advertisement(uint32_t party_s
 
     return nullptr;
 }
+static PartySearchAdvertisement* get_party_search_advertisement(const std::string& player_name) {
+    for (const auto party : party_search_advertisements) {
+        if (party->sender == player_name && party->party_id < 0xffff) {
+            return party;
+        }
+    }
+    return nullptr;
+}
 
 static bool remove_party_search_advertisement(uint32_t party_search_id) {
     auto party = get_party_search_advertisement(party_search_id);
@@ -293,6 +302,7 @@ static bool remove_party_search_advertisement(uint32_t party_search_id) {
         if (it != party_search_advertisements.end()) {
             party_search_advertisements.erase(it);
             delete party;
+            party_advertisements_pending = true;
             return true;
         }
     }
@@ -304,9 +314,9 @@ static PartySearchAdvertisement* create_party_search_advertisement(Event* event)
     assert(event && event->PartySearchAdvertisement.party_id);
 
     PartySearchAdvertisement* party = get_party_search_advertisement(event->PartySearchAdvertisement.party_id);
-    if (!party) {
+    bool is_new = !party;
+    if (is_new) {
         party = new PartySearchAdvertisement();
-        party_search_advertisements.push_back(party);
     }
 
     party->party_id = event->PartySearchAdvertisement.party_id;
@@ -332,6 +342,9 @@ static PartySearchAdvertisement* create_party_search_advertisement(Event* event)
     }
     else {
         party->sender.clear();
+    }
+    if (is_new) {
+        party_search_advertisements.push_back(party);
     }
 
     return party;
@@ -431,6 +444,54 @@ static void add_party_search_advertisement(Event* event, void* params) {
     assert(event && event->type == EventType_PartySearchAdvertisement && event->PartySearchAdvertisement.party_id);
     clear_party_searches_if_map_changed();
     create_party_search_advertisement(event);
+    party_advertisements_pending = true;
+}
+
+static void on_player_party_size(Event* event, void* params) {
+    assert(event && event->type == EventType_PlayerPartySize);
+    clear_party_searches_if_map_changed();
+
+    if (!event->PlayerPartySize.player_id)
+        return; // Player id empty?
+    uint32_t party_id = 0xfffe0000 | event->PlayerPartySize.player_id;
+
+    if (event->PlayerPartySize.size < 2) {
+        remove_party_search_advertisement(party_id);
+        return;
+    }
+
+    PartySearchAdvertisement* party = get_party_search_advertisement(party_id);
+    bool is_new = !party;
+    if (is_new) {
+        party = new PartySearchAdvertisement();
+    }
+
+    const auto player_id = event->PlayerPartySize.player_id;
+    party->party_id = party_id;
+    party->party_size = event->PlayerPartySize.size;
+    party->hero_count = 0;
+    party->search_type = 0;
+    party->hardmode = 0;
+    party->district_number = (uint16_t)GetDistrictNumber();
+    party->language = (uint8_t)GetDistrictLanguage();
+    // NB: We could get the primary, secondary and level for player, but would need HQ amending
+    party->primary = 0;
+    party->secondary = 0;
+    party->level = 20;
+
+    uint16_t player_name[21] = { 0 };
+    int len = GetPlayerName(event->PlayerPartySize.player_id, player_name, ARRAY_SIZE(player_name));
+    assert(len > 0);
+    player_name[len] = 0;
+
+    party->sender = convert_uint16_to_string(player_name, len);
+    if (get_party_search_advertisement(party->sender)) {
+        delete party;
+        return; // This player already has an active party search
+    }
+    if (is_new) {
+        party_search_advertisements.push_back(party);
+    }
     party_advertisements_pending = true;
 }
 
@@ -729,7 +790,10 @@ static int main_bot(void* param)
 
     CallbackEntry_Init(&EventType_PartySearchType_entry, update_party_search_advertisement, NULL);
     RegisterEvent(EventType_PartySearchType, &EventType_PartySearchType_entry);
- 
+
+    CallbackEntry_Init(&EventType_PlayerPartySize_entry, on_player_party_size, NULL);
+    RegisterEvent(EventType_PlayerPartySize, &EventType_PlayerPartySize_entry);
+
     load_configuration();
 
     wait_until_ingame();
@@ -793,6 +857,7 @@ static int main_bot(void* param)
     UnRegisterEvent(&EventType_PartySearchSize_entry);
     UnRegisterEvent(&EventType_PartySearchType_entry);
     UnRegisterEvent(&EventType_WorldMapEnter_entry);
+    UnRegisterEvent(&EventType_PlayerPartySize_entry);
 
     clear_party_search_advertisements();
 
