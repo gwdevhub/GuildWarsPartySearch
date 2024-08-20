@@ -247,8 +247,8 @@ function reassign_bot_clients(request) {
     let check_map_ids = [
         zaishen_mission.nearest_outpost_id,
         map_ids.Domain_of_Anguish,
-        map_ids.The_Deep,
         map_ids.Urgozs_Warren,
+        map_ids.The_Deep,
         map_ids.Embark_Beach,
         map_ids.Kaineng_Center_outpost,
         map_ids.Kamadan_Jewel_of_Istan_outpost,
