@@ -415,10 +415,8 @@ static void collect_instance_info() {
     map_id = GetMapId();
     district = GetDistrict();
     district_number = GetDistrictNumber();
-    *character_name = 0;
-    assert(GetCharacterName(character_name, ARRAY_SIZE(character_name)) > 0);
-    *account_uuid = 0;
-    assert(GetAccountUuid(account_uuid, ARRAY_SIZE(account_uuid)) > 0);
+    GetCharacterName(character_name, ARRAY_SIZE(character_name));
+    GetAccountUuid(account_uuid, ARRAY_SIZE(account_uuid));
 }
 
 static void on_map_entered(Event* event, void* params) {
@@ -742,7 +740,7 @@ static int main_bot(void* param)
 
     while (running) {
         wait_until_ingame();
-        if (!map_id)
+        if (!*account_uuid)
             collect_instance_info();
         if (!wanted_map_id)
             wanted_map_id = map_id;
