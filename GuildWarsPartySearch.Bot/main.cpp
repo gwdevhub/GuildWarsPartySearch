@@ -607,7 +607,7 @@ static bool send_maps_unlocked(easywsclient::WebSocket::pointer websocket) {
 // Server has send a websocket message asking this bot to travel
 static bool on_server_requested_travel(nlohmann::json& data) {
     if (!data["map_id"].is_number()) {
-        LogWarn("on_server_requesting_travel: requested map_id is missing or not a number", data.dump());
+        LogWarn("on_server_requesting_travel: requested map_id is missing or not a number\n%s", data.dump().c_str());
         return false;
     }
     const auto requested_map_id = data["map_id"].get<uint32_t>();
@@ -620,7 +620,7 @@ static bool on_server_requested_travel(nlohmann::json& data) {
         return false;
     }
     if (!data["district"].is_number()) {
-        LogWarn("on_server_requesting_travel: requested district is missing or not a number", data.dump());
+        LogWarn("on_server_requesting_travel: requested district is missing or not a number\n%s", data.dump().c_str());
         return false;
     }
     const auto requested_district = data["district"].get<uint32_t>();
