@@ -57,7 +57,8 @@ export class PartySearch {
             'party_size',
             'hero_count',
             'search_type',
-            'district',
+            'district_region',
+            'district_number',
             'map_id',
             'level',
             'primary',
@@ -68,6 +69,10 @@ export class PartySearch {
             obj[key] = this[key];
         });
         // Unset presumed defaults
+        if(obj.district_region === 0)
+            delete obj.district_region;
+        if(obj.district_number === 1)
+            delete obj.district_number;
         if(obj.party_size === 1)
             delete obj.party_size;
         if(obj.hero_count === 0)
