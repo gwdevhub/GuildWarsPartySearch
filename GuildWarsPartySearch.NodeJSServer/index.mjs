@@ -261,6 +261,8 @@ function get_parties_for_map(map_id) {
 function redrawPartyWindow() {
     if(!chosen_map_id)
         return;
+    const map_info = getMapInfo(chosen_map_id);
+    assert(map_info);
     const parties = get_parties_for_map(chosen_map_id);
     popupWindowTitle.textContent = `Party Search - ${getMapName(chosen_map_id)}`;
 
@@ -300,17 +302,18 @@ function redrawPartyWindow() {
             return `<tr class="${row_class} hide-on-mobile row small centered party-search-result">
             <td class="text-start">${party.sender || ''}</td>\
             <td>${getDistrictName(party.district_region) || ''}</td>\
-            <td>${party.party_size}</td>\
+            <td>${party.party_size}/${map_info.max_party_size}</td>\
             <td>${party.district_number}</td>\
             <td class="text-start">${party.message || ''}</td>\
         </tr>
         <tr class="${row_class} show-on-mobile row small centered party-search-result">
             <td class="text-start">
                 <div class="d-flex">
-                    <div class="w-50">${party.sender || ''}</div>
-                    <div class="w-50 text-end">${getDistrictName(party.district_region)} ${party.district_number}</div>
+                    <div class="w-40">${party.sender || ''}</div>
+                    <div class="w-20 text-center">${party.party_size}/${map_info.max_party_size}</div>
+                    <div class="w-40 text-end">${getDistrictName(party.district_region)} ${party.district_number}</div>
                 </div>
-                <div>${party.message}</div>
+                <div class="party-search-result-message">${party.message}</div>
             </td>
         </tr>`;
         }).join('');
