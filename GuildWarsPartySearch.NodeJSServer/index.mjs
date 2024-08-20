@@ -244,8 +244,12 @@ async function navigateToLocation(map_id, showParties) {
         (coordinates[1] - center.y) / scaleFactor
     );
     navigating = 1;
-    map.panBy(offset, {animate: true, duration: 1});
-    navigating = 0;
+    map.panBy(offset, { animate: true, duration: 1 });
+    // Map panBy is not blocking. We need to wait until the animation is finished before we finish navigation
+    setTimeout(() => {
+        navigating = 0;
+    }, 1200);
+    
 }
 
 function get_parties_for_map(map_id) {
