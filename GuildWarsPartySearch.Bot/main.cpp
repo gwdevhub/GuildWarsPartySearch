@@ -227,6 +227,7 @@ static CallbackEntry EventType_PlayerPartySize_entry;
 static bool party_advertisements_pending = true;
 static bool maps_unlocked_pending = true;
 
+static thread_mutex_t party_search_advertisements_mutex;
 static std::vector<PartySearchAdvertisement*> party_search_advertisements;
 static uint32_t party_search_advertisements_map_id = 0;
 
@@ -270,49 +271,59 @@ static std::string convert_uint16_to_string(const uint16_t* buffer, size_t lengt
 }
 
 static void clear_party_search_advertisements() {
+    thread_mutex_lock(&party_search_advertisements_mutex);
     for (auto party : party_search_advertisements) {
         delete party;
     }
 
     party_search_advertisements.clear();
+    thread_mutex_unlock(&party_search_advertisements_mutex);
 }
 
 static PartySearchAdvertisement* get_party_search_advertisement(uint32_t party_search_id) {
+    PartySearchAdvertisement* found = nullptr;
+    thread_mutex_lock(&party_search_advertisements_mutex);
     for (const auto party : party_search_advertisements) {
         if (party->party_id == party_search_id) {
-            return party;
+            found = party;
+            goto leave;
         }
     }
-
-    return nullptr;
+leave:
+    thread_mutex_unlock(&party_search_advertisements_mutex);
+    return found;
 }
 static PartySearchAdvertisement* get_party_search_advertisement(const std::string& player_name) {
+    PartySearchAdvertisement* found = nullptr;
+    thread_mutex_lock(&party_search_advertisements_mutex);
     for (const auto party : party_search_advertisements) {
-        if (party->sender == player_name && party->party_id < 0xffff) {
-            return party;
+        if (party->sender == player_name) {
+            found = party;
+            goto leave;
         }
     }
-    return nullptr;
+leave:
+    thread_mutex_unlock(&party_search_advertisements_mutex);
+    return found;
 }
 
-static bool remove_party_search_advertisement(uint32_t party_search_id) {
+static void remove_party_search_advertisement(uint32_t party_search_id) {
     auto party = get_party_search_advertisement(party_search_id);
-    if (party) {
-        auto it = std::find(party_search_advertisements.begin(), party_search_advertisements.end(), party);
-        if (it != party_search_advertisements.end()) {
-            party_search_advertisements.erase(it);
-            delete party;
-            party_advertisements_pending = true;
-            return true;
-        }
+    if (!party)
+        return;
+    thread_mutex_lock(&party_search_advertisements_mutex);
+    auto it = std::find(party_search_advertisements.begin(), party_search_advertisements.end(), party);
+    if (it != party_search_advertisements.end()) {
+        party_search_advertisements.erase(it);
+        delete party;
+        party_advertisements_pending = true;
     }
-
-    return false;
+    thread_mutex_unlock(&party_search_advertisements_mutex);
 }
 
 static PartySearchAdvertisement* create_party_search_advertisement(Event* event) {
     assert(event && event->PartySearchAdvertisement.party_id);
-
+    thread_mutex_lock(&party_search_advertisements_mutex);
     PartySearchAdvertisement* party = get_party_search_advertisement(event->PartySearchAdvertisement.party_id);
     bool is_new = !party;
     if (is_new) {
@@ -344,9 +355,12 @@ static PartySearchAdvertisement* create_party_search_advertisement(Event* event)
         party->sender.clear();
     }
     if (is_new) {
+        const auto found_false_party = get_party_search_advertisement(party->sender);
+        if (found_false_party && found_false_party->party_id > 0xffff && party != found_false_party)
+            remove_party_search_advertisement(found_false_party->party_id);
         party_search_advertisements.push_back(party);
     }
-
+    thread_mutex_unlock(&party_search_advertisements_mutex);
     return party;
 }
 
@@ -373,28 +387,6 @@ static void send_ping(easywsclient::WebSocket::pointer websocket) {
     websocket->sendPing();
 }
 
-static void on_client_locations_json(const std::vector<nlohmann::json>& j) {
-    map_ids_already_visited_by_other_bots.clear();
-    for (auto& available_map_json : j) {
-        if (!(available_map_json.contains("map_id") && available_map_json["map_id"].is_number()))
-            continue;
-        const auto visited_map_id = available_map_json["map_id"].get<uint32_t>();
-        if (!(available_map_json.contains("district") && available_map_json["district"].is_number()))
-            continue;
-        const auto visited_district = available_map_json["district"].get<uint32_t>();
-        if (!(available_map_json.contains("client_id") && available_map_json["client_id"].is_string()))
-            continue;
-        const auto visited_client_id = available_map_json["client_id"].get<std::string>();
-        BotPartySearches s;
-        s.map_id = visited_map_id;
-        s.district = (District)visited_district;
-        snprintf(s.client_id_prefix,ARRAY_SIZE(s.client_id_prefix), "%s",visited_client_id.c_str());
-        map_ids_already_visited_by_other_bots.push_back(s);
-    }
-    LogInfo("client_locations processed, %d maps already visited by other bots", map_ids_already_visited_by_other_bots.size());
-    party_searches_json_updated = time_get_ms();
-}
-
 static void on_websocket_message(const std::string& message);
 
 static void clear_party_searches_if_map_changed() {
@@ -407,12 +399,14 @@ static void clear_party_searches_if_map_changed() {
 static bool send_party_advertisements(easywsclient::WebSocket::pointer websocket) {
     assert(is_websocket_ready(websocket));
     std::vector<PartySearchAdvertisement> ads;
+    thread_mutex_lock(&party_search_advertisements_mutex);
     for (const auto& ad : party_search_advertisements) {
         if (!ad) {
             continue;
         }
         ads.push_back(*ad);
     }
+    thread_mutex_unlock(&party_search_advertisements_mutex);
     assert(map_id != 0);
     nlohmann::json j;
     j["type"] = "client_parties";
@@ -454,12 +448,12 @@ static void on_player_party_size(Event* event, void* params) {
     if (!event->PlayerPartySize.player_id)
         return; // Player id empty?
     uint32_t party_id = 0xfffe0000 | event->PlayerPartySize.player_id;
-
     if (event->PlayerPartySize.size < 2) {
         remove_party_search_advertisement(party_id);
         return;
     }
 
+    thread_mutex_lock(&party_search_advertisements_mutex);
     PartySearchAdvertisement* party = get_party_search_advertisement(party_id);
     bool is_new = !party;
     if (is_new) {
@@ -485,13 +479,15 @@ static void on_player_party_size(Event* event, void* params) {
     player_name[len] = 0;
 
     party->sender = convert_uint16_to_string(player_name, len);
-    if (get_party_search_advertisement(party->sender)) {
-        delete party;
-        return; // This player already has an active party search
-    }
+
     if (is_new) {
-        party_search_advertisements.push_back(party);
+        if(get_party_search_advertisement(party->sender))
+            delete party;
+        else
+            party_search_advertisements.push_back(party);
+        
     }
+    thread_mutex_unlock(&party_search_advertisements_mutex);
     party_advertisements_pending = true;
 }
 
@@ -776,6 +772,8 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
 static int main_bot(void* param)
 {
 
+    thread_mutex_init(&party_search_advertisements_mutex);
+
     CallbackEntry_Init(&EventType_WorldMapEnter_entry, on_map_entered, NULL);
     RegisterEvent(EventType_WorldMapEnter, &EventType_WorldMapEnter_entry);
 
@@ -860,6 +858,8 @@ static int main_bot(void* param)
     UnRegisterEvent(&EventType_PlayerPartySize_entry);
 
     clear_party_search_advertisements();
+
+    thread_mutex_destroy(&party_search_advertisements_mutex);
 
     raise(SIGTERM);
     return 0;
