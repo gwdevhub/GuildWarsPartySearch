@@ -631,6 +631,7 @@ static bool on_server_requested_travel(nlohmann::json& data) {
 
     wanted_map_id = requested_map_id;
     wanted_district = (District)requested_district;
+    return true;
 }
 
 static void on_websocket_message(const std::string& message) {
