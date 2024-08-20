@@ -6,6 +6,10 @@
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
 
+  .party-search-result {
+    border-bottom: 1px solid rgba(200,200,200,0.2);
+  }
+
   .show-on-mobile {
     display:revert !important;
   }

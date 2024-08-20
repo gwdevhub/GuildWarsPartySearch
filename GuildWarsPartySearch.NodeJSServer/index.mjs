@@ -249,7 +249,7 @@ async function navigateToLocation(map_id, showParties) {
     setTimeout(() => {
         navigating = 0;
     }, 1200);
-    
+
 }
 
 function get_parties_for_map(map_id) {
@@ -297,18 +297,21 @@ function redrawPartyWindow() {
 
 
         party_rows_html += parties_by_type.map((party) => {
-            return `<tr class="${row_class} hide-on-mobile row small centered">
+            return `<tr class="${row_class} hide-on-mobile row small centered party-search-result">
             <td class="text-start">${party.sender || ''}</td>\
             <td>${getDistrictName(party.district_region) || ''}</td>\
             <td>${party.party_size}</td>\
             <td>${party.district_number}</td>\
             <td class="text-start">${party.message || ''}</td>\
         </tr>
-        <tr class="${row_class} show-on-mobile row small centered">
+        <tr class="${row_class} show-on-mobile row small centered party-search-result">
             <td class="text-start">
-                ${party.sender || ''}<br/>
-                ${getDistrictName(party.district_region)} ${party.district_number}<br/>
-            </td><td class="text-start">${party.message}</td>
+                <div class="d-flex">
+                    <div class="w-50">${party.sender || ''}</div>
+                    <div class="w-50 text-end">${getDistrictName(party.district_region)} ${party.district_number}</div>
+                </div>
+                <div>${party.message}</div>
+            </td>
         </tr>`;
         }).join('');
     });

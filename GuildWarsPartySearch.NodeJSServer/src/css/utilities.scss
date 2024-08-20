@@ -48,9 +48,15 @@
 .text-nowrap {
   white-space: nowrap;
 }
+.text-end {
+  text-align:right;
+}
 .align-items-center {
   align-items: center;
 }
 .align-self-stretch {
   align-self: stretch;
+}
+.w-50 {
+  width:50%;
 }
