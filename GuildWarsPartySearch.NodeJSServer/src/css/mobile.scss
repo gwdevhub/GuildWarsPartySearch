@@ -8,6 +8,9 @@
 
   .party-search-result {
     border-bottom: 1px solid rgba(200,200,200,0.2);
+    td {
+      padding:.25rem 0;
+    }
   }
 
   .show-on-mobile {
