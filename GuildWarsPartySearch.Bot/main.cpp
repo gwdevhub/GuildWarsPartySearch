@@ -384,6 +384,13 @@ static void on_client_locations_json(const std::vector<nlohmann::json>& j) {
 
 static void on_websocket_message(const std::string& message);
 
+static void clear_party_searches_if_map_changed() {
+    const auto map_id = GetMapId();
+    if (party_search_advertisements_map_id != map_id)
+        clear_party_search_advertisements();
+    party_search_advertisements_map_id = map_id;
+}
+
 static bool send_party_advertisements(easywsclient::WebSocket::pointer websocket) {
     assert(is_websocket_ready(websocket));
     std::vector<PartySearchAdvertisement> ads;
@@ -416,6 +423,7 @@ static void collect_instance_info() {
 
 static void on_map_entered(Event* event, void* params) {
     collect_instance_info();
+    clear_party_searches_if_map_changed();
     party_advertisements_pending = true;
     ready = true;
     maps_unlocked_pending = true;
@@ -423,19 +431,14 @@ static void on_map_entered(Event* event, void* params) {
 
 static void add_party_search_advertisement(Event* event, void* params) {
     assert(event && event->type == EventType_PartySearchAdvertisement && event->PartySearchAdvertisement.party_id);
-    map_id = GetMapId();
-    if (party_search_advertisements_map_id != map_id)
-        clear_party_search_advertisements();
-    party_search_advertisements_map_id = map_id;
+    clear_party_searches_if_map_changed();
     create_party_search_advertisement(event);
     party_advertisements_pending = true;
 }
 
 static void update_party_search_advertisement(Event* event, void* params) {
     assert(event && event->PartySearchAdvertisement.party_id);
-    map_id = GetMapId();
-    if (party_search_advertisements_map_id != map_id)
-        clear_party_search_advertisements();
+    clear_party_searches_if_map_changed();
     party_search_advertisements_map_id = map_id;
     PartySearchAdvertisement* party = get_party_search_advertisement(event->PartySearchAdvertisement.party_id);
     if (party) {
