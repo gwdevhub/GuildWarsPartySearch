@@ -367,6 +367,7 @@ async function loadMap(continent) {
     }).on('click focus movestart', function () {
         toggleElement(menu,false);
         if (!navigating) {
+            window.location.hash = '';
             toggleElement(partyWindow,false);
         }
     });

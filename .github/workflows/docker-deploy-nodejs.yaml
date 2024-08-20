@@ -1,0 +1,25 @@
+name: Build and Push NodeJS Server
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - "GuildWarsPartySearch.NodeJSServer/**"
+      - ".github/workflows/docker-deploy-nodejs.yaml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v2
+
+    - name: Install sshpass
+      run: sudo apt-get update && sudo apt-get install -y sshpass
+
+    - name: Redeploying content
+      shell: pwsh
+      run: |
+        echo "Running redeploy.sh"
+        sshpass -p "${{ secrets.HOST_PASS }}" ssh -o StrictHostKeyChecking=no ${{ secrets.HOST_USER }}@${{ secrets.HOST_ADDRESS }} "cd partysearchserver_nodejs/ && ./redeploy.sh"
