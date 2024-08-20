@@ -655,7 +655,10 @@ async function check_websocket() {
     check_websocket();
 
 }
-loadMap(currentContinent);
+loadMap(currentContinent).then(() => {
+    if(!chosen_map_id)
+        toggleElement(menu,true);
+})
 
 check_websocket();
 
