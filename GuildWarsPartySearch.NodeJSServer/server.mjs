@@ -336,6 +336,7 @@ function on_recv_parties(ws, data) {
         data.district_region = region_from_district(data.district);
     }
     const district_region = to_number(data.district_region);
+    const map_changed = bot_client.map_id !== map_id || bot_client.district_region !== district_region;
     bot_client.map_id = map_id;
     bot_client.district_region = district_region;
     // NB: don't give a shit about language
@@ -369,7 +370,8 @@ function on_recv_parties(ws, data) {
     Object.keys(maps_affected).forEach((map_id) => {
         send_map_parties(to_number(map_id));
     });
-    reassign_bot_clients();
+    if(map_changed)
+        reassign_bot_clients();
 }
 
 /**
