@@ -24,6 +24,10 @@
     display:none !important;
   }
 
+  #partyWindowTable {
+    margin-left: 5px;
+  }
+
   #partyWindowTableHeader th,
   #partyWindowTable td {
     min-width:50%;
@@ -40,9 +44,12 @@
   .popupWindow .popupInner {
     width:98%;
   }
+  .popupWindow .popupInner .popupContent {
+    scrollbar-width:none;
+  }
   .popupWindow .popupInner .table {
     font-size:90%;
-    width:100%;
+    width:calc(100% - 10px);
     margin:0;
     tr {
       margin-left:0;
