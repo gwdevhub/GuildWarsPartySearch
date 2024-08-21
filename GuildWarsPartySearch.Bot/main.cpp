@@ -624,14 +624,12 @@ static uint32_t get_original_map_id(uint32_t map_id) {
 static bool in_correct_outpost() {
     if (!GetIsIngame())
         return false;
-    if (!map_id)
-        return false;
 
-    uint32_t check_map_id = get_original_map_id(map_id);
+    uint32_t check_map_id = get_original_map_id(GetMapId());
 
     return ((!wanted_map_id || check_map_id == wanted_map_id) &&
-        (wanted_district == District::DISTRICT_CURRENT || district == wanted_district) &&
-        (!bot_configuration.district_number || district_number == bot_configuration.district_number));
+        (wanted_district == District::DISTRICT_CURRENT || GetDistrict() == wanted_district) &&
+        (!bot_configuration.district_number || GetDistrictNumber() == bot_configuration.district_number));
 }
 
 static void ensure_correct_outpost() {
@@ -639,6 +637,10 @@ static void ensure_correct_outpost() {
         exit_with_status("No wanted_map_id in ensure_correct_outpost", 1);
     if (in_correct_outpost())
         return;
+    if (!IsMapUnlocked(wanted_map_id)) {
+        LogError("map %d not unlocked", wanted_map_id);
+        exit_with_status("Map not unlocked",1);
+    }
     LogInfo("Zoning into outpost");
     int res = 0;
     size_t retries = 4;
@@ -811,6 +813,23 @@ static int main_bot(void* param)
     easywsclient::WebSocket::pointer sending_websocket = NULL;
 
     msec_t last_calculated_map_check = 0;
+
+    // Theres a HQ bug where it knows our map, but not district until you travel.
+    // Fix this by deliberately travelling somewhere else.
+    uint32_t tmp_map_id = 0;
+    uint32_t current_map_id = GetMapId();
+    for (size_t i = 0; i < 877; i++) {
+        if (current_map_id == i)
+            continue;
+        if (!is_valid_outpost(i))
+            continue;
+        if (!IsMapUnlocked(i))
+            continue;
+        tmp_map_id = i;
+        break;
+    }
+    assert(tmp_map_id);
+    assert(travel_wait(tmp_map_id, District::DISTRICT_CURRENT, 0) == 0);
 
     while (running) {
         wait_until_ingame();
