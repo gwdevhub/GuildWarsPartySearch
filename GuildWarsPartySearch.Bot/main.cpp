@@ -230,7 +230,12 @@ static bool maps_unlocked_pending = true;
 
 static thread_mutex_t party_search_advertisements_mutex;
 static std::vector<PartySearchAdvertisement*> party_search_advertisements;
-static uint32_t party_search_advertisements_map_id = 0;
+struct PartySearchDistrict {
+    int map_id = 0;
+    District district = District::DISTRICT_CURRENT;
+    int district_number = 0;
+} party_search_map_info;
+
 
 static uint32_t get_original_map_id(uint32_t map_id);
 
@@ -391,10 +396,11 @@ static void send_ping(easywsclient::WebSocket::pointer websocket) {
 static void on_websocket_message(const std::string& message);
 
 static void clear_party_searches_if_map_changed() {
-    const auto map_id = GetMapId();
-    if (party_search_advertisements_map_id != map_id)
+    PartySearchDistrict d = { GetMapId(),GetDistrict(),GetDistrictNumber() };
+    if (memcmp(&d, &party_search_map_info, sizeof(party_search_map_info)) != 0) {
         clear_party_search_advertisements();
-    party_search_advertisements_map_id = map_id;
+        party_search_map_info = d;
+    }
 }
 
 static bool send_party_advertisements(easywsclient::WebSocket::pointer websocket) {
@@ -506,7 +512,6 @@ static void on_player_party_size(Event* event, void* params) {
 static void update_party_search_advertisement(Event* event, void* params) {
     assert(event && event->PartySearchAdvertisement.party_id);
     clear_party_searches_if_map_changed();
-    party_search_advertisements_map_id = map_id;
     PartySearchAdvertisement* party = get_party_search_advertisement(event->PartySearchAdvertisement.party_id);
     if (party) {
         switch (event->type) {
