@@ -15,7 +15,7 @@ rm -R "/tmp$BOT_FOLDER";
 mkdir -p "/tmp$BOT_FOLDER";
 cd "/tmp$BOT_FOLDER";
 chmod 777 .;
-git clone --recursive https://github.com/gwdevhub/GuildWarsPartySearch.git
+git clone --depth=1 --recursive https://github.com/gwdevhub/GuildWarsPartySearch.git
 
 docker stop -t 1 "$BOT_NAME";
 docker rm -f "$BOT_NAME";
