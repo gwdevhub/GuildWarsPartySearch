@@ -207,6 +207,8 @@ function on_bot_disconnected(request) {
 function on_client_unlocked_maps(request,data) {
     assert(request.is_bot_client, "Not bot client");
     assert(Array.isArray(data.unlocked_maps),"No unlocked_maps array");
+    if(JSON.stringify(request.unlocked_maps || []) === JSON.stringify(data.unlocked_maps))
+        return; // Unlocked maps hasn't changed, so no need to act on it
     request.unlocked_maps = data.unlocked_maps;
     reassign_bot_clients(request);
 }
@@ -241,7 +243,8 @@ function reassign_bot_clients(request) {
     zv = ${find_key(map_ids,zaishen_vanquish.map_id)}`);
     let check_district_regions = [
         district_regions.America,
-        district_regions.Europe
+        district_regions.Europe,
+        district_regions.International
     ];
 
     let check_map_ids = [
@@ -349,8 +352,9 @@ function on_recv_parties(ws, data) {
     let maps_affected = {};
     maps_affected[map_id] = 1;
     // Remove any current parties for this client
-    all_parties.filter((party) => { return party.client_id === client_id; })
-        .forEach((party) => {
+    all_parties.filter((party) => {
+        return party.client_id === client_id;
+    }).forEach((party) => {
             maps_affected[party.map_id] = 1;
             remove_party(party);
         })
@@ -534,7 +538,6 @@ wss.on('connection', function connection(ws, request) {
     if(get_client_id(ws)) {
         try {
             add_bot_client(ws);
-            reassign_bot_clients();
         } catch(e) {
             console.error(`[websocket]`,ws.ip,e.message);
             ws.ignore = 1;
