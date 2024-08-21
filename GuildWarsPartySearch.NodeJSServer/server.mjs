@@ -293,6 +293,13 @@ function reassign_bot_clients(request) {
     console.log("bots_assigned",bots_assigned.map((map_assigned) => {
         return {map_id:map_assigned.map_id,district_region:map_assigned.district_region, client_id:map_assigned.bot_client.client_id};
     }));
+
+    if(bots_to_reassign.length) {
+        console.log("Bots not assigned!!!",bots_to_reassign.map((bot_client) => {
+            return {map_id:bot_client.map_id,district_region:bot_client.district_region,client_id:bot_client.client_id};
+        }))
+    }
+
     bots_assigned.forEach((map_assigned) => {
         if(map_assigned.bot_client.map_id === map_assigned.map_id
             && map_assigned.bot_client.district_region === map_assigned.district_region) {
