@@ -338,8 +338,13 @@ static int get_rare_material_trader_id(int map_id)
 static int wait_map_loading(int map_id, msec_t timeout_ms);
 static int travel_wait(int map_id, District district, uint16_t district_number)
 {
-    if ((GetMapId() == map_id) && (GetDistrict() == district)
-        && (GetDistrictNumber() == district_number)) {
+    int current_map_id = GetMapId();
+    District current_district = GetDistrict();
+    int current_district_number = GetDistrictNumber();
+
+    if ((current_map_id == map_id) 
+        && (district == District::DISTRICT_CURRENT || current_district == district)
+        && (!district_number || current_district_number == district_number)) {
         return 0;
     }
     RedirectMap(map_id, district, district_number);
