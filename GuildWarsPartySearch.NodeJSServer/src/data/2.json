@@ -182,7 +182,7 @@
           "name": "Senji's Corner",
           "type": "outpost_cantha",
           "coordinates": [ 3217, 1612 ],
-          "mapId": 50
+          "mapId": 51
         },
         {
           "name": "Zin Ku Corridor",
@@ -243,7 +243,7 @@
           "type": "mission_cantha",
           "coordinates": [ 3683, 1706 ],
           "wiki": "Sunjiang_District_(outpost)",
-          "mapId": 254
+          "mapId": 220
         },
         {
           "name": "Tahnnakai Temple",
@@ -318,7 +318,7 @@
           "type": "challenge_cantha_kurzick",
           "coordinates": [ 3455, 2593 ],
           "wiki": "Altrumm_Ruins_(outpost)",
-          "mapId": 270
+          "mapId": 272
         },
         {
           "name": "House zu Heltzer",
@@ -392,7 +392,7 @@
           "type": "challenge_cantha_kurzick",
           "coordinates": [ 3813, 3947 ],
           "wiki": "Amatz_Basin_(outpost)",
-          "mapId": 229
+          "mapId": 230
         },
         {
           "name": "Unwaking Waters (Kurzick)",
@@ -471,7 +471,7 @@
           "name": "Cavalon",
           "type": "city_cantha_luxon",
           "coordinates": [ 4451, 2259 ],
-          "mapId": 192
+          "mapId": 193
         },
         {
           "name": "Breaker Hollow",
@@ -508,7 +508,7 @@
           "type": "mission_cantha_luxon",
           "coordinates": [ 4888, 2342 ],
           "wiki": "Gyala_Hatchery_(outpost)",
-          "mapId": 143
+          "mapId": 224
         },
         {
           "name": "Leviathan Pits",
