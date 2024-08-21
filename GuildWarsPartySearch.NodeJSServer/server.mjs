@@ -16,7 +16,7 @@ import {
     is_websocket,
     send_header,
     send_json,
-    build_express_cache_options
+    build_express_cache_options, is_http
 } from "./src/js/networking.mjs";
 import * as path from "path";
 import {
@@ -418,6 +418,11 @@ function send_all_parties(request_or_websocket = null) {
         "type":"all_parties",
         "parties":all_parties
     });
+    if(is_http(request_or_websocket)) {
+        send_json(request_or_websocket,json);
+        return;
+    }
+
     const send_to = request_or_websocket ? [request_or_websocket] : get_user_websockets();
     send_to_websockets(send_to,json);
 }
