@@ -257,7 +257,8 @@ function reassign_bot_clients(request) {
         map_ids.Kamadan_Jewel_of_Istan_outpost,
         zaishen_bounty.nearest_outpost_id,
         zaishen_vanquish.nearest_outpost_id,
-        zaishen_combat.nearest_outpost_id
+        zaishen_combat.nearest_outpost_id,
+        map_ids.Great_Temple_of_Balthazar_outpost
     ];
     let bots_to_reassign = Object.values(bot_clients);
     let bots_assigned = [];
