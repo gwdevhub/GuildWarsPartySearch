@@ -236,22 +236,21 @@ struct PartySearchDistrict {
     int district_number = 0;
 } party_search_map_info;
 
-
 static uint32_t get_original_map_id(uint32_t map_id);
 
-static bool is_map_already_visited(uint32_t _map_id, District district) {
-    auto region = get_district_region(district);
-    auto map_id = get_original_map_id(_map_id);
-    // So to make sure bots in the same outpost(s) don't start travelling all over the place at the same time,
-    // do a little strcmp on the uuid - highest one has to move
-    for (auto& other : map_ids_already_visited_by_other_bots) {
-        if (other.map_id == map_id
-            && get_district_region(other.district) == region
-            && (!*other.client_id_prefix || strncmp(other.client_id_prefix, account_uuid, ARRAY_SIZE(other.client_id_prefix) - 1) > 0))
-            return true;
+// Position to stand that covers the most compass range for the map, if available.
+static bool get_optimal_position_for_listening(float* pos) {
+    switch (get_original_map_id(GetMapId())) {
+    case MapID_EmbarkBeach:
+        pos[0] = -570.0f;
+        pos[1] = 550.0f;
+        return true;
     }
     return false;
 }
+
+
+static uint32_t get_original_map_id(uint32_t map_id);
 
 static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, const std::string& url, const std::string& api_key = "");
 static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt);
@@ -664,6 +663,10 @@ static void ensure_correct_outpost() {
     if (!in_correct_outpost()) {
         exit_with_status("Couldn't travel to outpost", 1);
     }
+    float pos[2];
+    if (get_optimal_position_for_listening(pos)) {
+        MoveToCoord(pos[0], pos[1]);
+    }
     LogInfo("I should be in outpost %d %d %d", GetMapId(), GetDistrict(), GetDistrictNumber());
 }
 
@@ -828,7 +831,7 @@ static int main_bot(void* param)
     // Fix this by deliberately travelling somewhere else.
     uint32_t tmp_map_id = 0;
     uint32_t current_map_id = GetMapId();
-    for (size_t i = 0; i < 877; i++) {
+    for (size_t i = 1; i < 877; i++) {
         if (current_map_id == i)
             continue;
         if (!is_valid_outpost(i))
