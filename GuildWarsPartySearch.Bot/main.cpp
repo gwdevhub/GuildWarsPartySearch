@@ -223,7 +223,7 @@ static CallbackEntry EventType_PartySearchType_entry;
 static CallbackEntry EventType_WorldMapEnter_entry;
 static CallbackEntry EventType_PartyMembersChanged_entry;
 static CallbackEntry EventType_PlayerPartySize_entry;
-static CallbackEntry EventType_AgentDestroyPlayer_entry;
+static CallbackEntry EventType_AgentDespawned_entry;
 
 static bool party_advertisements_pending = true;
 static bool maps_unlocked_pending = true;
@@ -442,11 +442,11 @@ static void add_party_search_advertisement(Event* event, void* params) {
     party_advertisements_pending = true;
 }
 
-static void on_player_destroyed(Event* event, void* params) {
-    assert(event && event->type == EventType_AgentDestroyPlayer && event->AgentDestroyPlayer.player_id);
+static void on_agent_despawned(Event* event, void* params) {
+    assert(event && event->type == EventType_AgentDespawned && event->AgentDespawned.agent_id);
     // NB: GW sends player_id as a 32 bit number here, even though its a u16 :/
-    assert(event->AgentDestroyPlayer.player_id < 0xffff);
-    uint32_t party_id = 0xfffe0000 | (uint16_t)event->AgentDestroyPlayer.player_id;
+    assert(event->AgentDespawned.agent_id < 0xffffff);
+    uint32_t party_id = 0xff000000 | event->AgentDespawned.agent_id;
     remove_party_search_advertisement(party_id);
 }
 static void on_player_party_size(Event* event, void* params) {
@@ -455,7 +455,10 @@ static void on_player_party_size(Event* event, void* params) {
 
     if (!event->PlayerPartySize.player_id)
         return; // Player id empty?
-    uint32_t party_id = 0xfffe0000 | event->PlayerPartySize.player_id;
+    ApiAgent agent;
+    if (!GetAgentOfPlayer(&agent, event->PlayerPartySize.player_id))
+        return;
+    uint32_t party_id = 0xff000000 | agent.agent_id;
     if (event->PlayerPartySize.size < 2) {
         remove_party_search_advertisement(party_id);
         return;
@@ -802,8 +805,8 @@ static int main_bot(void* param)
     CallbackEntry_Init(&EventType_PlayerPartySize_entry, on_player_party_size, NULL);
     RegisterEvent(EventType_PlayerPartySize, &EventType_PlayerPartySize_entry);
 
-    CallbackEntry_Init(&EventType_AgentDestroyPlayer_entry, on_player_destroyed, NULL);
-    RegisterEvent(EventType_AgentDestroyPlayer, &EventType_AgentDestroyPlayer_entry);
+    CallbackEntry_Init(&EventType_AgentDespawned_entry, on_agent_despawned, NULL);
+    RegisterEvent(EventType_AgentDespawned, &EventType_AgentDespawned_entry);
 
 
     load_configuration();
@@ -887,7 +890,7 @@ static int main_bot(void* param)
     UnRegisterEvent(&EventType_PartySearchType_entry);
     UnRegisterEvent(&EventType_WorldMapEnter_entry);
     UnRegisterEvent(&EventType_PlayerPartySize_entry);
-    UnRegisterEvent(&EventType_AgentDestroyPlayer_entry);
+    UnRegisterEvent(&EventType_AgentDespawned_entry);
 
     clear_party_search_advertisements();
 
