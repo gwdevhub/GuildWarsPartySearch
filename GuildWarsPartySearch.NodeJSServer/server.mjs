@@ -291,26 +291,29 @@ function reassign_bot_clients(request) {
         return nowHours >= start && nowHours < end;
     }
 
+    const check_and_assign = (map_id, district_region) => {
+        if (!isValidOutpost(map_id))
+            return;
+        if (is_assigned(map_id, district_region))
+            return;
+        const available_bots_to_assign = bots_to_reassign.filter((bot_client) => {
+            return is_map_unlocked(bot_client.unlocked_maps || [], map_id);
+        });
+        if (!available_bots_to_assign.length)
+            return;
+        assign_bot(available_bots_to_assign[0], map_id, district_region);
+    }
+    if(isEuPrimeTime()) {
+        check_and_assign(map_ids.Embark_Beach, district_regions.Europe);
+        check_and_assign(map_ids.Domain_of_Anguish, district_regions.Europe);
+        check_and_assign(map_ids.Embark_Beach, district_regions.America);
+        check_and_assign(map_ids.Domain_of_Anguish, district_regions.America);
+    }
+
     // Assign bots in order of map importance (map, then district)
     check_district_regions.forEach((district_region) => {
         check_map_ids.forEach((map_id) => {
-            if (!isValidOutpost(map_id))
-                return;
-            if (is_assigned(map_id, district_region))
-                return;
-            const available_bots_to_assign = bots_to_reassign.filter((bot_client) => {
-                return is_map_unlocked(bot_client.unlocked_maps || [], map_id);
-            });
-            if (!available_bots_to_assign.length)
-                return;
-            if (map_id === map_ids.Embark_Beach || map_id === map_ids.Domain_of_Anguish && isEuPrimeTime()) {
-                // only for Embark and DoA, prefer EU over NA during EU prime time
-                const other_region = district_region === district_regions.America ? district_regions.Europe : (district_region === district_regions.Europe ? district_regions.America : district_region);
-                assign_bot(available_bots_to_assign[0], map_id, other_region);
-            }
-            else {
-                assign_bot(available_bots_to_assign[0], map_id, district_region);
-            }
+            check_and_assign(map_id,district_region);
         })
     });
 
