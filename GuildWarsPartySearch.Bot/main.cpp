@@ -20,7 +20,7 @@ extern "C" {
     #include <client/Headquarter.h>
     #include <common/time.h>
     #include <common/thread.h>
-    #include <common/dlfunc.h>
+    #include <common/paths.h>
 }
 
 #ifdef _WIN32
