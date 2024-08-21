@@ -44,6 +44,9 @@
   .popupWindow .popupInner {
     width:98%;
   }
+  .popupWindow .popupInner .popupContent {
+    scrollbar-width:none;
+  }
   .popupWindow .popupInner .table {
     font-size:90%;
     width:calc(100% - 10px);
