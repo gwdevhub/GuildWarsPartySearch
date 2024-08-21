@@ -347,7 +347,15 @@ static int travel_wait(int map_id, District district, uint16_t district_number)
         && (!district_number || current_district_number == district_number)) {
         return 0;
     }
-    RedirectMap(map_id, district, district_number);
+    LogInfo("travel_wait %d(%d) %d(%d) %d(%d)", map_id, current_map_id, district, current_district, district_number, current_district_number);
+    if (map_id == current_map_id) {
+        Travel(map_id, district, district_number);
+    }
+    else {
+        // RedirectMap if we're NOT already in the same map; server will drop connection otherwise
+        RedirectMap(map_id, district, district_number);
+    }
+    
     //Travel(map_id, district, district_number);
     return wait_map_loading(map_id, 20000);
 }
