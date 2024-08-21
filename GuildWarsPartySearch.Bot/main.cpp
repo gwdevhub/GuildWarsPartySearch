@@ -425,6 +425,7 @@ static void collect_instance_info() {
     district_number = GetDistrictNumber();
     GetCharacterName(character_name, ARRAY_SIZE(character_name));
     GetAccountUuid(account_uuid, ARRAY_SIZE(account_uuid));
+    LogInfo("collect_instance_info: map %d, district %d, district_number %d, district_region %d", map_id, district, district_number, GetDistrictRegion());
 }
 
 static void on_map_entered(Event* event, void* params) {
@@ -654,6 +655,7 @@ static void ensure_correct_outpost() {
             retries = 50; // District full, more retries
         }
     }
+    collect_instance_info();
     if (!in_correct_outpost()) {
         exit_with_status("Couldn't travel to outpost", 1);
     }

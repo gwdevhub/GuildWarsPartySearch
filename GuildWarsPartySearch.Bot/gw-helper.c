@@ -353,7 +353,7 @@ static int travel_wait(int map_id, District district, uint16_t district_number)
     }
     else {
         // RedirectMap if we're NOT already in the same map; server will drop connection otherwise
-        RedirectMap(map_id, district, district_number);
+        RedirectMap(map_id);
     }
     
     //Travel(map_id, district, district_number);
