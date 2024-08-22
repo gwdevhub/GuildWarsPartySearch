@@ -236,11 +236,18 @@ function is_map_unlocked(maps_unlocked, map_id) {
     return (maps_unlocked[realIndex] & flag) !== 0;
 }
 
+let reassign_bot_clients_timeout = null;
+
 /**
  * Based on today's quests and a set of fixed map ids, cycle all bot clients and decide who should go where.
  * @param request
  */
 function reassign_bot_clients(request) {
+    if(reassign_bot_clients_timeout) {
+        // Re-run this every 15 mins
+        clearTimeout(reassign_bot_clients_timeout);
+        reassign_bot_clients_timeout = setTimeout(reassign_bot_clients,60000 * 15);
+    }
     const zaishen_mission = GetZaishenMission();
     const zaishen_bounty = GetZaishenBounty();
     const zaishen_combat = GetZaishenCombat();
