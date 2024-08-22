@@ -212,7 +212,12 @@ function on_client_unlocked_maps(request, data) {
     assert(Array.isArray(data.unlocked_maps), "No unlocked_maps array");
     if (JSON.stringify(request.unlocked_maps || []) === JSON.stringify(data.unlocked_maps))
         return; // Unlocked maps hasn't changed, so no need to act on it
+
     request.unlocked_maps = data.unlocked_maps;
+    // Figure out a weighting for how many places this bot has visited; we'll use this later to reassign maps
+    request.explored_maps_weighting = request.unlocked_maps.reduce((tally, entry) => {
+        return tally + entry;
+    })
     reassign_bot_clients(request);
 }
 
@@ -263,7 +268,9 @@ function reassign_bot_clients(request) {
         map_ids.Kaineng_Center_outpost,
         map_ids.Great_Temple_of_Balthazar_outpost
     ];
-    let bots_to_reassign = Object.values(bot_clients);
+    let bots_to_reassign = Object.values(bot_clients).sort((a, b) => {
+        return (a.explored_maps_weighting || 0) - (b.explored_maps_weighting || 0)
+    });
     let bots_assigned = [];
 
     const is_assigned = (map_id, district_region) => {
