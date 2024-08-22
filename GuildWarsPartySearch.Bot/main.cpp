@@ -245,6 +245,10 @@ static bool get_optimal_position_for_listening(float* pos) {
         pos[0] = -570.0f;
         pos[1] = 550.0f;
         return true;
+    case 194: // Kaineng
+        pos[0] = 340.0f;
+        pos[1] = -2250.0f;
+        return true;
     }
     return false;
 }
