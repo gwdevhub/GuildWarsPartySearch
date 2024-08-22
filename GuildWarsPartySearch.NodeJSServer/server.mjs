@@ -293,9 +293,9 @@ function reassign_bot_clients(request) {
         const now = new Date();
         const nowHours = now.getUTCHours();
         const start = 0;
-        const end = 7;
+        const end = 8;
 
-        return nowHours >= start && nowHours < end;
+        return !(nowHours >= start && nowHours < end);
     }
 
     const check_and_assign = (map_id, district_region) => {
