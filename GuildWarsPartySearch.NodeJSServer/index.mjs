@@ -294,7 +294,7 @@ function redrawPartyWindow() {
         if(!is_shown)
             return;
         party_rows_html += `<tr class="divider row" id="search_type_divider_${search_type_id}">
-            <th colSpan="5">${name}</th>
+            <th colSpan="5">${name} - ${parties_by_type.length}</th>
         </tr>`
 
 
