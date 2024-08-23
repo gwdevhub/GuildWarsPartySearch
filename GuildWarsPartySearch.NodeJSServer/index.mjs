@@ -656,7 +656,7 @@ async function check_websocket() {
 
 }
 loadMap(currentContinent).then(() => {
-    if(!chosen_map_id)
+    if(partyWindow.classList.contains('hidden'))
         toggleElement(menu,true);
 })
 
