@@ -845,7 +845,9 @@ static int main_bot(void* param)
         tmp_map_id = i;
         break;
     }
-    assert(tmp_map_id);
+    if (!tmp_map_id) {
+        exit_with_status("Failed to find another map ID to travel to; make sure you have at least 2 outposts unlocked", 1);
+    }
     assert(travel_wait(tmp_map_id, District::DISTRICT_CURRENT, 0) == 0);
 
     while (running) {

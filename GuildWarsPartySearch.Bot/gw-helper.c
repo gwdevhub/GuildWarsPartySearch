@@ -250,6 +250,8 @@ bool is_valid_outpost(uint32_t map_id) {
     default:
         return false;
     }
+    if (map_info->region == Region::Region_Presearing)
+        return false;
     return true;
 }
 
