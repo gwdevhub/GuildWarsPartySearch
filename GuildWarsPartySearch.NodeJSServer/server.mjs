@@ -195,10 +195,13 @@ function on_bot_disconnected(request) {
             maps_affected[party.map_id] = 1;
             remove_party(party);
         })
-    Object.keys(maps_affected).forEach((map_id) => {
+    maps_affected = Object.keys(maps_affected);
+    maps_affected.forEach((map_id) => {
         send_map_parties(to_number(map_id));
     });
-    send_available_maps();
+    if(maps_affected.length) {
+        send_available_maps();
+    }
     reassign_bot_clients();
 }
 
@@ -609,7 +612,10 @@ wss.on('connection', function connection(ws, request) {
         ws.originalSend(data);
     }
     ws.map_id = 0;
-    send_available_maps(ws, true);
+    if(!ws.is_bot_client) {
+        send_available_maps(ws, true);
+    }
+
     ws.on('message', (data) => {
         if (ws.ignore)
             return;
@@ -640,20 +646,22 @@ wss.on('connection', function connection(ws, request) {
     });
     ws.on('close', () => {
         console.log(`[websocket]`, ws.ip, "closed");
-        if (ws.client_id)
+        if (ws.ignore)
+            return;
+        if (ws.is_bot_client)
             on_bot_disconnected(ws);
     })
 });
 
 function get_bot_websockets() {
     return Array.from(wss.clients).filter((ws) => {
-        return ws.is_bot_client;
+        return ws.is_bot_client && !ws.ignore;
     });
 }
 
 function get_user_websockets() {
     return Array.from(wss.clients).filter((ws) => {
-        return !ws.is_bot_client;
+        return !ws.is_bot_client && !ws.ignore;
     });
 }
 
