@@ -19,7 +19,16 @@ export function is_whitelisted(request) {
         return false;
     if(config.blacklisted_ips.includes(ip_address))
         return false;
-    if(config.bot_api_keys.length && !config.bot_api_keys.includes(request.headers['x-api-key'] || 'no-api-key'))
+
+    const api_key = request.headers['x-api-key'] || 'no-api-key';
+    const gwtoolbox_api_key = /gwtoolbox-(\S+)-(\d+)/.exec(api_key);
+    if(gwtoolbox_api_key) {
+        // TODO: Check supported toobox version, compare dll file size
+        const gwtoolbox_version = gwtoolbox_api_key[1];
+        const gwtoolbox_dll_size = gwtoolbox_api_key[2];
+        return true;
+    }
+    if(config.bot_api_keys.length && !config.bot_api_keys.includes(api_key))
         return false;
     return true;
 }
