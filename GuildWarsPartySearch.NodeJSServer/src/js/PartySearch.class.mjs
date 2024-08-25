@@ -9,7 +9,7 @@ import {
 } from "./gw_constants.mjs";
 import {to_number} from "./string_functions.mjs";
 
-const json_keys = {
+export const party_json_keys = {
     'party_id':'i',
     'party_size':'ps',
     'sender':'s',
@@ -30,26 +30,50 @@ const json_keys = {
 export class PartySearch {
     constructor(json) {
         this.client_id = json.client_id || '';
-        this.message = json.message || json[json_keys['message']] || '';
-        this.sender = json.sender || json[json_keys['sender']] || '';
-        this.party_id = to_number(json.party_id || json[json_keys['i']] || 0);
-        this.hardmode = to_number(json.hardmode || json[json_keys['hardmode']] || 0);
-        this.party_size = to_number(json.party_size || json[json_keys['party_size']] ||  1);
-        this.hero_count = to_number(json.hero_count || json[json_keys['hero_count']] || 0);
-        this.level = to_number(json.level || json[json_keys['level']] || 20);
-        this.search_type = to_number(json.search_type || json[json_keys['search_type']]);
-        this.primary = to_number(json.primary || json[json_keys['primary']] || 0);
-        this.secondary = to_number(json.secondary || json[json_keys['secondary']] || 0);
-        this.district_number = to_number(json.district_number || json[json_keys['district_number']] || 1);
-        this.district_region = to_number(json.district_region || json[json_keys['district_region']] || 0);
-        this.district_language = to_number(json.district_language || json.language || json[json_keys['district_language']] || 0);
-        this.map_id = to_number(json.map_id || json[json_keys['map_id']] || 0);
+        this.message = json.message || json[party_json_keys['message']] || '';
+        this.sender = json.sender || json[party_json_keys['sender']] || '';
+        this.party_id = to_number(json.party_id || json[party_json_keys['i']] || 0);
+        this.hardmode = to_number(json.hardmode || json[party_json_keys['hardmode']] || 0);
+        this.party_size = to_number(json.party_size || json[party_json_keys['party_size']] ||  1);
+        this.hero_count = to_number(json.hero_count || json[party_json_keys['hero_count']] || 0);
+        this.level = to_number(json.level || json[party_json_keys['level']] || 20);
+        this.search_type = to_number(json.search_type || json[party_json_keys['search_type']]);
+        this.primary = to_number(json.primary || json[party_json_keys['primary']] || 0);
+        this.secondary = to_number(json.secondary || json[party_json_keys['secondary']] || 0);
+        this.district_number = to_number(json.district_number || json[party_json_keys['district_number']] || 1);
+        this.district_region = to_number(json.district_region || json[party_json_keys['district_region']] || 0);
+        this.district_language = to_number(json.district_language || json.language || json[party_json_keys['district_language']] || 0);
+        this.map_id = to_number(json.map_id || json[party_json_keys['map_id']] || 0);
 
         this.validate();
 
-        this.district = json.district || json[json_keys['district']] || district_from_region(this.district_region);
+        this.district = json.district || json[party_json_keys['district']] || district_from_region(this.district_region);
     }
-    toJSON() {
+
+    update(json) {
+        Object.keys(party_json_keys).forEach((full_key) => {
+            const abbr_key = party_json_keys[full_key];
+            if(json.hasOwnProperty(abbr_key))
+                json[full_key] = json[abbr_key];
+        });
+        if(json.hasOwnProperty('message'))
+            this.message = json.message;
+        if(json.hasOwnProperty('sender'))
+            this.sender = json.sender;
+        // NB: Map and district can't change in practive without the party being removed anyway
+        ['hardmode','parry_size','hero_count','level','search_type','primary','secondary'].forEach((key) => {
+            if(json.hasOwnProperty(key))
+                this[key] = to_number(json[key]);
+        });
+        this.validate();
+    }
+
+    /**
+     *
+     * @param full
+     * @return {{}}
+     */
+    toJSON(full = false) {
         const json_to_set = [
             'message',
             'sender',

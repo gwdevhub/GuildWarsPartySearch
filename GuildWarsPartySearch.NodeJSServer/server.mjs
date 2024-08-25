@@ -2,7 +2,7 @@ import {is_numeric, is_uuid, json_parse, to_number} from "./src/js/string_functi
 import express from "express";
 import bodyParser from "body-parser";
 import {is_quarantine_hit} from "./src/js/spam_filter.mjs";
-import {PartySearch} from "./src/js/PartySearch.class.mjs";
+import {party_json_keys, PartySearch} from "./src/js/PartySearch.class.mjs";
 import {start_websocket_server} from "./src/js/websocket_server.mjs";
 import {assert} from "./src/js/assert.mjs";
 import * as http from "http";
@@ -143,6 +143,8 @@ function send_map_parties(map_id, request_or_websocket = null) {
  * @param party {PartySearch}
  */
 function remove_party(party) {
+    if(!party)
+        return;
     const now = new Date();
     let idx = all_parties.indexOf(party);
     if (idx !== -1) {
@@ -423,6 +425,55 @@ function on_recv_parties(ws, data) {
 }
 
 /**
+ * Sent from bot clients to update existing map data instead of the whole lot.
+ * On error, any connected client should then send "client_parties" to refresh the list
+ * @param ws
+ * @param data
+ */
+function on_updated_parties(ws, data) {
+    const client_id = get_client_id(ws);
+    assert(client_id, "on_updated_parties: no client_id");
+    const bot_client = get_bot_client(ws);
+    assert(bot_client, "on_updated_parties: get_bot_client failed");
+    assert(is_numeric(bot_client.map_id) && is_numeric(bot_client.district_region),"on_updated_parties: no bot district or region");
+
+    const existing_parties = all_parties.filter((party) => {
+        return party.client_id === client_id;
+    });
+
+    let map_count_changed = false;
+
+    data.parties.filter((changed_party_info) => {
+        return !is_quarantine_hit(changed_party_info.message || '');
+    }).forEach((changed_party_info) => {
+        const party_id = to_number(changed_party_info.party_id || changed_party_info[party_json_keys['i']]);
+        let existing_party = existing_parties.find((party) => {
+            return party.party_id === party_id;
+        });
+        if(changed_party_info.r) {
+            remove_party(existing_party);
+            map_count_changed = true;
+            return;
+        }
+        if(!existing_party) {
+            changed_party_info.client_id = client_id;
+            changed_party_info.district_region = bot_client.district_region;
+            changed_party_info.map_id = bot_client.map_id;
+            const new_party = new PartySearch(changed_party_info);
+            add_party(new_party);
+            map_count_changed = true;
+            return;
+        }
+        existing_party.update(changed_party_info);
+    });
+
+    // Broadcast to other connections
+    if(map_count_changed)
+        send_available_maps();
+    send_map_parties(to_number(bot_client.map_id));
+}
+
+/**
  * Send a summary list of map_ids that have available parties to a http request or endpoint
  * @param request_or_websocket {WebSocket|Request}
  * @param force
@@ -510,6 +561,18 @@ async function on_request_message(request, data) {
         case "client_parties":
             assert(request.is_bot_client, "Not a client");
             on_recv_parties(request, data);
+            break;
+        case "updated_parties":
+            assert(request.is_bot_client, "Not a client");
+            try {
+                on_updated_parties(request,data);
+            } catch(e) {
+                send_header(request, 500, e.message);
+                // On error (whatever it may be!) request client to send all parties
+                send_json(request, {
+                    type: "server_requested_client_parties"
+                });
+            }
             break;
         case "available_maps":
             send_available_maps(request);
