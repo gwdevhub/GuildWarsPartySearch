@@ -1,4 +1,5 @@
-import {is_numeric, is_uuid, json_parse, to_number} from "./src/js/string_functions.mjs";
+import { AsyncLocalStorage } from 'async_hooks';
+import { is_numeric, is_uuid, json_parse, to_number } from "./src/js/string_functions.mjs";
 import express from "express";
 import bodyParser from "body-parser";
 import {is_quarantine_hit} from "./src/js/spam_filter.mjs";
@@ -37,15 +38,28 @@ import config from "./config.json" with {type: "json"};
 
 import {GetZaishenBounty, GetZaishenCombat, GetZaishenMission, GetZaishenVanquish} from "./src/js/DailyQuest.class.mjs";
 
+const asyncLocalStorage = new AsyncLocalStorage();
 console.logDefault = console.log;
 console.log = (...args) => {
-    console.logDefault(`[${(new Date()).format('H:i:s')}]`, ...args);
-}
+    const store = asyncLocalStorage.getStore() || {};
+    const ip = store.ip || 'Unknown IP';
+    const userAgent = store.userAgent ? ` ${store.userAgent}` : '';
+    console.logDefault(`[${(new Date()).format('d/MM/Y H:i:s')}] [INF] ${ip}${userAgent}`, ...args);
+};
 console.errorDefault = console.error;
 console.error = (...args) => {
-    console.errorDefault(`[${(new Date()).format('H:i:s')}]`, ...args);
-}
-
+    const store = asyncLocalStorage.getStore() || {};
+    const ip = store.ip || 'Unknown IP';
+    const userAgent = store.userAgent ? ` ${store.userAgent}` : '';
+    console.errorDefault(`[${(new Date()).format('d/MM/Y H:i:s')}] [ERR] ${ip}${userAgent}`, ...args);
+};
+console.debugDefault = console.debug;
+console.debug = (...args) => {
+    const store = asyncLocalStorage.getStore() || {};
+    const ip = store.ip || 'Unknown IP';
+    const userAgent = store.userAgent ? ` ${store.userAgent}` : '';
+    console.debugDefault(`[${(new Date()).format('d/MM/Y H:i:s')}] [DBG] ${ip}${userAgent}`, ...args);
+};
 
 const started_at = new Date();
 
@@ -651,12 +665,48 @@ async function on_websocket_message(data, ws) {
     }
 }
 
+/**
+ * Returns a request context with user-agent and resolved ip
+ * @param request {Request}
+ */
+function get_request_context(request) {
+    const store = {
+        ip: get_ip_from_request(request),
+        userAgent: request.headers['user-agent'] || ''
+    };
+
+    if (store.ip.startsWith('::ffff:')) {
+        store.ip = store.ip.replace('::ffff:', '');
+    }
+
+    return store;
+}
+
+let two_week_cache = {
+    maxAge: '14d',
+    etag: true,
+    lastModified: true
+};
+
+morgan.token('custom-date', () => {
+    return (new Date()).format('d/MM/Y H:i:s');
+});
+morgan.token('custom-ip', (req) => {
+    const store = asyncLocalStorage.getStore() || {};
+    return store.ip;
+});
+
 const app = express();
 app.use(bodyParser.text({type: '*/*'}));
-app.use(morgan("tiny"));
-let two_week_cache = build_express_cache_options(14 * 24 * 60 * 60 * 1000);
+app.use(morgan("[:custom-date] [DBG] :custom-ip :user-agent :method :url --> :status [:response-time ms]"));
 app.set('etag', 'strong');
 app.set('x-powered-by', false);
+app.use(function (req, res, next) {
+    const store = get_request_context(req);
+    asyncLocalStorage.run(store, () => {
+        next();
+    });
+});
 app.use(function (req, res, next) {
     res.removeHeader("date");
     res.set('X-Clacks-Overhead', "GNU Terry Pratchett"); // For Terry <3
@@ -677,14 +727,16 @@ http_server.listen(80, function () {
 
 const wss = start_websocket_server(http_server);
 wss.on('connection', function connection(ws, request) {
+    const ctx = get_request_context(request);
     ws.headers = request.headers;
-    ws.ip = get_ip_from_request(request);
-    console.log(`[websocket]`, ws.ip, "connected");
+    ws.ip = ctx.ip;
+    asyncLocalStorage.enterWith(ctx);
+    console.log("[websocket] connected");
     if (get_client_id(ws)) {
         try {
             add_bot_client(ws);
         } catch (e) {
-            console.error(`[websocket]`, ws.ip, e.message);
+            console.error(`[websocket]`, e.message);
             ws.ignore = 1;
             send_header(ws, 403, e.message);
             setTimeout(() => ws.close(), 5000);
@@ -697,22 +749,23 @@ wss.on('connection', function connection(ws, request) {
         if (ws.compression === 'lz') {
             return ws.sendCompressed(LZString.compressToUTF16(data), data);
         }
-        console.log(`[websocket]`, ws.ip, `<--`, data);
+        console.log(`[websocket]`, `<--`, data);
         ws.originalSend(data);
     }
     ws.sendCompressed = (data, original) => {
         if (ws.ignore) return;
-        console.log(`[websocket]`, ws.ip, `!<--`, original);
+        console.log(`[websocket]`, `!<--`, original);
         ws.originalSend(data);
     }
     ws.map_id = 0;
     if(!ws.is_bot_client) {
         send_available_maps(ws, true);
     }
-
     ws.on('message', (data) => {
         if (ws.ignore)
             return;
+
+        asyncLocalStorage.enterWith(ctx);
         ws.last_message = new Date();
         data = data.toString();
         let compressed = ws.compression === 'lz';
@@ -733,18 +786,19 @@ wss.on('connection', function connection(ws, request) {
             }
         }
 
-        console.log(`[websocket]`, ws.ip, `${(compressed ? '!' : '')}-->`, data);
+        console.log(`[websocket]`, `${(compressed ? '!' : '')}-->`, data);
         on_websocket_message(data, ws).catch((e) => {
             console.error(e);
-        })
+        });
     });
     ws.on('close', () => {
-        console.log(`[websocket]`, ws.ip, "closed");
+        asyncLocalStorage.enterWith(ctx);
+        console.log("[websocket] closed");
         if (ws.ignore)
             return;
         if (ws.is_bot_client)
             on_bot_disconnected(ws);
-    })
+    });
 });
 
 function get_bot_websockets() {

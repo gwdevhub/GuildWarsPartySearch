@@ -371,3 +371,4 @@ FodyWeavers.xsd
 /GuildWarsPartySearch.Bot/data
 /GuildWarsPartySearch.Bot/logs
 config.sh
+/GuildWarsPartySearch.NodeJSServer/config.json

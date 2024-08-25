@@ -1,0 +1,25 @@
+# Stage 1 build
+FROM alpine:3.20 AS build
+
+WORKDIR /build
+
+RUN apk update && apk add --no-cache bash nodejs npm
+
+# Copies everything from local directory to /build
+COPY . .
+
+RUN npm install && npm run build
+
+# Stage 2 Run
+
+FROM alpine:3.20 AS runtime
+
+RUN apk update && apk add --no-cache bash nodejs npm
+
+WORKDIR /app
+
+COPY --from=build /build/ /app/
+
+EXPOSE 80
+
+CMD npm run serve
