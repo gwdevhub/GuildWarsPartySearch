@@ -47,6 +47,8 @@ console.error = (...args) => {
 }
 
 
+const started_at = new Date();
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 let parties_by_client = {};
@@ -534,6 +536,28 @@ function send_all_parties(request_or_websocket = null) {
 }
 
 /**
+ * Send publicly available server stats
+ * @param request_or_websocket
+ */
+function send_stats(request_or_websocket = null) {
+    const memoryData = process.memoryUsage();
+    const formatMemoryUsage = (data) => `${Math.round(data / 1024 / 1024 * 100) / 100} MB`;
+
+    const memoryUsage = {
+        rss: `${formatMemoryUsage(memoryData.rss)} -> Resident Set Size - total memory allocated for the process execution`,
+        heapTotal: `${formatMemoryUsage(memoryData.heapTotal)} -> total size of the allocated heap`,
+        heapUsed: `${formatMemoryUsage(memoryData.heapUsed)} -> actual memory used during the execution`,
+        external: `${formatMemoryUsage(memoryData.external)} -> V8 external memory`,
+    };
+    const data = {
+        started_at:started_at,
+        memoryUsage:memoryUsage,
+        connected_clients:Object.values(wss.clients).length
+    };
+    send_json(request_or_websocket,data);
+}
+
+/**
  * Handler for incoming message from http request or websocket
  * @param request {Request|WebSocket}
  * @param data {Object}
@@ -547,6 +571,9 @@ async function on_request_message(request, data) {
         return;
     }
     switch (data.type || '') {
+        case "stats":
+            send_stats(request);
+            break;
         case "map_id":
         case "map_parties":
             assert(is_numeric(data.map_id), "Invalid or missing map_id");
