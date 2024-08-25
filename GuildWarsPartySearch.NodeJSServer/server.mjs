@@ -635,7 +635,11 @@ app.use(function (req, res, next) {
     res.set('X-Clacks-Overhead', "GNU Terry Pratchett"); // For Terry <3
     next();
 });
-app.use('/', express.static(path.join(__dirname, 'dist'), two_week_cache));
+
+['tiles','cards','resources','assets'].forEach((folder) => {
+    app.use(`/${folder}/`, express.static(path.join(__dirname, 'dist',folder), two_week_cache));
+})
+app.use('/', express.static(path.join(__dirname, 'dist'), build_express_cache_options(60 * 1000)));
 app.use('/api', on_http_message);
 
 const http_server = http.createServer();
