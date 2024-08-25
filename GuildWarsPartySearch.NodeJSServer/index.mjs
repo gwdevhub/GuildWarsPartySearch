@@ -301,7 +301,7 @@ function redrawPartyWindow() {
         party_rows_html += parties_by_type.map((party) => {
             return `<tr class="${row_class} hide-on-mobile row small centered party-search-result">
             <td class="text-start">${party.sender || ''}</td>\
-            <td>${getDistrictName(party.district_region) || ''}</td>\
+            <td class="minw-10rem text-nowrap">${getDistrictName(party.district_region) || ''}</td>\
             <td>${party.party_size}/${map_info.max_party_size}</td>\
             <td>${party.district_number}</td>\
             <td class="text-start">${party.message || ''}</td>\
