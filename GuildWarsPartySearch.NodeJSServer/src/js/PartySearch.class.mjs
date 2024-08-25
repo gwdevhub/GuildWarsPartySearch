@@ -111,7 +111,7 @@ export class PartySearch {
             delete obj.level;
         // Abbreviate to reduce footprint
         Object.keys(obj).forEach((key) => {
-            obj[json_keys[key]] = obj[key];
+            obj[party_json_keys[key]] = obj[key];
             delete obj[key];
         });
 
