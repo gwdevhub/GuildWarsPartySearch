@@ -552,7 +552,7 @@ function send_stats(request_or_websocket = null) {
     const data = {
         started_at:started_at,
         memoryUsage:memoryUsage,
-        connected_clients:Object.values(wss.clients).length
+        connected_clients:wss.clients.size
     };
     send_json(request_or_websocket,data);
 }
