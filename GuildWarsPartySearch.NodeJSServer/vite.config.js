@@ -6,7 +6,14 @@ import * as fs from "fs";
 export default defineConfig({
     build: {
         minify: false,
-        emptyOutDir: false
+        emptyOutDir: true,
+        rollupOptions: {
+            output: {
+                entryFileNames: `assets/[name]-${new Date().getTime()}.js`,
+                chunkFileNames: `assets/[name]-${new Date().getTime()}.js`,
+                assetFileNames: `assets/[name]-${new Date().getTime()}.[ext]`
+            },
+        },
     },
     plugins: [
         {
