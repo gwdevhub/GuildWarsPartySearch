@@ -518,7 +518,9 @@ function send_available_maps(request_or_websocket = null, force = false) {
     });
     const json = JSON.stringify({
         "type": "available_maps",
-        "available_maps": available_maps
+        "available_maps": available_maps.map((available_map) => {
+            return [available_map.map_id,available_map.district,available_map.party_count];
+        })
     });
 
     if (request_or_websocket) {

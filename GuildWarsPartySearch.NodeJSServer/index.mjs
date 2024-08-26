@@ -575,7 +575,15 @@ function onWebsocketMessage(data) {
             }).concat(other_parties);
             break;
         case "available_maps":
-            available_maps = data.available_maps || [];
+            available_maps = (data.available_maps || []).map((available_map_arr) => {
+                if(!Array.isArray(available_map_arr))
+                    return available_map_arr;
+                return {
+                    map_id:available_map_arr[0],
+                    district:available_map_arr[1],
+                    party_count:available_map_arr[2]
+                }
+            });
             break;
     }
     updateMarkers();
