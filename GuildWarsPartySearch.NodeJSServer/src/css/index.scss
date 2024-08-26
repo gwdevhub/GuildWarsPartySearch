@@ -1,13 +1,13 @@
-@import 'src/libs/leaflet/1.9.4/leaflet.css';
-@import 'src/libs/leaflet.draw/0.2.3/leaflet.draw.css';
+@import '../libs/leaflet/1.9.4/leaflet.css';
+@import '../libs/leaflet.draw/0.2.3/leaflet.draw.css';
 
-@import 'src/css/utilities';
+@import 'utilities';
 
 
 
 @font-face{
     font-family: "Fremont";
-    src: url(./src/fonts/Fremont.woff)
+    src: url(../fonts/Fremont.woff)
 }
 
 body, html {
@@ -55,7 +55,6 @@ body {
     color: #ffffff;
     right: 10px;
     top: 10px;
-    z-index: 1000;
     font-weight: bold;
     a {
         text-decoration: none;
@@ -65,19 +64,18 @@ body {
 
 #menu {
     position: absolute;
-    right: 0px;
-    top: 0px;
+    right: 0;
+    top: 0;
     height: 100%;
     min-height: 100%;
     width: 300px;
-    z-index: 9999;
     padding: 0;
     text-align: left;
     background: rgba(0, 0, 0, 0.90);
     opacity: 1;
     transition: width .3s, opacity 0.3s;
     border-left: solid 1px #808080;
-    box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.9);
+    box-shadow: 0 0 30px 0 rgba(0,0,0,0.9);
     color: #ffffff;
     overflow-y: auto;
     overflow-x:hidden;
@@ -95,7 +93,7 @@ body {
         text-decoration: none;
     }
     &.hidden {
-        width:0px;
+        width:0;
         opacity: 0;
         pointer-events: none;
     }
@@ -103,10 +101,7 @@ body {
 
 .menuHeader {
     font-size: 14pt;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding: 10px 5px;
     flex: 0 0 auto;
 }
 
@@ -312,7 +307,6 @@ body {
     justify-content: center;
     height:100vh;
     width:100vw;
-    z-index: 10000;
     padding: 0;
     top:0;
     left:0;
@@ -421,4 +415,8 @@ table {
         font-size:90%;
     }
 }
-@import 'src/css/mobile';
+.overlay-map {
+    z-index:401;
+}
+
+@import 'mobile';

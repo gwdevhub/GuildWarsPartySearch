@@ -141,8 +141,8 @@ async function selectMapId(map_id) {
 }
 
 function updateHash() {
-    var zoom = map.getZoom();
-    var point = project(map.getCenter());
+    const zoom = map.getZoom();
+    const point = project(map.getCenter());
 
     const url = new URL(window.location.href);
     url.searchParams.set("v", 1);
@@ -494,8 +494,6 @@ function areaLabel(data) {
 }
 
 function locationMarker(data) {
-    let label = data.label || data.name;
-    let divId = data.mapId ? " id='" + data.mapId + "'" : "";
     const icon_html = `<div class="holder" data-map-id="${data.mapId || ''}">
 <div class="icon" style="background-image:url('resources/icons/${data.type}.png');"></div>
 <div class="label">${data.label || data.name}</div>

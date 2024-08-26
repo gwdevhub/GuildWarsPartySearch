@@ -5,15 +5,8 @@ import * as fs from "fs";
 // https://vitejs.dev/config/
 export default defineConfig({
     build: {
-        minify: false,
-        emptyOutDir: true,
-        rollupOptions: {
-            output: {
-                entryFileNames: `assets/[name]-${new Date().getTime()}.js`,
-                chunkFileNames: `assets/[name]-${new Date().getTime()}.js`,
-                assetFileNames: `assets/[name]-${new Date().getTime()}.[ext]`
-            },
-        },
+        minify: 'esbuild',
+        emptyOutDir: true
     },
     plugins: [
         {

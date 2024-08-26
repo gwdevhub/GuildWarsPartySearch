@@ -12,13 +12,67 @@
 
     <link rel="icon" type="image/png" href="src/resources/icons/guildhall.png">
 
-    <link href="index.scss" rel="stylesheet" />
+    <link href="src/css/index.scss" rel="stylesheet" />
 </head>
 <body>
-    <div id="menu_button">
+    <div id="mapdiv" class="zoomed" style="width: 100vw; height: 100vh; background-color: #ffffff;"></div>
+    <div id="partyWindow" class="popupWindow hidden overlay-map">
+        <div class="popupInner">
+            <div class="popupHeader">
+                <div class="d-flex align-items-center">
+                    <div id="partyWindowTitle" class="popupWindowTitle divider flex-fill">Party Search</div>
+                    <div class="small text-nowrap districts_info">Districts: <span id="partyWindowDistricts"></span></div>
+                    <div class="closeButton toggleElement cursor-pointer align-self-stretch" data-selector="#partyWindow">x</div>
+                </div>
+                <div class="d-flex search_type_filters">
+                    <div>
+                        <input type="checkbox" checked id="search_type_toggle_0" class="search_type_toggle" data-id="0"/>
+                        <label for="search_type_toggle_0">Hunting (<span class="search_type_count_0">0</span>)</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" checked id="search_type_toggle_1" class="search_type_toggle" data-id="1"/>
+                        <label for="search_type_toggle_1">Mission (<span class="search_type_count_1">0</span>)</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" checked id="search_type_toggle_2" class="search_type_toggle" data-id="2"/>
+                        <label for="search_type_toggle_2">Quest (<span class="search_type_count_2">0</span>)</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" checked id="search_type_toggle_3" class="search_type_toggle" data-id="3"/>
+                        <label for="search_type_toggle_3">Trade (<span class="search_type_count_3">0</span>)</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" checked id="search_type_toggle_4" class="search_type_toggle" data-id="4"/>
+                        <label for="search_type_toggle_4">Guild (<span class="search_type_count_4">0</span>)</label>
+                    </div>
+                </div>
+                <table id="partyWindowTableHeader" class="table">
+                    <thead>
+                    <tr class="row hide-on-mobile">
+                        <th class="header text-start">Party Leader</th>
+                        <th class="header minw-10rem">Region</th>
+                        <th class="header">Size</th>
+                        <th class="header">District</th>
+                        <th class="header text-start">Description</th>
+                    </tr>
+                    <tr class="row show-on-mobile">
+                        <th class="header">Party Details</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+            <div class="popupContent">
+                <table id="partyWindowTable" class="table">
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="menu_button" class="overlay-map">
         <div class="toggleElement cursor-pointer" data-selector="#menu"><img src="src/resources/hamburger.png" /></div>
     </div>
-    <div id="menu" class="hidden">
+    <div id="menu" class="hidden overlay-map">
         <div class="menuInner">
             <div class="menuHeader">Locations</div>
             <div class="maplist">
@@ -45,62 +99,6 @@
             </div>
         </div>
     </div>
-    <div id="mapdiv" class="zoomed" style="width: 100vw; height: 100vh; background-color: #ffffff;"></div>
-        <div id="partyWindow" class="popupWindow hidden">
-            <div class="popupInner">
-                <div class="popupHeader">
-                    <div class="d-flex align-items-center">
-                        <div id="partyWindowTitle" class="popupWindowTitle divider flex-fill">Party Search</div>
-                        <div class="small text-nowrap districts_info">Districts: <span id="partyWindowDistricts"></span></div>
-                        <div class="closeButton toggleElement cursor-pointer align-self-stretch" data-selector="#partyWindow">x</div>
-                    </div>
-                    <div class="d-flex search_type_filters">
-                        <div>
-                            <input type="checkbox" checked id="search_type_toggle_0" class="search_type_toggle" data-id="0"/>
-                            <label for="search_type_toggle_0">Hunting (<span class="search_type_count_0">0</span>)</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" checked id="search_type_toggle_1" class="search_type_toggle" data-id="1"/>
-                            <label for="search_type_toggle_1">Mission (<span class="search_type_count_1">0</span>)</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" checked id="search_type_toggle_2" class="search_type_toggle" data-id="2"/>
-                            <label for="search_type_toggle_2">Quest (<span class="search_type_count_2">0</span>)</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" checked id="search_type_toggle_3" class="search_type_toggle" data-id="3"/>
-                            <label for="search_type_toggle_3">Trade (<span class="search_type_count_3">0</span>)</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" checked id="search_type_toggle_4" class="search_type_toggle" data-id="4"/>
-                            <label for="search_type_toggle_4">Guild (<span class="search_type_count_4">0</span>)</label>
-                        </div>
-                    </div>
-                    <table id="partyWindowTableHeader" class="table">
-                        <thead>
-                        <tr class="row hide-on-mobile">
-                            <th class="header text-start">Party Leader</th>
-                            <th class="header minw-10rem">Region</th>
-                            <th class="header">Size</th>
-                            <th class="header">District</th>
-                            <th class="header text-start">Description</th>
-                        </tr>
-                        <tr class="row show-on-mobile">
-                            <th class="header">Party Details</th>
-                        </tr>
-                        </thead>
-                    </table>
-                </div>
-                <div class="popupContent">
-                    <table id="partyWindowTable" class="table">
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="index.mjs" type="module"></script>
 </body>
 </html>
