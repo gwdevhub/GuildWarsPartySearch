@@ -61,10 +61,10 @@ export class PartySearch {
         if(json.hasOwnProperty('sender'))
             this.sender = json.sender;
         // NB: Map and district can't change in practive without the party being removed anyway
-        ['hardmode','parry_size','hero_count','level','search_type','primary','secondary'].forEach((key) => {
+        ['hardmode','party_size','hero_count','level','search_type','primary','secondary'].forEach((key) => {
             if(json.hasOwnProperty(key))
                 this[key] = to_number(json[key]);
-        });
+        },this);
         this.validate();
     }
 
