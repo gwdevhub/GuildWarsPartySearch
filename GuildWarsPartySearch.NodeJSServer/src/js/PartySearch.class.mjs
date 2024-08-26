@@ -32,7 +32,7 @@ export class PartySearch {
         this.client_id = json.client_id || '';
         this.message = json.message || json[party_json_keys['message']] || '';
         this.sender = json.sender || json[party_json_keys['sender']] || '';
-        this.party_id = to_number(json.party_id || json[party_json_keys['i']] || 0);
+        this.party_id = to_number(json.party_id || json[party_json_keys['party_id']] || 0);
         this.hardmode = to_number(json.hardmode || json[party_json_keys['hardmode']] || 0);
         this.party_size = to_number(json.party_size || json[party_json_keys['party_size']] ||  1);
         this.hero_count = to_number(json.hero_count || json[party_json_keys['hero_count']] || 0);
