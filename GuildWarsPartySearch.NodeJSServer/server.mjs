@@ -296,7 +296,9 @@ function reassign_bot_clients(request) {
         map_ids.Kaineng_Center_outpost,
         map_ids.Great_Temple_of_Balthazar_outpost
     ];
-    let bots_to_reassign = Object.values(bot_clients).sort((a, b) => {
+    let bots_to_reassign = Object.values(bot_clients).filter((bot_client) => {
+        return bot_client.explored_maps_weighting;
+    }).sort((a, b) => {
         return (a.explored_maps_weighting || 0) - (b.explored_maps_weighting || 0)
     });
     let bots_assigned = [];
