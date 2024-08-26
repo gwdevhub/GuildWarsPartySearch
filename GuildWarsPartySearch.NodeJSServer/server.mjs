@@ -462,7 +462,7 @@ function on_updated_parties(ws, data) {
     data.parties.filter((changed_party_info) => {
         return !is_quarantine_hit(changed_party_info.message || '');
     }).forEach((changed_party_info) => {
-        const party_id = to_number(changed_party_info.party_id || changed_party_info[party_json_keys['i']]);
+        const party_id = to_number(changed_party_info.party_id || changed_party_info[party_json_keys['party_id']]);
         let existing_party = existing_parties.find((party) => {
             return party.party_id === party_id;
         });
