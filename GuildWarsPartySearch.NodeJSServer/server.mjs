@@ -352,22 +352,22 @@ function reassign_bot_clients(request) {
         })
     });
 
-    console.log("bots_assigned", bots_assigned.map((map_assigned) => {
+    console.log("bots_assigned", JSON.stringify(bots_assigned.map((map_assigned) => {
         return {
             map_id: map_assigned.map_id,
             district_region: map_assigned.district_region,
             client_id: map_assigned.bot_client.client_id
         };
-    }));
+    })));
 
     if (bots_to_reassign.length) {
-        console.log("Bots not assigned!!!", bots_to_reassign.map((bot_client) => {
+        console.log("Bots not assigned!!!", JSON.stringify(bots_to_reassign.map((bot_client) => {
             return {
                 map_id: bot_client.map_id,
                 district_region: bot_client.district_region,
                 client_id: bot_client.client_id
             };
-        }))
+        })));
     }
 
     bots_assigned.forEach((map_assigned) => {
@@ -749,12 +749,12 @@ wss.on('connection', function connection(ws, request) {
         if (ws.compression === 'lz') {
             return ws.sendCompressed(LZString.compressToUTF16(data), data);
         }
-        console.log(`[websocket]`, `<--`, data);
+        console.debug(`[websocket]`, `<--`, data);
         ws.originalSend(data);
     }
     ws.sendCompressed = (data, original) => {
         if (ws.ignore) return;
-        console.log(`[websocket]`, `!<--`, original);
+        console.debug(`[websocket]`, `!<--`, original);
         ws.originalSend(data);
     }
     ws.map_id = 0;
@@ -786,7 +786,7 @@ wss.on('connection', function connection(ws, request) {
             }
         }
 
-        console.log(`[websocket]`, `${(compressed ? '!' : '')}-->`, data);
+        console.debug(`[websocket]`, `${(compressed ? '!' : '')}-->`, data);
         on_websocket_message(data, ws).catch((e) => {
             console.error(e);
         });
