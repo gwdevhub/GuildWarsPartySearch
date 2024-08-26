@@ -1,14 +1,34 @@
+@use "sass:map";
+
+$rems:();
+$percent:();
+@for $i from 1 through 10 {
+  $rems: map.set($rems, "#{$i}rem", "#{$i}rem");
+  $rems: map.set($rems, "#{$i*5}rem", "#{$i*5}rem");
+  $rems: map.set($rems, "#{$i*10}rem", "#{$i*10}rem");
+  $percent: map.set($percent, #{$i*10}, "#{$i*10}%");
+}
+$styles:(pe:'padding-right',ps:'padding-left',w:'width',minw:'min-width');
+
+@each $class, $styleKey in $styles {
+  @each $unit, $style in $rems {
+    .#{$class}-#{$unit} {
+      #{$styleKey}:#{$style} !important;
+    }
+  }
+  @each $unit, $style in $percent {
+    .#{$class}-#{$unit} {
+      #{$styleKey}:#{$style} !important;
+    }
+  }
+}
+
+
 .d-flex {
   display:flex;
 }
 .text-start {
   text-align:left !important;
-}
-.ps-1 {
-  padding-left:1rem;
-}
-.pe-1 {
-  padding-right:1rem;
 }
 .collapsed {
   display: none !important;
@@ -59,19 +79,4 @@
 }
 .align-self-stretch {
   align-self: stretch;
-}
-.w-50 {
-  width:50%;
-}
-.w-20 {
-  width:20%;
-}
-.w-40 {
-  width:40%;
-}
-.minw-5rem {
-  min-width:5rem !important;
-}
-.minw-10rem {
-  min-width:10rem !important;
 }
