@@ -124,7 +124,7 @@ function add_bot_client(request) {
     request.is_bot_client = 1;
     request.client_id = client_id;
     bot_clients[client_id] = request;
-    console.log(`Bot client added: ${JSON.stringify(request.headers, null, 1)}`)
+    console.log(`Bot client added: ${JSON.stringify(request.headers, null, 0)}`)
 }
 
 /**
