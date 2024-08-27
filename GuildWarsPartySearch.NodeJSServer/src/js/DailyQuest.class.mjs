@@ -1,9 +1,10 @@
-import {map_ids} from "./gw_constants.mjs";
+import {getMapName, getNearestOutpost, map_ids} from "./gw_constants.mjs";
 
 export class DailyQuest {
-    constructor(map_id, nearest_outpost_id = 0) {
+    constructor(map_id, nearest_outpost_id = 0, quest_name = "") {
         this.map_id = map_id;
-        this.nearest_outpost_id = nearest_outpost_id || this.map_id;
+        this.nearest_outpost_id = nearest_outpost_id || getNearestOutpost(this.map_id);
+        this.quest_name = quest_name || getMapName(map_id);
     }
 }
 
@@ -75,39 +76,45 @@ export const zaishen_bounty_cycles = [
     map_ids.Slavers_Exile_Level_1,           // Rand Stormweaver
     map_ids.Kessex_Peak,                     // Verata
 ].map((map_id) => {
+    if(Array.isArray(map_id)) {
+        return new DailyQuest(map_id[0],map_id[1]);
+    }
     return new DailyQuest(map_id);
 });
 
 export const zaishen_combat_cycles = [
-    map_ids.The_Jade_Quarry_mission,
+    [map_ids.The_Jade_Quarry_mission,map_ids.The_Jade_Quarry_Luxon_outpost],
     map_ids.Codex_Arena_outpost,
     map_ids.Heroes_Ascent_outpost,
-    map_ids.Isle_of_the_Dead_guild_hall,
-    map_ids.Isle_of_the_Dead_guild_hall,
+    [map_ids.Isle_of_the_Dead_guild_hall,0,"Guild Versus Guild"],
+    [map_ids.Isle_of_the_Dead_guild_hall,0,"Alliance Battles"],
     map_ids.Heroes_Ascent_outpost,
-    map_ids.Isle_of_the_Dead_guild_hall,
+    [map_ids.Isle_of_the_Dead_guild_hall,0,"Guild Versus Guild"],
     map_ids.Codex_Arena_outpost,
-    map_ids.Fort_Aspenwood_mission,
-    map_ids.The_Jade_Quarry_mission,
+    [map_ids.Fort_Aspenwood_mission,map_ids.Fort_Aspenwood_Kurzick_outpost],
+    [map_ids.The_Jade_Quarry_mission,map_ids.The_Jade_Quarry_Luxon_outpost],
     map_ids.Random_Arenas_outpost,
     map_ids.Codex_Arena_outpost,
-    map_ids.Isle_of_the_Dead_guild_hall,
-    map_ids.The_Jade_Quarry_mission,
-    map_ids.Isle_of_the_Dead_guild_hall,
+    [map_ids.Isle_of_the_Dead_guild_hall,0,"Guild Versus Guild"],
+    [map_ids.The_Jade_Quarry_mission,map_ids.The_Jade_Quarry_Luxon_outpost],
+    [map_ids.Isle_of_the_Dead_guild_hall,0,"Alliance Battles"],
     map_ids.Heroes_Ascent_outpost,
     map_ids.Random_Arenas_outpost,
-    map_ids.Fort_Aspenwood_mission,
-    map_ids.The_Jade_Quarry_mission,
+    [map_ids.Fort_Aspenwood_mission,map_ids.Fort_Aspenwood_Kurzick_outpost],
+    [map_ids.The_Jade_Quarry_mission,map_ids.The_Jade_Quarry_Luxon_outpost],
     map_ids.Random_Arenas_outpost,
-    map_ids.Fort_Aspenwood_mission,
+    [map_ids.Fort_Aspenwood_mission,map_ids.Fort_Aspenwood_Kurzick_outpost],
     map_ids.Heroes_Ascent_outpost,
-    map_ids.Isle_of_the_Dead_guild_hall,
-    map_ids.Isle_of_the_Dead_guild_hall,
+    [map_ids.Isle_of_the_Dead_guild_hall,0,"Alliance Battles"],
+    [map_ids.Isle_of_the_Dead_guild_hall,0,"Guild Versus Guild"],
     map_ids.Codex_Arena_outpost,
     map_ids.Random_Arenas_outpost,
-    map_ids.Fort_Aspenwood_mission,
-    map_ids.Isle_of_the_Dead_guild_hall
+    [map_ids.Fort_Aspenwood_mission,map_ids.Fort_Aspenwood_Kurzick_outpost],
+    [map_ids.Isle_of_the_Dead_guild_hall,0,"Alliance Battles"],
 ].map((map_id) => {
+    if(Array.isArray(map_id)) {
+        return new DailyQuest(map_id[0],map_id[1],map_id[2] || getMapName(map_id[0]));
+    }
     return new DailyQuest(map_id);
 });
 
@@ -249,6 +256,9 @@ export const zaishen_vanquish_cycles = [
     map_ids.Garden_of_Seborhin,
     map_ids.Grenths_Footprint
 ].map((map_id) => {
+    if(Array.isArray(map_id)) {
+        return new DailyQuest(map_id[0],map_id[1]);
+    }
     return new DailyQuest(map_id);
 });
 
@@ -323,6 +333,9 @@ export const zaishen_mission_cycles = [
     map_ids.Abaddons_Gate,
     map_ids.The_Frost_Gate
 ].map((map_id) => {
+    if(Array.isArray(map_id)) {
+        return new DailyQuest(map_id[0],map_id[1],map_id[2] || getMapName(map_id[0]));
+    }
     return new DailyQuest(map_id);
 });
 

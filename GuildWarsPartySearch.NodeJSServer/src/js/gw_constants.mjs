@@ -1,3 +1,5 @@
+import {is_numeric, to_number} from "./string_functions.mjs";
+
 export const map_regions = {
   Kryta: 0,
   Maguuma: 1,
@@ -2640,20 +2642,26 @@ export function getMapInfo(map_id) {
 }
 
 /**
- *
- * @param map_id
+ * Determine whether a given gw map id is a valid outpost to travel to
+ * @param _map_id
  * @return {boolean}
  */
-export function isValidOutpost(map_id) {
+export function isValidOutpost(_map_id) {
+  if(!is_numeric(_map_id))
+    return false;
+  const map_id = to_number(_map_id);
+  if(!map_id) return false;
   const map_info = getMapInfo(map_id);
   if(!map_info) return false;
+  if(!(map_info.x || map_info.y))
+      return false;
   if ((map_info.flags & 0x5000000) === 0x5000000)
     return false; // e.g. "wrong" augury rock is map 119, no NPCs
   if ((map_info.flags & 0x80000000) === 0x80000000)
     return false; // e.g. Debug map
   switch (map_info.map_type) {
-    case map_types.City:
     case map_types.CompetitiveMission:
+    case map_types.City:
     case map_types.CooperativeMission:
     case map_types.EliteMission:
     case map_types.MissionOutpost:
@@ -2675,6 +2683,41 @@ export function getMapName(map_id) {
   if(!info.name_id)
     return null;
   return encoded_strings[info.name_id+''] || null;
+}
+
+/**
+ * Traverse all map locations, find the nearest to the given outpost as the crow flies
+ * @param map_id
+ * @return {number|number|number|*}
+ */
+export function getNearestOutpost(map_id) {
+  const this_map_info = getMapInfo(map_id);
+  if(!this_map_info) return 0;
+  if(isValidOutpost(map_id))
+    return map_id;
+  if(!(this_map_info.x || this_map_info.y))
+    return 0; // Can't find distance to this map
+  const GetSquareDistance = (p1, p2) => {
+    return (p1.x - p2.x) * (p1.x - p2.x) +
+        (p1.y - p2.y) * (p1.y - p2.y);
+  };
+  let closest = this_map_info;
+  let closest_dist = 0xffffffff;
+  const is_pre = this_map_info.region === map_regions.Presearing;
+  map_info.forEach((check_map_info) => {
+    if(!isValidOutpost(check_map_info.id))
+      return;
+    if(check_map_info.campaign !== closest.campaign)
+      return;
+    if(is_pre && check_map_info.region !== map_regions.Presearing)
+      return;
+    const dist = GetSquareDistance(check_map_info,this_map_info);
+    if(dist > closest_dist)
+      return;
+    closest = check_map_info;
+    closest_dist = dist;
+  });
+  return isValidOutpost(closest.id) ? closest.id : 0;
 }
 
 /**
