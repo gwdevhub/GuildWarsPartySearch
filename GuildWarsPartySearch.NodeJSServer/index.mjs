@@ -206,6 +206,7 @@ function redrawPartyList() {
             selectMapId(to_number(event.currentTarget.getAttribute('data-map-id')));
         })
     })
+    redrawDailyQuests();
 }
 
 function getLeafletLocationByMapId(map_id) {
