@@ -419,4 +419,23 @@ table {
     z-index:401;
 }
 
+.daily-quests {
+    position:absolute;
+    left:0;
+    bottom:0;
+    height:auto;
+    width:auto;
+    padding:.25rem;
+    line-height:1.5;
+    background-color:rgba(0,0,0,0.6);
+    white-space: nowrap;
+    color:#fff;
+    .daily-quest-row {
+        font-size:85%;
+        span {
+            font-size:115%;
+        }
+    }
+}
+
 @import 'mobile';

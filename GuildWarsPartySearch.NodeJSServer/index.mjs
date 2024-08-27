@@ -6,7 +6,7 @@ import {
     party_search_types,
     districts,
     district_regions,
-    getDistrictName, district_region_info, region_from_district
+    getDistrictName, district_region_info, region_from_district, isValidOutpost
 } from "./src/js/gw_constants.mjs";
 import {is_numeric, to_number} from "./src/js/string_functions.mjs";
 import {groupBy, unique} from "./src/js/array_functions.mjs";
@@ -22,6 +22,7 @@ import {get_websocket_client, is_websocket_ready, start_websocket_client} from "
 import {sleep} from "./src/js/sleep.mjs";
 import LZString from "./src/js/lz-string.min.mjs";
 import {assert} from "./src/js/assert.mjs";
+import {GetZaishenBounty, GetZaishenCombat, GetZaishenMission, GetZaishenVanquish} from "./src/js/DailyQuest.class.mjs";
 
 const leafletData = [
     map_data_0,
@@ -118,6 +119,17 @@ document.querySelectorAll('input.search_type_toggle').forEach((element) => {
     element.addEventListener('change',() => {
         redrawPartyWindow();
     })
+})
+
+document.querySelectorAll(`[data-goto-map-id]`).forEach((element) => {
+    element.addEventListener('click',(evt) => {
+        const map_id = evt.currentTarget.getAttribute('data-goto-map-id');
+        console.log(map_id,isValidOutpost(map_id));
+        console.log(getMapInfo(map_id));
+        if(!isValidOutpost(map_id))
+            return;
+        selectMapId(to_number(map_id));
+    });
 })
 
 async function onMapChanged() {
@@ -416,6 +428,23 @@ async function loadMap(continent) {
     await updateMarkers();
 }
 
+
+
+function redrawDailyQuests() {
+    const mapping = {
+        '.zaishen-mission':GetZaishenMission(),
+        '.zaishen-bounty':GetZaishenBounty(),
+        '.zaishen-combat':GetZaishenCombat(),
+        '.zaishen-vanquish':GetZaishenVanquish()
+    };
+    Object.keys(mapping).forEach((className) => {
+        const daily = mapping[className];
+        const element = document.querySelector(className);
+        element.setAttribute('data-goto-map-id',daily.nearest_outpost_id);
+        element.innerHTML = `${daily.quest_name} (${getPartyCount(daily.nearest_outpost_id)})`;
+    });
+}
+
 function zoomEnd() {
 
     let zoom = map.getZoom();
@@ -524,6 +553,14 @@ function is_map_available(map_id) {
     return available_maps.find((available_map) => {
         return available_map.map_id === map_id;
     });
+}
+function getPartyCount(map_id) {
+    map_id = to_number(map_id);
+    return available_maps.filter((available_map) => {
+        return available_map.map_id === map_id;
+    }).reduce((accumulator, currentValue) => accumulator + currentValue.party_count,
+        0,
+    );
 }
 
 function updateMarkers() {
@@ -661,6 +698,7 @@ async function check_websocket() {
     check_websocket();
 
 }
+redrawDailyQuests();
 loadMap(currentContinent).then(() => {
     if(partyWindow.classList.contains('hidden'))
         toggleElement(menu,true);
