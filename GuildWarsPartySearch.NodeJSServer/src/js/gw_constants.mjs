@@ -2666,6 +2666,7 @@ export function isValidOutpost(_map_id) {
     case map_types.EliteMission:
     case map_types.MissionOutpost:
     case map_types.Outpost:
+    case map_types.Arena:
       return true;
   }
   return false;
