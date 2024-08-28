@@ -267,8 +267,8 @@ function reassign_bot_clients(request) {
     if(reassign_bot_clients_timeout) {
         // Re-run this every 15 mins
         clearTimeout(reassign_bot_clients_timeout);
-        reassign_bot_clients_timeout = setTimeout(reassign_bot_clients,60000 * 15);
     }
+    reassign_bot_clients_timeout = setTimeout(reassign_bot_clients,60000 * 15);
     const zaishen_mission = GetZaishenMission();
     const zaishen_bounty = GetZaishenBounty();
     const zaishen_combat = GetZaishenCombat();
