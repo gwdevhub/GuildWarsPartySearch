@@ -2696,8 +2696,14 @@ export function getNearestOutpost(map_id) {
   if(!this_map_info) return 0;
   if(isValidOutpost(map_id))
     return map_id;
-  if(!(this_map_info.x || this_map_info.y))
-    return 0; // Can't find distance to this map
+  let pos = {
+    x:this_map_info.x, y:this_map_info.y
+  };
+  if(!(this_map_info.x || this_map_info.y)) {
+    // No icon position; calculate using map bounds
+    pos.x = ((this_map_info.end_x - this_map_info.start_x) / 2 + this_map_info.start_x);
+    pos.y = ((this_map_info.end_y - this_map_info.start_y) / 2 + this_map_info.start_y);
+  }
   const GetSquareDistance = (p1, p2) => {
     return (p1.x - p2.x) * (p1.x - p2.x) +
         (p1.y - p2.y) * (p1.y - p2.y);
@@ -2712,7 +2718,7 @@ export function getNearestOutpost(map_id) {
       return;
     if(is_pre && check_map_info.region !== map_regions.Presearing)
       return;
-    const dist = GetSquareDistance(check_map_info,this_map_info);
+    const dist = GetSquareDistance(check_map_info,pos);
     if(dist > closest_dist)
       return;
     closest = check_map_info;
@@ -2780,3 +2786,5 @@ export function district_from_region(district_region, district_language) {
   }
   return districts.Current;
 }
+
+console.log(getMapInfo(map_ids.Forum_Highlands));
