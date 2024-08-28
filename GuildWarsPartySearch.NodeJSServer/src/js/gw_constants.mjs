@@ -2786,5 +2786,3 @@ export function district_from_region(district_region, district_language) {
   }
   return districts.Current;
 }
-
-console.log(getMapInfo(map_ids.Forum_Highlands));

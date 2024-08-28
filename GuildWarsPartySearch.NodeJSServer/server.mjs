@@ -16,7 +16,7 @@ import {
     is_websocket,
     send_header,
     send_json,
-    build_express_cache_options, is_http
+    is_http
 } from "./src/js/networking.mjs";
 import * as path from "path";
 import {
@@ -686,11 +686,8 @@ function get_request_context(request) {
     return store;
 }
 
-let two_week_cache = {
-    maxAge: '14d',
-    etag: true,
-    lastModified: true
-};
+const two_week_cache = {maxAge: '14d', etag: true, lastModified: true};
+const one_hour_cache = {maxAge: '1h', etag: true, lastModified: true};
 
 morgan.token('custom-date', () => {
     return (new Date()).format('d/MM/Y H:i:s');
@@ -720,7 +717,7 @@ app.use(function (req, res, next) {
 ['tiles','cards','resources','assets'].forEach((folder) => {
     app.use(`/${folder}/`, express.static(path.join(__dirname, 'dist',folder), two_week_cache));
 })
-app.use('/', express.static(path.join(__dirname, 'dist'), build_express_cache_options(60 * 1000)));
+app.use('/', express.static(path.join(__dirname, 'dist'), one_hour_cache));
 app.use('/api', on_http_message);
 
 const http_server = http.createServer();
