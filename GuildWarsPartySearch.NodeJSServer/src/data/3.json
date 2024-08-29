@@ -87,7 +87,7 @@
           "name": "Beknur Harbor",
           "type": "outpost_elona",
           "coordinates": [ 1728, 3657 ],
-          "mapId": 457
+          "mapId": 487
         },
         {
           "name": "Kodlonu Hamlet",
@@ -433,8 +433,7 @@
         {
           "name": "Vortex",
           "type": "vortex",
-          "coordinates": [ 2488, 520 ],
-          "mapId": 374
+          "coordinates": [ 2488, 520 ]
         },
         {
           "name": "Remains of Sahlahja",

@@ -259,7 +259,7 @@
           "name": "Lion's Arch",
           "type": "city",
           "coordinates": [ 3960, 4800 ],
-          "mapId": 385
+          "mapId": 55
         },
         {
           "name": "Bergen Hot Springs",
@@ -412,7 +412,7 @@
           "type": "mission",
           "coordinates": [ 818, 4694 ],
           "wiki": "Bloodstone_Fen_(outpost)",
-          "mapId": 471
+          "mapId": 10
         },
         {
           "name": "Aurora Glade",

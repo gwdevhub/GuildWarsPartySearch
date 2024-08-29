@@ -432,7 +432,7 @@ export const map_ids = {
   Gate_of_Torment_outpost: 450,
   Nightfallen_Garden: 455,
   Churrhir_Fields: 456,
-  Beknur_Harbor_outpost: 457,
+  Beknur_Harbor: 457,
   The_Underworld2: 461,
   Heart_of_Abaddon: 462,
   The_Underworld3: 463,
@@ -459,7 +459,7 @@ export const map_ids = {
   Lahtenda_Bog: 484,
   Arbor_Bay: 485,
   Issnur_Isles: 486,
-  Beknur_Harbor: 487,
+  Beknur_Harbor_outpost: 487,
   Mehtani_Keys: 488,
   Kodlonu_Hamlet_outpost: 489,
   Island_of_Shehkah: 490,
@@ -2664,10 +2664,14 @@ export function isValidOutpost(_map_id) {
     case map_types.City:
     case map_types.CooperativeMission:
     case map_types.EliteMission:
+    case map_types.ChallengeMission:
     case map_types.MissionOutpost:
     case map_types.Outpost:
     case map_types.Arena:
       return true;
+    case map_types.ZaishenBattle:
+    case map_types.HeroesAscent:
+      return true; // Outpost check?
   }
   return false;
 }
