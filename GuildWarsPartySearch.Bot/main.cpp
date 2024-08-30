@@ -43,6 +43,7 @@ extern "C" {
 #include "gw-helper.c"
 
 #include "daily_quests.h"
+#include <common/uuid.h>
 
 #define FAILED_TO_START             1
 #define FAILED_TO_LOAD_GAME         2
@@ -78,51 +79,37 @@ struct PartySearchAdvertisement {
     uint8_t             primary = 0;
     uint8_t             secondary = 0;
     uint8_t             level = 0;
-    std::string         message;
-    std::string         sender;
+    char message[65] = { 0 };
+    char sender[42] = { 0 };
+    PartySearchAdvertisement() {
+        memset(this, 0, sizeof(*this));
+    }
 };
 
 void to_json(nlohmann::json& j, const PartySearchAdvertisement& p) {
-    /*
-const json_keys = {
-    'party_id':'i',
-    'party_size':'ps',
-    'sender':'s',
-    'message':'ms',
-    'hero_count':'hc',
-    'search_type':'t',
-    'map_id':'m',
-    'district':'d',
-    'hardmode':'hm',
-    'district_number':'dn',
-    'district_region':'dr',
-    'district_language':'dl',
-    'level':'1',
-    'primary':'p',
-    'secondary':'sc'
-}
-*/
-    j = nlohmann::json{
-        {"i", p.party_id},
-        {"t", p.search_type},
-        {"dn", p.district_number},
-        {"p", p.primary},
-        {"s", p.sender}
-    };
+
+    j = nlohmann::json{ {"i", p.party_id} };
+    if (!p.party_size) {
+        // Aka "remove"
+        j["r"] = 1;
+        return;
+    }
+    j["t"] = p.search_type;
+    j["p"] = p.primary;
+    j["s"] = p.sender;
 
     // The following fields can be assumed to be reasonable defaults by the server, so only need to send if they're not standard.
-    if (p.party_size > 1)j["ps"] = p.party_size;
-    if (p.hero_count)j["hc"] = p.hero_count;
-    if (p.hardmode)j["hm"] = p.hardmode;
-    if (p.language)j["dl"] = p.language;
-    if (p.secondary)j["sc"] = p.secondary;
-    if (p.message.size())j["ms"] = p.message;
-    if (p.level != 20)j["l"] = p.level;
+    if (p.party_size > 1) j["ps"] = p.party_size;
+    if (p.hero_count) j["hc"] = p.hero_count;
+    if (p.hardmode) j["hm"] = p.hardmode;
+    if (p.language) j["dl"] = p.language;
+    if (p.secondary) j["sc"] = p.secondary;
+    if (p.district_number) j["dn"] = p.district_number;
+    if (*p.message) j["ms"] = p.message;
 }
 
 static struct thread  bot_thread;
 static std::atomic<bool> running;
-static std::atomic<bool> ready;
 static std::string last_payload;
 static uint64_t last_websocket_message = 0;
 static uint64_t websocket_ping_interval = 30000; // Ping every 30s
@@ -228,13 +215,30 @@ static CallbackEntry EventType_AgentDespawned_entry;
 static bool party_advertisements_pending = true;
 static bool maps_unlocked_pending = true;
 
-static thread_mutex_t party_search_advertisements_mutex;
-static std::vector<PartySearchAdvertisement*> party_search_advertisements;
+static thread_mutex_t party_mutex;
+static thread_mutex_t websocket_mutex;
+static std::vector<std::string> pending_websocket_packets;
+
+static std::map<uint32_t,PartySearchAdvertisement> party_search_advertisements;
+static std::map<uint32_t, uint32_t> agent_party_sizes;
+
+static std::map<uint32_t, PartySearchAdvertisement> server_parties;
+
 struct PartySearchDistrict {
     int map_id = 0;
     District district = District::DISTRICT_CURRENT;
     int district_number = 0;
 } party_search_map_info;
+
+static void on_map_changed() {
+    thread_mutex_lock(&party_mutex);
+    agent_party_sizes.clear();
+    server_parties.clear();
+    party_search_advertisements.clear();
+    maps_unlocked_pending = true;
+    party_advertisements_pending = true;
+    thread_mutex_unlock(&party_mutex);
+}
 
 static uint32_t get_original_map_id(uint32_t map_id);
 
@@ -252,7 +256,6 @@ static bool get_optimal_position_for_listening(float* pos) {
     }
     return false;
 }
-
 
 static uint32_t get_original_map_id(uint32_t map_id);
 
@@ -279,102 +282,67 @@ static std::string convert_uint16_to_string(const uint16_t* buffer, size_t lengt
     return convert.to_bytes(wstr);
 }
 
-static void clear_party_search_advertisements() {
-    thread_mutex_lock(&party_search_advertisements_mutex);
-    for (auto party : party_search_advertisements) {
-        delete party;
-    }
+static bool GetPlayerByAgentId(uint32_t agent_id, ApiPlayer* player_out) {
+    auto player_count = GetPlayers(NULL, 0);
 
-    party_search_advertisements.clear();
-    thread_mutex_unlock(&party_search_advertisements_mutex);
-}
-
-static PartySearchAdvertisement* get_party_search_advertisement(uint32_t party_search_id) {
-    PartySearchAdvertisement* found = nullptr;
-    thread_mutex_lock(&party_search_advertisements_mutex);
-    for (const auto party : party_search_advertisements) {
-        if (party->party_id == party_search_id) {
-            found = party;
-            goto leave;
+    std::vector<ApiPlayer> players(player_count);
+    players.resize(GetPlayers(players.data(), player_count));
+    for(auto& player : players) {
+        if (player.agent_id == agent_id) {
+            *player_out = player;
+            return true;
         }
     }
-leave:
-    thread_mutex_unlock(&party_search_advertisements_mutex);
-    return found;
+    return false;
 }
-static PartySearchAdvertisement* get_party_search_advertisement(const std::string& player_name) {
-    PartySearchAdvertisement* found = nullptr;
-    thread_mutex_lock(&party_search_advertisements_mutex);
-    for (const auto party : party_search_advertisements) {
-        if (party->sender == player_name) {
-            found = party;
-            goto leave;
+
+static std::map<uint32_t,PartySearchAdvertisement> collect_party_searches() {
+    thread_mutex_lock(&party_mutex);
+    // 1. Get a copy of actual party searches
+    auto parties = party_search_advertisements;
+
+    // 2. Append with players in range that don't have a party search, but have more than 1 member
+    for (auto it : agent_party_sizes) {
+        if (it.second < 2)
+            continue; // Only send players with at least 2 members
+        ApiPlayer player;
+        if (!GetPlayerByAgentId(it.first, &player))
+            continue; // Failed to get matching player
+
+        uint16_t player_name[21] = { 0 };
+        int len = GetPlayerName(player.player_id, player_name, ARRAY_SIZE(player_name));
+        assert(len > 0);
+
+        auto player_name_str = convert_uint16_to_string(player_name, len);
+
+        bool found_party_search = false;
+        for (auto& party_search : parties) {
+            found_party_search = (party_search.second.sender == player_name_str);
+            if (found_party_search) break;
         }
+        if (found_party_search)
+            continue;
+        PartySearchAdvertisement party;
+        party.party_id = 0xf0000 | it.first;
+        party.party_size = it.second;
+        party.district_number = (uint16_t)GetDistrictNumber();
+        party.language = (uint8_t)GetDistrictLanguage();
+        party.level = 20;
+        strncpy(party.sender, player_name_str.c_str(), ARRAY_SIZE(party.sender));
+        parties[party.party_id] = std::move(party);
     }
-leave:
-    thread_mutex_unlock(&party_search_advertisements_mutex);
-    return found;
-}
-
-static void remove_party_search_advertisement(uint32_t party_search_id) {
-    auto party = get_party_search_advertisement(party_search_id);
-    if (!party)
-        return;
-    thread_mutex_lock(&party_search_advertisements_mutex);
-    auto it = std::find(party_search_advertisements.begin(), party_search_advertisements.end(), party);
-    if (it != party_search_advertisements.end()) {
-        party_search_advertisements.erase(it);
-        delete party;
-        party_advertisements_pending = true;
-    }
-    thread_mutex_unlock(&party_search_advertisements_mutex);
-}
-
-static PartySearchAdvertisement* create_party_search_advertisement(Event* event) {
-    assert(event && event->PartySearchAdvertisement.party_id);
-    thread_mutex_lock(&party_search_advertisements_mutex);
-    PartySearchAdvertisement* party = get_party_search_advertisement(event->PartySearchAdvertisement.party_id);
-    bool is_new = !party;
-    if (is_new) {
-        party = new PartySearchAdvertisement();
-    }
-
-    party->party_id = event->PartySearchAdvertisement.party_id;
-    party->party_size = event->PartySearchAdvertisement.party_size;
-    party->hero_count = event->PartySearchAdvertisement.hero_count;
-    party->search_type = event->PartySearchAdvertisement.search_type;
-    party->hardmode = event->PartySearchAdvertisement.hardmode;
-    party->district_number = event->PartySearchAdvertisement.district_number;
-    party->language = event->PartySearchAdvertisement.language;
-    party->primary = event->PartySearchAdvertisement.primary;
-    party->secondary = event->PartySearchAdvertisement.secondary;
-    party->level = event->PartySearchAdvertisement.level;
-
-    if (event->PartySearchAdvertisement.message.length) {
-        party->message = convert_uint16_to_string(event->PartySearchAdvertisement.message.buffer, event->PartySearchAdvertisement.message.length);
-    }
-    else {
-        party->message.clear();
-    }
-
-    if (event->PartySearchAdvertisement.sender.length) {
-        party->sender = convert_uint16_to_string(event->PartySearchAdvertisement.sender.buffer, event->PartySearchAdvertisement.sender.length);
-    }
-    else {
-        party->sender.clear();
-    }
-    if (is_new) {
-        const auto found_false_party = get_party_search_advertisement(party->sender);
-        if (found_false_party && found_false_party->party_id > 0xffff && party != found_false_party)
-            remove_party_search_advertisement(found_false_party->party_id);
-        party_search_advertisements.push_back(party);
-    }
-    thread_mutex_unlock(&party_search_advertisements_mutex);
-    return party;
+    thread_mutex_unlock(&party_mutex);
+    return parties;
 }
 
 static bool is_websocket_ready(easywsclient::WebSocket::pointer ws) {
     return ws && ws->getReadyState() == easywsclient::WebSocket::OPEN;
+}
+
+static void queue_send(const std::string& payload) {
+    thread_mutex_lock(&websocket_mutex);
+    pending_websocket_packets.push_back(payload);
+    thread_mutex_unlock(&websocket_mutex);
 }
 
 static bool send_websocket(easywsclient::WebSocket::pointer websocket, const std::string& payload) {
@@ -396,36 +364,129 @@ static void send_ping(easywsclient::WebSocket::pointer websocket) {
     websocket->sendPing();
 }
 
+static void send_player_uuid(const std::string& player_name, ApiFriend* frnd) {
+
+    char uuid_out[128] = { 0 };
+    int written = uuid_snprint(uuid_out, ARRAY_SIZE(uuid_out), (const struct uuid*)frnd->uuid);
+    assert(written > 1);
+
+    nlohmann::json j;
+    j["type"] = "player_name_account_uuid";
+    j["map_id"] = get_original_map_id(map_id);
+    j["district"] = district;
+    j["player_name"] = player_name;
+    j["account_uuid"] = uuid_out;
+
+    queue_send(j.dump());
+}
+
+// Requested from server when it wants to know the account associated with a player name
+static void on_server_requested_player_account_uuid(nlohmann::json& data) {
+    if (!data["player_name"].is_string()) {
+        LogWarn("on_server_requested_player_account_uuid: requested player_name is missing or not a string\n%s", data.dump().c_str());
+        return;
+    }
+    const auto player_name = data["player_name"].get<std::string>();
+    if (!player_name.size()) {
+        LogWarn("on_server_requested_player_account_uuid: empty player name\n%s", data.dump().c_str());
+        return;
+    }
+    wchar_t player_name_ws[21] = { 0 };
+    if (mbstowcs(player_name_ws, player_name.c_str(), ARRAY_SIZE(player_name_ws)) < 1) {
+        LogWarn("on_server_requested_player_account_uuid: failed to convert to wchar_t*\n%s", data.dump().c_str());
+        return;
+    }
+    uint16_t player_name_uint16[ARRAY_SIZE(player_name_ws)] = { 0 };
+    for (size_t i = 0; i < ARRAY_SIZE(player_name_uint16) && player_name_ws[i]; i++) {
+        assert(player_name_ws[i] < 0xffff);
+        player_name_uint16[i] = (uint16_t)player_name_ws[i];
+    }
+
+    ApiFriend found;
+    if (GetFriend(&found, player_name_uint16)) {
+        send_player_uuid(player_name, &found);
+        return;
+    }
+
+    // TODO: AddFriend();
+    LogWarn("on_server_requested_player_account_uuid: failed find friend\n%s", data.dump().c_str());
+}
+
 static void on_websocket_message(const std::string& message);
 
-static void clear_party_searches_if_map_changed() {
+static void check_map_changed() {
     PartySearchDistrict d = { GetMapId(),GetDistrict(),GetDistrictNumber() };
     if (memcmp(&d, &party_search_map_info, sizeof(party_search_map_info)) != 0) {
-        clear_party_search_advertisements();
+        on_map_changed();
         party_search_map_info = d;
     }
 }
 
-static bool send_party_advertisements(easywsclient::WebSocket::pointer websocket) {
-    assert(is_websocket_ready(websocket));
-    std::vector<PartySearchAdvertisement> ads;
-    thread_mutex_lock(&party_search_advertisements_mutex);
-    for (const auto& ad : party_search_advertisements) {
-        if (!ad) {
-            continue;
-        }
-        ads.push_back(*ad);
-    }
-    thread_mutex_unlock(&party_search_advertisements_mutex);
-    assert(map_id != 0);
+
+
+static void send_party_advertisements() {
     nlohmann::json j;
     j["type"] = "client_parties";
-    j["map_id"] = get_original_map_id(map_id);
-    j["district"] = district;
-    j["parties"] = ads;
+    j["map_id"] = get_original_map_id(GetMapId());
+    j["district"] = GetDistrict();
 
-    const auto payload = j.dump();
-    return send_websocket(websocket, payload);
+    auto searches = collect_party_searches();
+    std::vector<PartySearchAdvertisement> parties_json;
+    for (auto& it : searches) {
+        parties_json.push_back(std::move(it.second));
+    }
+    j["parties"] = parties_json;
+    queue_send(j.dump());
+    for (auto& party : parties_json) {
+        server_parties[party.party_id] = std::move(party);
+    }
+}
+
+static void send_changed_party_searches() {
+    if (!server_parties.size())
+        return send_party_advertisements();
+
+    auto parties = collect_party_searches();
+
+    std::vector<PartySearchAdvertisement> to_send;
+
+    for (auto& it : parties) {
+        const auto& existing_party = it.second;
+        const auto found = server_parties.find(existing_party.party_id);
+        if (found != server_parties.end()) {
+            auto res = memcmp(&existing_party, &found->second, sizeof(existing_party));
+            if (res == 0) {
+                continue; // No change, don't send
+            }
+        }
+        to_send.push_back(existing_party);
+    }
+
+    for (auto& it : server_parties) {
+        const auto& last_sent_party = it.second;
+        if (!last_sent_party.party_size)
+            continue; // Already flagged for removal
+        const auto found = parties.find(last_sent_party.party_id);
+        if (found == parties.end()) {
+            // Party no longer exists, flag for removal
+            auto cpy = last_sent_party;
+            cpy.party_size = 0; // Aka "remove"
+            to_send.push_back(cpy);
+        }
+    }
+
+    if (to_send.empty())
+        return; // No change
+    nlohmann::json j;
+    j["type"] = "updated_parties";
+    j["map_id"] = get_original_map_id(GetMapId());
+    j["district"] = GetDistrict();
+    j["parties"] = to_send;
+
+    queue_send(j.dump());
+    for (auto& party : to_send) {
+        server_parties[party.party_id] = std::move(party);
+    }
 }
 
 static void collect_instance_info() {
@@ -437,101 +498,105 @@ static void collect_instance_info() {
     LogInfo("collect_instance_info: map %d, district %d, district_number %d, district_region %d", map_id, district, district_number, GetDistrictRegion());
 }
 
-static void on_map_entered(Event* event, void* params) {
-    collect_instance_info();
-    clear_party_searches_if_map_changed();
-    party_advertisements_pending = true;
-    ready = true;
-    maps_unlocked_pending = true;
-}
-
-static void add_party_search_advertisement(Event* event, void* params) {
-    assert(event && event->type == EventType_PartySearchAdvertisement && event->PartySearchAdvertisement.party_id);
-    clear_party_searches_if_map_changed();
-    create_party_search_advertisement(event);
-    party_advertisements_pending = true;
-}
-
+// Client callback
 static void on_agent_despawned(Event* event, void* params) {
+    thread_mutex_lock(&party_mutex);
     assert(event && event->type == EventType_AgentDespawned && event->AgentDespawned.agent_id);
-    // NB: GW sends player_id as a 32 bit number here, even though its a u16 :/
-    assert(event->AgentDespawned.agent_id < 0xffffff);
-    uint32_t party_id = 0xff000000 | event->AgentDespawned.agent_id;
-    remove_party_search_advertisement(party_id);
+    check_map_changed();
+    const auto found = agent_party_sizes.find(event->AgentDespawned.agent_id);
+    if (found != agent_party_sizes.end()) {
+        agent_party_sizes.erase(found);
+        party_advertisements_pending = true;
+    }
+    thread_mutex_unlock(&party_mutex);
 }
 static void on_player_party_size(Event* event, void* params) {
-    assert(event && event->type == EventType_PlayerPartySize);
-    clear_party_searches_if_map_changed();
-
-    if (!event->PlayerPartySize.player_id)
-        return; // Player id empty?
-    ApiAgent agent;
-    if (!GetAgentOfPlayer(&agent, event->PlayerPartySize.player_id))
-        return;
-    uint32_t party_id = 0xff000000 | agent.agent_id;
-    if (event->PlayerPartySize.size < 2) {
-        remove_party_search_advertisement(party_id);
-        return;
-    }
-
-    thread_mutex_lock(&party_search_advertisements_mutex);
-    PartySearchAdvertisement* party = get_party_search_advertisement(party_id);
-    bool is_new = !party;
-    if (is_new) {
-        party = new PartySearchAdvertisement();
-    }
-
-    const auto player_id = event->PlayerPartySize.player_id;
-    party->party_id = party_id;
-    party->party_size = event->PlayerPartySize.size;
-    party->hero_count = 0;
-    party->search_type = 0;
-    party->hardmode = 0;
-    party->district_number = (uint16_t)GetDistrictNumber();
-    party->language = (uint8_t)GetDistrictLanguage();
-    // NB: We could get the primary, secondary and level for player, but would need HQ amending
-    party->primary = 0;
-    party->secondary = 0;
-    party->level = 20;
-
-    uint16_t player_name[21] = { 0 };
-    int len = GetPlayerName(event->PlayerPartySize.player_id, player_name, ARRAY_SIZE(player_name));
-    assert(len > 0);
-    player_name[len] = 0;
-
-    party->sender = convert_uint16_to_string(player_name, len);
-
-    if (is_new) {
-        if(get_party_search_advertisement(party->sender))
-            delete party;
-        else
-            party_search_advertisements.push_back(party);
-        
-    }
-    thread_mutex_unlock(&party_search_advertisements_mutex);
-    party_advertisements_pending = true;
-}
-
-static void update_party_search_advertisement(Event* event, void* params) {
-    assert(event && event->PartySearchAdvertisement.party_id);
-    clear_party_searches_if_map_changed();
-    PartySearchAdvertisement* party = get_party_search_advertisement(event->PartySearchAdvertisement.party_id);
-    if (party) {
-        switch (event->type) {
-        case EventType_PartySearchSize:
-            party->party_size = event->PartySearchAdvertisement.party_size;
-            party->hero_count = event->PartySearchAdvertisement.hero_count;
-            break;
-        case EventType_PartySearchType:
-            party->search_type = event->PartySearchAdvertisement.search_type;
-            party->hardmode = event->PartySearchAdvertisement.hardmode;
-            break;
-        case EventType_PartySearchRemoved:
-            remove_party_search_advertisement(party->party_id);
-            break;
+    thread_mutex_lock(&party_mutex);
+    {
+        assert(event && event->type == EventType_PlayerPartySize);
+        check_map_changed();
+        if (!event->PlayerPartySize.player_id)
+            goto leave; // Player id empty?
+        ApiAgent agent;
+        if (!GetAgentOfPlayer(&agent, event->PlayerPartySize.player_id))
+            goto leave;
+        check_map_changed();
+        if (event->PlayerPartySize.size < 1) {
+            const auto found = agent_party_sizes.find(agent.agent_id);
+            if (found != agent_party_sizes.end()) {
+                agent_party_sizes.erase(found);
+                party_advertisements_pending = true;
+            }
+            goto leave;
         }
+        agent_party_sizes[agent.agent_id] = event->PlayerPartySize.size;
+        party_advertisements_pending = true;
+    }
+leave:
+    thread_mutex_unlock(&party_mutex);
+}
+static void on_map_entered(Event* event, void* params) {
+    collect_instance_info();
+    check_map_changed();
+}
+static void on_create_party_search_advertisement(Event* event, void* params) {
+    thread_mutex_lock(&party_mutex);
+    assert(event && event->type == EventType_PartySearchAdvertisement && event->PartySearchAdvertisement.party_id);
+    check_map_changed();
+    if (!party_search_advertisements.contains(event->PartySearchAdvertisement.party_id)) {
+        party_search_advertisements[event->PartySearchAdvertisement.party_id] = PartySearchAdvertisement();
+    }
+    auto& party = party_search_advertisements[event->PartySearchAdvertisement.party_id];
+
+    party.party_id = event->PartySearchAdvertisement.party_id;
+    party.party_size = event->PartySearchAdvertisement.party_size;
+    party.hero_count = event->PartySearchAdvertisement.hero_count;
+    party.search_type = event->PartySearchAdvertisement.search_type;
+    party.hardmode = event->PartySearchAdvertisement.hardmode;
+    party.district_number = event->PartySearchAdvertisement.district_number;
+    party.language = event->PartySearchAdvertisement.language;
+    party.primary = event->PartySearchAdvertisement.primary;
+    party.secondary = event->PartySearchAdvertisement.secondary;
+    party.level = event->PartySearchAdvertisement.level;
+
+    *party.message = 0;
+    if (event->PartySearchAdvertisement.message.length) {
+        const auto message = convert_uint16_to_string(event->PartySearchAdvertisement.message.buffer, event->PartySearchAdvertisement.message.length);
+        strncpy(party.message, message.c_str(), ARRAY_SIZE(party.message));
+    }
+
+    *party.sender = 0;
+    if (event->PartySearchAdvertisement.sender.length) {
+        const auto sender = convert_uint16_to_string(event->PartySearchAdvertisement.sender.buffer, event->PartySearchAdvertisement.sender.length);
+        strncpy(party.sender, sender.c_str(), ARRAY_SIZE(party.sender));
+    }
+
+    party_advertisements_pending = true;
+    thread_mutex_unlock(&party_mutex);
+    
+}
+static void on_update_party_search_advertisement(Event* event, void* params) {
+    thread_mutex_lock(&party_mutex);
+    assert(event && event->PartySearchAdvertisement.party_id);
+    const auto found = party_search_advertisements.find(event->PartySearchAdvertisement.party_id);
+    if (found == party_search_advertisements.end())
+        goto leave;
+    switch (event->type) {
+    case EventType_PartySearchSize:
+        found->second.party_size = event->PartySearchAdvertisement.party_size;
+        found->second.hero_count = event->PartySearchAdvertisement.hero_count;
+        break;
+    case EventType_PartySearchType:
+        found->second.search_type = event->PartySearchAdvertisement.search_type;
+        found->second.hardmode = event->PartySearchAdvertisement.hardmode;
+        break;
+    case EventType_PartySearchRemoved:
+        party_search_advertisements.erase(found);
+        break;
     }
     party_advertisements_pending = true;
+leave:
+    thread_mutex_unlock(&party_mutex);
 }
 
 static void wait_until_ingame() {
@@ -674,9 +739,7 @@ static void ensure_correct_outpost() {
     LogInfo("I should be in outpost %d %d %d", GetMapId(), GetDistrict(), GetDistrictNumber());
 }
 
-static bool send_maps_unlocked(easywsclient::WebSocket::pointer websocket) {
-    if (!is_websocket_ready(websocket))
-        return false;
+static void send_maps_unlocked() {
     std::vector<uint32_t> maps_unlocked;
     maps_unlocked.resize(32,0);
     const auto len = GetMapsUnlocked(maps_unlocked.data(), maps_unlocked.capacity());
@@ -686,37 +749,36 @@ static bool send_maps_unlocked(easywsclient::WebSocket::pointer websocket) {
     j["type"] = "client_unlocked_maps";
     j["unlocked_maps"] = maps_unlocked;
 
-    return send_websocket(websocket, j.dump());
+    queue_send(j.dump());
 }
 
 // Server has send a websocket message asking this bot to travel
-static bool on_server_requested_travel(nlohmann::json& data) {
+static void on_server_requested_travel(nlohmann::json& data) {
     if (!data["map_id"].is_number()) {
         LogWarn("on_server_requesting_travel: requested map_id is missing or not a number\n%s", data.dump().c_str());
-        return false;
+        return;
     }
     const auto requested_map_id = data["map_id"].get<uint32_t>();
     if (!is_valid_outpost(requested_map_id)) {
         LogWarn("on_server_requesting_travel: requested map_id %d is not a valid outpost", requested_map_id);
-        return false;
+        return;
     }
     if (!IsMapUnlocked(requested_map_id)) {
         LogWarn("on_server_requesting_travel: requested map_id %d is not unlocked", requested_map_id);
-        return false;
+        return;
     }
     if (!data["district"].is_number()) {
         LogWarn("on_server_requesting_travel: requested district is missing or not a number\n%s", data.dump().c_str());
-        return false;
+        return;
     }
     const auto requested_district = data["district"].get<uint32_t>();
     if (requested_district > District::DISTRICT_ASIA_JAPANESE) {
         LogWarn("on_server_requesting_travel: requested map_id %d is not a valid district", requested_district);
-        return false;
+        return;
     }
 
     wanted_map_id = requested_map_id;
     wanted_district = (District)requested_district;
-    return true;
 }
 
 static void on_websocket_message(const std::string& message) {
@@ -730,6 +792,9 @@ static void on_websocket_message(const std::string& message) {
         const auto type = j["type"].get<std::string>();
         if (type == "server_requested_travel") {
             on_server_requested_travel(j);
+        }
+        else if (type == "server_requested_player_account_uuid") {
+            on_server_requested_player_account_uuid(j);
         }
     }
     // Unhandled request
@@ -798,22 +863,22 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
 
 static int main_bot(void* param)
 {
-
-    thread_mutex_init(&party_search_advertisements_mutex);
+    thread_mutex_init(&party_mutex);
+    thread_mutex_init(&websocket_mutex);
 
     CallbackEntry_Init(&EventType_WorldMapEnter_entry, on_map_entered, NULL);
     RegisterEvent(EventType_WorldMapEnter, &EventType_WorldMapEnter_entry);
 
-    CallbackEntry_Init(&EventType_PartySearchAdvertisement_entry, add_party_search_advertisement, NULL);
+    CallbackEntry_Init(&EventType_PartySearchAdvertisement_entry, on_create_party_search_advertisement, NULL);
     RegisterEvent(EventType_PartySearchAdvertisement, &EventType_PartySearchAdvertisement_entry);
 
-    CallbackEntry_Init(&EventType_PartySearchRemoved_entry, update_party_search_advertisement, NULL);
+    CallbackEntry_Init(&EventType_PartySearchRemoved_entry, on_update_party_search_advertisement, NULL);
     RegisterEvent(EventType_PartySearchRemoved, &EventType_PartySearchRemoved_entry);
 
-    CallbackEntry_Init(&EventType_PartySearchSize_entry, update_party_search_advertisement, NULL);
+    CallbackEntry_Init(&EventType_PartySearchSize_entry, on_update_party_search_advertisement, NULL);
     RegisterEvent(EventType_PartySearchSize, &EventType_PartySearchSize_entry);
 
-    CallbackEntry_Init(&EventType_PartySearchType_entry, update_party_search_advertisement, NULL);
+    CallbackEntry_Init(&EventType_PartySearchType_entry, on_update_party_search_advertisement, NULL);
     RegisterEvent(EventType_PartySearchType, &EventType_PartySearchType_entry);
 
     CallbackEntry_Init(&EventType_PlayerPartySize_entry, on_player_party_size, NULL);
@@ -854,6 +919,7 @@ static int main_bot(void* param)
         wait_until_ingame();
         if (!*account_uuid)
             collect_instance_info();
+        
         if (!wanted_map_id)
             wanted_map_id = map_id;
         if (!is_websocket_ready(sending_websocket)) {
@@ -863,39 +929,36 @@ static int main_bot(void* param)
             maps_unlocked_pending = true;
         }
         if (!connect_websocket(&sending_websocket, bot_configuration.web_socket_url, bot_configuration.api_key)) {
+            
             // Connection to server failed, continue the loop until we connect
             continue;
         }
-        //if (!get_already_visited_areas(sending_websocket)) {
-        //    LogInfo("Failed to get party searches from server");
-        //   continue;
-        //}
-        //auto old_wanted_map_id = wanted_map_id;
-        // Check for new map every 2 mins
-        // if (!last_calculated_map_check && time_get_ms() - last_calculated_map_check > 120000) {
-        //    last_calculated_map_check = time_get_ms();
-        //   wanted_map_id = get_original_map_id(calculate_map_to_visit(wanted_map_id, &wanted_district));
-        //}
-        //if (old_wanted_map_id != wanted_map_id) {
-        //    LogInfo("Wanted map id changed from %d to %d", old_wanted_map_id, wanted_map_id);
-        //}
-        ensure_correct_outpost();
 
+        ensure_correct_outpost();
         if (party_advertisements_pending) {
-            party_advertisements_pending = !send_party_advertisements(sending_websocket);
+            party_advertisements_pending = false;
+            send_changed_party_searches();
         }
         if (maps_unlocked_pending) {
-            maps_unlocked_pending = !send_maps_unlocked(sending_websocket);
+            maps_unlocked_pending = false;
+            send_maps_unlocked();
         }
+        thread_mutex_lock(&websocket_mutex);
+        while (pending_websocket_packets.size()) {
+            const auto& payload = pending_websocket_packets.begin();
+            if (!send_websocket(sending_websocket, *payload))
+                break;
+            pending_websocket_packets.erase(payload);
+        }
+        thread_mutex_unlock(&websocket_mutex);
         if (sending_websocket) {
             if (time_get_ms() - last_websocket_message > websocket_ping_interval) {
-
                 send_ping(sending_websocket);
             }
             sending_websocket->dispatch(on_websocket_message);
             sending_websocket->poll();
         }
-        
+
         time_sleep_ms(50);
     }
     disconnect_websocket(&sending_websocket);
@@ -908,9 +971,8 @@ static int main_bot(void* param)
     UnRegisterEvent(&EventType_PlayerPartySize_entry);
     UnRegisterEvent(&EventType_AgentDespawned_entry);
 
-    clear_party_search_advertisements();
-
-    thread_mutex_destroy(&party_search_advertisements_mutex);
+    thread_mutex_destroy(&party_mutex);
+    thread_mutex_destroy(&websocket_mutex);
 
     raise(SIGTERM);
     return 0;
