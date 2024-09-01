@@ -6,7 +6,7 @@ import {
     party_search_types,
     districts,
     district_regions,
-    getDistrictName, district_region_info, region_from_district, isValidOutpost
+    getDistrictName, district_region_info, region_from_district, isValidOutpost, getNearestOutpost, map_ids
 } from "./src/js/gw_constants.mjs";
 import {is_numeric, to_number} from "./src/js/string_functions.mjs";
 import {groupBy, unique} from "./src/js/array_functions.mjs";
@@ -222,7 +222,8 @@ function getLeafletLocationByMapId(map_id) {
     return null;
 }
 
-async function navigateToLocation(map_id, showParties) {
+async function navigateToLocation(_map_id, showParties) {
+    const map_id = getNearestOutpost(_map_id);
     const leaflet_location = getLeafletLocationByMapId(map_id);
     if (!leaflet_location) return;
     if (leaflet_location.continent.id !== currentContinent) {
@@ -703,7 +704,7 @@ async function check_websocket() {
     let ws = get_websocket_client();
     if(document.visibilityState !== 'hidden') {
         try {
-            reconnect_websocket();
+            await reconnect_websocket();
         } catch(e) {
             console.log(e.message);
         }

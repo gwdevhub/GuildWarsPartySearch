@@ -327,6 +327,12 @@
           "mapId": 77
         },
         {
+          "name": "Urgoz's Warren",
+          "type": "outpost_cantha_kurzick",
+          "coordinates": [ 3576, 2629 ],
+          "mapId": 266
+        },
+        {
           "name": "Aspenwood Gate (Kurzick)",
           "type": "outpost_cantha_kurzick",
           "coordinates": [ 3850, 2635 ],
@@ -472,6 +478,12 @@
           "type": "city_cantha_luxon",
           "coordinates": [ 4451, 2259 ],
           "mapId": 193
+        },
+        {
+          "name": "The Deep",
+          "type": "outpost_cantha_luxon",
+          "coordinates": [ 4530, 2255 ],
+          "mapId": 307
         },
         {
           "name": "Breaker Hollow",
