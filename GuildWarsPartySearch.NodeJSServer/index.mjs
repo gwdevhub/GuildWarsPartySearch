@@ -651,61 +651,78 @@ function send_map_id() {
         ws.send(JSON.stringify({"type":"map_id","map_id":chosen_map_id}));
 }
 
+async function reconnect_websocket() {
+    let ws = get_websocket_client();
+    if(is_websocket_ready(ws))
+        return true;
+    ws = await start_websocket_client();
+    if(!ws)
+        return false;
+    ws.addEventListener('message',(event) => {
+        let data = event.data;
+        let decompressed = LZString.decompressFromUTF16(data);
+        if(decompressed === "@@@\u0000")
+            decompressed = null;
+        if(decompressed) {
+            data = decompressed;
+            console.log(`[websocket]`,`!-->`,decompressed);
+        } else {
+            console.log(`[websocket]`,`-->`,data);
+        }
+
+        onWebsocketMessage(data);
+    });
+    ws.sendOriginal = ws.send;
+    ws.send = (data) => {
+        if(ws.compression === 'lz') {
+            const compressed = LZString.compressToUTF16(data);
+            const decompressed = LZString.decompressFromUTF16(compressed);
+            assert(decompressed === data);
+            console.log(`[websocket]`,`!<--`,data);
+            data = compressed;
+        } else {
+            console.log(`[websocket]`,`<--`,data);
+        }
+        ws.sendOriginal(data);
+    }
+    ws.send(JSON.stringify({"compression":"lz"}));
+    ws.compression = "lz";
+    console.log("Websocket message compression set to LZW, see https://pieroxy.net/blog/pages/lz-string/index.html for examples");
+    send_map_id();
+    return true;
+}
 /**
  * Periodically make sure the websocket connection is maintained
  * @return {Promise<void>}
  */
 async function check_websocket() {
-    try {
-        if(!is_websocket_ready(get_websocket_client())) {
-            const ws = await start_websocket_client();
-            if(!ws) return;
-            ws.addEventListener('message',(event) => {
-                let data = event.data;
-                let decompressed = LZString.decompressFromUTF16(data);
-                if(decompressed === "@@@\u0000")
-                    decompressed = null;
-                if(decompressed) {
-                    data = decompressed;
-                    console.log(`[websocket]`,`!-->`,decompressed);
-                } else {
-                    console.log(`[websocket]`,`-->`,data);
-                }
-
-                onWebsocketMessage(data);
-            });
-            ws.sendOriginal = ws.send;
-            ws.send = (data) => {
-                if(ws.compression === 'lz') {
-                    const compressed = LZString.compressToUTF16(data);
-                    const decompressed = LZString.decompressFromUTF16(compressed);
-                    assert(decompressed === data);
-                    console.log(`[websocket]`,`!<--`,data);
-                    data = compressed;
-                } else {
-                    console.log(`[websocket]`,`<--`,data);
-                }
-                ws.sendOriginal(data);
-            }
-            ws.send(JSON.stringify({"compression":"lz"}));
-            ws.compression = "lz";
-            console.log("Websocket message compression set to LZW, see https://pieroxy.net/blog/pages/lz-string/index.html for examples");
-            send_map_id();
-        }
-    } catch(e) {
-        console.log(e.message);
+    if(check_websocket_timeout) {
+        clearTimeout(check_websocket_timeout);
+        check_websocket_timeout = null;
     }
-    await sleep(5000);
-    check_websocket();
+    let ws = get_websocket_client();
+    if(document.visibilityState !== 'hidden') {
+        try {
+            reconnect_websocket();
+        } catch(e) {
+            console.log(e.message);
+        }
+    } else {
+        if(ws) ws.close();
+    }
 
+    check_websocket_timeout = setTimeout(check_websocket,5000);
 }
+
 redrawDailyQuests();
 loadMap(currentContinent).then(() => {
     if(partyWindow.classList.contains('hidden'))
         toggleElement(menu,true);
 })
 
+let check_websocket_timeout = null;
 check_websocket();
+document.addEventListener('visibilitychange',check_websocket);
 
 async function waitForLoaded(){
     while (loading) {
