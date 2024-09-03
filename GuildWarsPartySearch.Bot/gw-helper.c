@@ -246,11 +246,18 @@ bool is_valid_outpost(uint32_t map_id) {
     case RegionType_EliteMission:
     case RegionType_MissionOutpost:
     case RegionType_Outpost:
+    case RegionType_Arena:
+    case RegionType_ZaishenBattle:
+    case RegionType_HeroesAscent:
         break;
     default:
         return false;
     }
-    if (map_info->region == Region::Region_Presearing)
+
+    const auto current_map = get_map_info(GetMapId());
+    const auto is_pre = current_map && current_map->region == Region::Region_Presearing;
+
+    if (is_pre != (map_info->region == Region::Region_Presearing))
         return false;
     return true;
 }

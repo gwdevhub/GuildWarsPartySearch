@@ -849,7 +849,7 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
             websocket->poll();
             if (is_websocket_ready(websocket)) {
                 *websocket_pt = websocket;
-                party_advertisements_pending = true;
+                on_map_changed(); // Triggers fresh send of data
                 return true;
             }
             time_sleep_ms(50);
