@@ -411,7 +411,7 @@ function on_recv_parties(ws, data) {
     bot_client.district = district_from_region(bot_client.district_region, 0);
     // Cast parties to PartySearch objects
     const parties = data.parties.filter((party_json) => {
-        return !is_quarantine_hit(party_json.message || '');
+        return !is_quarantine_hit(party_json.message || party_json[party_json_keys['message']] || '');
     }).map((party_json) => {
         party_json.client_id = client_id;
         party_json.district_region = data.district_region;
@@ -461,8 +461,8 @@ function on_updated_parties(ws, data) {
 
     let map_count_changed = false;
 
-    data.parties.filter((changed_party_info) => {
-        return !is_quarantine_hit(changed_party_info.message || '');
+    data.parties.filter((party_json) => {
+        return !is_quarantine_hit(party_json.message || party_json[party_json_keys['message']] || '');
     }).forEach((changed_party_info) => {
         const party_id = to_number(changed_party_info.party_id || changed_party_info[party_json_keys['party_id']]);
         let existing_party = existing_parties.find((party) => {

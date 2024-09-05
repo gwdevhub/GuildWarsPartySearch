@@ -1,7 +1,7 @@
 
 // True on match
-import {pad, removeDiacritics, removePunctuation, removeSpaces, removeUnderscores} from "../src/string_functions.mjs";
-import {is_quarantine_hit} from "../src/spam_filter.mjs";
+import {pad, removeDiacritics, removePunctuation, removeSpaces, removeUnderscores} from "../src/js/string_functions.mjs";
+import {is_quarantine_hit} from "../src/js/spam_filter.mjs";
 
 let str = process.argv[2];
 //var msg_norm_auto = message.m.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
