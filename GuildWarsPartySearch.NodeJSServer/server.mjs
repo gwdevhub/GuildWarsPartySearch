@@ -1,4 +1,3 @@
-import { AsyncLocalStorage } from 'async_hooks';
 import { is_numeric, is_uuid, json_parse, to_number } from "./src/js/string_functions.mjs";
 import express from "express";
 import bodyParser from "body-parser";
@@ -16,7 +15,7 @@ import {
     is_websocket,
     send_header,
     send_json,
-    is_http
+    is_http, get_user_agent_from_request
 } from "./src/js/networking.mjs";
 import * as path from "path";
 import {
@@ -38,27 +37,35 @@ import config from "./config.json" with {type: "json"};
 
 import {GetZaishenBounty, GetZaishenCombat, GetZaishenMission, GetZaishenVanquish} from "./src/js/DailyQuest.class.mjs";
 
-const asyncLocalStorage = new AsyncLocalStorage();
 console.logDefault = console.log;
 console.log = (...args) => {
-    const store = asyncLocalStorage.getStore() || {};
-    const ip = store.ip || 'Unknown IP';
-    const userAgent = store.userAgent ? ` ${store.userAgent}` : '';
-    console.logDefault(`[${(new Date()).format('d/MM/Y H:i:s')}] [INF] ${ip}${userAgent}`, ...args);
+    let args_arr = Array.from(args);
+    if(is_http(args_arr[0]) || is_websocket(args_arr[0])) {
+        const req = args_arr.shift();
+        args_arr.unshift(get_ip_from_request(req), get_user_agent_from_request(req));
+    }
+    args_arr.unshift(`[${(new Date()).format('d/MM/Y H:i:s')}]`,`[LOG]`);
+    console.logDefault(...args_arr);
 };
 console.errorDefault = console.error;
 console.error = (...args) => {
-    const store = asyncLocalStorage.getStore() || {};
-    const ip = store.ip || 'Unknown IP';
-    const userAgent = store.userAgent ? ` ${store.userAgent}` : '';
-    console.errorDefault(`[${(new Date()).format('d/MM/Y H:i:s')}] [ERR] ${ip}${userAgent}`, ...args);
+    let args_arr = Array.from(args);
+    if (is_http(args_arr[0]) || is_websocket(args_arr[0])) {
+        const req = args_arr.shift();
+        args_arr.unshift(get_ip_from_request(req), get_user_agent_from_request(req));
+    }
+    args_arr.unshift(`[${(new Date()).format('d/MM/Y H:i:s')}]`, `[ERR]`);
+    console.errorDefault(...args_arr);
 };
 console.debugDefault = console.debug;
 console.debug = (...args) => {
-    const store = asyncLocalStorage.getStore() || {};
-    const ip = store.ip || 'Unknown IP';
-    const userAgent = store.userAgent ? ` ${store.userAgent}` : '';
-    console.debugDefault(`[${(new Date()).format('d/MM/Y H:i:s')}] [DBG] ${ip}${userAgent}`, ...args);
+    let args_arr = Array.from(args);
+    if (is_http(args_arr[0]) || is_websocket(args_arr[0])) {
+        const req = args_arr.shift();
+        args_arr.unshift(get_ip_from_request(req), get_user_agent_from_request(req));
+    }
+    args_arr.unshift(`[${(new Date()).format('d/MM/Y H:i:s')}]`, `[DEBUG]`);
+    console.debugDefault(...args_arr);
 };
 
 const started_at = new Date();
@@ -124,7 +131,7 @@ function add_bot_client(request) {
     request.is_bot_client = 1;
     request.client_id = client_id;
     bot_clients[client_id] = request;
-    console.log(`Bot client added: ${JSON.stringify(request.headers, null, 0)}`)
+    console.log(request,`Bot client added: ${JSON.stringify(request.headers, null, 0)}`)
 }
 
 /**
@@ -198,7 +205,7 @@ function add_party(party) {
  * @param request
  */
 function on_bot_disconnected(request) {
-    console.log("on_bot_disconnected", request.headers);
+    console.log(request,"on_bot_disconnected");
     delete_if(bot_clients, (entry) => {
         return entry === request;
     });
@@ -273,7 +280,7 @@ function reassign_bot_clients(request) {
     const zaishen_bounty = GetZaishenBounty();
     const zaishen_combat = GetZaishenCombat();
     const zaishen_vanquish = GetZaishenVanquish();
-    console.log(`reassign_bot_clients; zm = ${find_key(map_ids, zaishen_mission.map_id)}, \
+    console.log(request,`reassign_bot_clients; zm = ${find_key(map_ids, zaishen_mission.map_id)}, \
     zb = ${find_key(map_ids, zaishen_bounty.map_id)}, \
     zc = ${find_key(map_ids, zaishen_combat.map_id)}, \
     zv = ${find_key(map_ids, zaishen_vanquish.map_id)}`);
@@ -354,7 +361,7 @@ function reassign_bot_clients(request) {
         })
     });
 
-    console.log("bots_assigned", JSON.stringify(bots_assigned.map((map_assigned) => {
+    console.log(request, "bots_assigned", JSON.stringify(bots_assigned.map((map_assigned) => {
         return {
             map_id: map_assigned.map_id,
             district_region: map_assigned.district_region,
@@ -363,7 +370,7 @@ function reassign_bot_clients(request) {
     })));
 
     if (bots_to_reassign.length) {
-        console.log("Bots not assigned!!!", JSON.stringify(bots_to_reassign.map((bot_client) => {
+        console.log(request, "Bots not assigned!!!", JSON.stringify(bots_to_reassign.map((bot_client) => {
             return {
                 map_id: bot_client.map_id,
                 district_region: bot_client.district_region,
@@ -637,18 +644,18 @@ async function on_request_message(request, data) {
  * @param response {Response}
  */
 async function on_http_message(request, response) {
-    console.log(`Http message ${request.method} ${request.url}`);
+    console.log(request, `Http message ${request.method} ${request.url}`);
     try {
         let data = await get_data_from_request(request);
         if (!data) {
             response.sendStatus(500);
             return;
         }
-        console.log("Http data type %s", data.type || 'unknown');
+        console.log(request, `Http data type ${data.type || 'unknown'}`);
         await on_request_message(request, data);
         send_header(request, 200);
     } catch (e) {
-        console.error(e);
+        console.error(request,e);
         send_header(request, 500, e.message);
     }
 }
@@ -664,50 +671,18 @@ async function on_websocket_message(data, ws) {
         data = json_parse(data);
         await on_request_message(ws, data);
     } catch (e) {
-        console.error(e);
+        console.error(ws,e);
         send_header(ws, 500, e.message);
     }
-}
-
-/**
- * Returns a request context with user-agent and resolved ip
- * @param request {Request}
- */
-function get_request_context(request) {
-    const store = {
-        ip: get_ip_from_request(request),
-        userAgent: request.headers['user-agent'] || ''
-    };
-
-    if (store.ip.startsWith('::ffff:')) {
-        store.ip = store.ip.replace('::ffff:', '');
-    }
-
-    return store;
 }
 
 const two_week_cache = {maxAge: '14d', etag: true, lastModified: true};
 const one_hour_cache = {maxAge: '1h', etag: true, lastModified: true};
 
-morgan.token('custom-date', () => {
-    return (new Date()).format('d/MM/Y H:i:s');
-});
-morgan.token('custom-ip', (req) => {
-    const store = asyncLocalStorage.getStore() || {};
-    return store.ip;
-});
-
 const app = express();
 app.use(bodyParser.text({type: '*/*'}));
-app.use(morgan("[:custom-date] [DBG] :custom-ip :user-agent :method :url --> :status [:response-time ms]"));
 app.set('etag', 'strong');
 app.set('x-powered-by', false);
-app.use(function (req, res, next) {
-    const store = get_request_context(req);
-    asyncLocalStorage.run(store, () => {
-        next();
-    });
-});
 app.use(function (req, res, next) {
     res.removeHeader("date");
     res.set('X-Clacks-Overhead', "GNU Terry Pratchett"); // For Terry <3
@@ -728,16 +703,14 @@ http_server.listen(80, function () {
 
 const wss = start_websocket_server(http_server);
 wss.on('connection', function connection(ws, request) {
-    const ctx = get_request_context(request);
     ws.headers = request.headers;
-    ws.ip = ctx.ip;
-    asyncLocalStorage.enterWith(ctx);
-    console.log("[websocket] connected");
+    ws.ip = get_ip_from_request(request);
+    console.log(request, `[websocket]`,"connected");
     if (get_client_id(ws)) {
         try {
             add_bot_client(ws);
         } catch (e) {
-            console.error(`[websocket]`, e.message);
+            console.error(request,`[websocket]`, e.message);
             ws.ignore = 1;
             send_header(ws, 403, e.message);
             setTimeout(() => ws.close(), 5000);
@@ -750,12 +723,12 @@ wss.on('connection', function connection(ws, request) {
         if (ws.compression === 'lz') {
             return ws.sendCompressed(LZString.compressToUTF16(data), data);
         }
-        console.debug(`[websocket]`, `<--`, data);
+        console.debug(ws,`[websocket]`, `<--`, data);
         ws.originalSend(data);
     }
     ws.sendCompressed = (data, original) => {
         if (ws.ignore) return;
-        console.debug(`[websocket]`, `!<--`, original);
+        console.debug(ws,`[websocket]`, `!<--`, original);
         ws.originalSend(data);
     }
     ws.map_id = 0;
@@ -765,8 +738,6 @@ wss.on('connection', function connection(ws, request) {
     ws.on('message', (data) => {
         if (ws.ignore)
             return;
-
-        asyncLocalStorage.enterWith(ctx);
         ws.last_message = new Date();
         data = data.toString();
         let compressed = ws.compression === 'lz';
@@ -787,14 +758,13 @@ wss.on('connection', function connection(ws, request) {
             }
         }
 
-        console.debug(`[websocket]`, `${(compressed ? '!' : '')}-->`, data);
+        console.debug(ws,`[websocket]`, `${(compressed ? '!' : '')}-->`, data);
         on_websocket_message(data, ws).catch((e) => {
-            console.error(e);
+            console.error(ws,e);
         });
     });
     ws.on('close', () => {
-        asyncLocalStorage.enterWith(ctx);
-        console.log("[websocket] closed");
+        console.log(ws, `[websocket]`,"closed");
         if (ws.ignore)
             return;
         if (ws.is_bot_client)

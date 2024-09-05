@@ -110,6 +110,17 @@ export function get_ip_from_request(request) {
 }
 
 /**
+ *
+ * @param request {Request|WebSocket}
+ * @returns {string}
+ */
+export function get_user_agent_from_request(request) {
+    if(!(request && request.headers))
+        return '';
+    return request.headers['user-agent'] || '';
+}
+
+/**
  * @param {number} cache_time_ms
  * @return {{setHeaders: setHeaders, etag: string}}
  */
