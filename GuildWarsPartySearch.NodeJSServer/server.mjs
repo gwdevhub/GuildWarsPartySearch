@@ -369,6 +369,21 @@ function reassign_bot_clients(request) {
         };
     })));
 
+    // For remaining bots, assign them where you can
+    bots_to_reassign.forEach((bot_client) => {
+        check_district_regions.forEach((district_region) => {
+            for(let map_id = 0; map_id < map_ids.Count;map_id++) {
+                if(!isValidOutpost(map_id))
+                    return;
+                if (is_assigned(map_id, district_region))
+                    return;
+                if(!is_map_unlocked(bot_client.unlocked_maps || [], map_id))
+                    return;
+                assign_bot(bot_client, map_id, district_region);
+            }
+        });
+    })
+
     if (bots_to_reassign.length) {
         console.log(request, "Bots not assigned!!!", JSON.stringify(bots_to_reassign.map((bot_client) => {
             return {
