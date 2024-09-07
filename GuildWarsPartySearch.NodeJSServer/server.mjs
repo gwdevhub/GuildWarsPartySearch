@@ -286,8 +286,7 @@ function reassign_bot_clients(request) {
     zv = ${find_key(map_ids, zaishen_vanquish.map_id)}`);
     let check_district_regions = [
         district_regions.America,
-        district_regions.Europe,
-        district_regions.International
+        district_regions.Europe
     ];
 
     let check_map_ids = [
