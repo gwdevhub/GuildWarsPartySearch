@@ -291,6 +291,7 @@ function reassign_bot_clients(request) {
     ];
 
     let check_map_ids = [
+        map_ids.Kamadan_Jewel_of_Istan_outpost,
         zaishen_mission.nearest_outpost_id,
         map_ids.Embark_Beach,
         map_ids.Domain_of_Anguish,
