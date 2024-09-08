@@ -460,8 +460,8 @@ function on_recv_parties(ws, data) {
     Object.keys(maps_affected).forEach((map_id) => {
         send_map_parties(to_number(map_id));
     });
-    if (map_changed)
-        reassign_bot_clients();
+    if (map_changed && bot_client.explored_maps_weighting)
+        reassign_bot_clients(ws);
 }
 
 /**
