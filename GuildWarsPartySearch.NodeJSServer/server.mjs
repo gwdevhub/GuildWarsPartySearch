@@ -370,7 +370,8 @@ function reassign_bot_clients(request) {
     })));
 
     // For remaining bots, assign them where you can
-    bots_to_reassign.forEach((bot_client) => {
+    const to_reassign_cpy = Array.from(bots_to_reassign);
+    to_reassign_cpy.forEach((bot_client) => {
         check_district_regions.forEach((district_region) => {
             for(let map_id = 0; map_id < map_ids.Count;map_id++) {
                 if(!isValidOutpost(map_id))
