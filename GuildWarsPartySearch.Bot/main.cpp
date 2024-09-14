@@ -350,7 +350,7 @@ static bool send_websocket(easywsclient::WebSocket::pointer websocket, const std
         return false;
     }
     LogInfo("Websocket send, %d len:", payload.size());
-    printf("%s\n", payload.c_str());
+    fprintf(stderr, "%s\n", payload.c_str());
     last_websocket_message = time_get_ms();
     websocket->send(payload);
     return true;
@@ -359,7 +359,7 @@ static bool send_websocket(easywsclient::WebSocket::pointer websocket, const std
 static void send_ping(easywsclient::WebSocket::pointer websocket) {
     if (!is_websocket_ready(websocket))
         return; // No need to connect if its not ready
-    LogInfo("Sending ping");
+    //LogInfo("Sending ping");
     last_websocket_message = time_get_ms();
     websocket->sendPing();
 }
@@ -783,7 +783,7 @@ static void on_server_requested_travel(nlohmann::json& data) {
 
 static void on_websocket_message(const std::string& message) {
     LogInfo("Websocket recv, %d len",message.size());
-    printf("%s\n", message.c_str());
+    fprintf(stderr, "%s\n", message.c_str());
     last_websocket_message = time_get_ms();
     nlohmann::json j = nlohmann::json::parse(message);
     if (j == nlohmann::json::value_t::discarded)
