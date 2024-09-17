@@ -265,6 +265,7 @@ function is_map_unlocked(maps_unlocked, map_id) {
 }
 
 let reassign_bot_clients_timeout = null;
+let reassign_bot_clients_last_run = 0;
 
 /**
  * Based on today's quests and a set of fixed map ids, cycle all bot clients and decide who should go where.
@@ -275,6 +276,13 @@ function reassign_bot_clients(request) {
         // Re-run this every 15 mins
         clearTimeout(reassign_bot_clients_timeout);
     }
+    const now = (new Date()).getTime();
+    if(reassign_bot_clients_last_run > now - 10000) {
+        // This function was run less than 10 seconds ago; try again in 5 seconds
+        reassign_bot_clients_timeout = setTimeout(reassign_bot_clients,5000);
+        return;
+    }
+    reassign_bot_clients_last_run = now;
     reassign_bot_clients_timeout = setTimeout(reassign_bot_clients,60000 * 15);
     const zaishen_mission = GetZaishenMission();
     const zaishen_bounty = GetZaishenBounty();
@@ -381,6 +389,7 @@ function reassign_bot_clients(request) {
                 if(!is_map_unlocked(bot_client.unlocked_maps || [], map_id))
                     continue;
                 assign_bot(bot_client, map_id, district_region);
+                return;
             }
         });
     })
