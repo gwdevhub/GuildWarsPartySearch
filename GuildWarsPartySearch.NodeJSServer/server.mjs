@@ -227,9 +227,7 @@ function on_bot_disconnected(request) {
     if(maps_affected.length) {
         send_available_maps();
     }
-    if(reassign_bot_clients_timeout)
-        clearTimeout(reassign_bot_clients_timeout);
-    reassign_bot_clients_timeout = setTimeout(reassign_bot_clients,10000);
+    queue_reassign_bot_clients();
 }
 
 /**
@@ -248,7 +246,7 @@ function on_client_unlocked_maps(request, data) {
     request.explored_maps_weighting = request.unlocked_maps.reduce((tally, entry) => {
         return tally + entry;
     })
-    reassign_bot_clients(request);
+    queue_reassign_bot_clients();
 }
 
 /**
@@ -269,28 +267,32 @@ function is_map_unlocked(maps_unlocked, map_id) {
 let reassign_bot_clients_timeout = null;
 let reassign_bot_clients_last_run = 0;
 
+function queue_reassign_bot_clients(offset_ms = 10000) {
+    if(reassign_bot_clients_timeout) {
+        clearTimeout(reassign_bot_clients_timeout);
+    }
+    reassign_bot_clients_timeout = setTimeout(reassign_bot_clients,offset_ms);
+}
+
 /**
  * Based on today's quests and a set of fixed map ids, cycle all bot clients and decide who should go where.
  * @param request
  */
 function reassign_bot_clients(request) {
-    if(reassign_bot_clients_timeout) {
-        // Re-run this every 15 mins
-        clearTimeout(reassign_bot_clients_timeout);
-    }
+
     const now = (new Date()).getTime();
     if(reassign_bot_clients_last_run > now - 10000) {
         // This function was run less than 10 seconds ago; try again in 5 seconds
-        reassign_bot_clients_timeout = setTimeout(reassign_bot_clients,5000);
+        queue_reassign_bot_clients(5000);
         return;
     }
     reassign_bot_clients_last_run = now;
-    reassign_bot_clients_timeout = setTimeout(reassign_bot_clients,60000 * 15);
+    queue_reassign_bot_clients(60000 * 15);
     const zaishen_mission = GetZaishenMission();
     const zaishen_bounty = GetZaishenBounty();
     const zaishen_combat = GetZaishenCombat();
     const zaishen_vanquish = GetZaishenVanquish();
-    console.log(request,`reassign_bot_clients; zm = ${find_key(map_ids, zaishen_mission.map_id)}, \
+    console.log(`reassign_bot_clients; zm = ${find_key(map_ids, zaishen_mission.map_id)}, \
     zb = ${find_key(map_ids, zaishen_bounty.map_id)}, \
     zc = ${find_key(map_ids, zaishen_combat.map_id)}, \
     zv = ${find_key(map_ids, zaishen_vanquish.map_id)}`);
@@ -391,7 +393,7 @@ function reassign_bot_clients(request) {
         }
     })
 
-    console.log(request, `bots_assigned (${bots_assigned.length})`, JSON.stringify(bots_assigned.map((map_assigned) => {
+    console.log(`bots_assigned (${bots_assigned.length})`, JSON.stringify(bots_assigned.map((map_assigned) => {
         return {
             map_id: map_assigned.map_id,
             district_region: map_assigned.district_region,
@@ -400,7 +402,7 @@ function reassign_bot_clients(request) {
     })));
 
     if (bots_to_reassign.length) {
-        console.log(request, "Bots not assigned!!!", JSON.stringify(bots_to_reassign.map((bot_client) => {
+        console.log("Bots not assigned!!!", JSON.stringify(bots_to_reassign.map((bot_client) => {
             return {
                 map_id: bot_client.map_id,
                 district_region: bot_client.district_region,
@@ -476,7 +478,7 @@ function on_recv_parties(ws, data) {
         send_map_parties(to_number(map_id));
     });
     if (map_changed && bot_client.explored_maps_weighting)
-        reassign_bot_clients(ws);
+        queue_reassign_bot_clients();
 }
 
 /**
