@@ -369,14 +369,6 @@ function reassign_bot_clients(request) {
         })
     });
 
-    console.log(request, "bots_assigned", JSON.stringify(bots_assigned.map((map_assigned) => {
-        return {
-            map_id: map_assigned.map_id,
-            district_region: map_assigned.district_region,
-            client_id: map_assigned.bot_client.client_id
-        };
-    })));
-
     // For remaining bots, assign them where you can
     const to_reassign_cpy = Array.from(bots_to_reassign);
     to_reassign_cpy.forEach((bot_client) => {
@@ -394,6 +386,14 @@ function reassign_bot_clients(request) {
             }
         }
     })
+
+    console.log(request, `bots_assigned (${bots_assigned.length})`, JSON.stringify(bots_assigned.map((map_assigned) => {
+        return {
+            map_id: map_assigned.map_id,
+            district_region: map_assigned.district_region,
+            client_id: map_assigned.bot_client.client_id
+        };
+    })));
 
     if (bots_to_reassign.length) {
         console.log(request, "Bots not assigned!!!", JSON.stringify(bots_to_reassign.map((bot_client) => {
