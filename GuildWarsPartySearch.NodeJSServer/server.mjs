@@ -227,7 +227,9 @@ function on_bot_disconnected(request) {
     if(maps_affected.length) {
         send_available_maps();
     }
-    reassign_bot_clients();
+    if(reassign_bot_clients_timeout)
+        clearTimeout(reassign_bot_clients_timeout);
+    reassign_bot_clients_timeout = setTimeout(reassign_bot_clients,10000);
 }
 
 /**
