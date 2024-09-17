@@ -375,11 +375,11 @@ function reassign_bot_clients(request) {
         check_district_regions.forEach((district_region) => {
             for(let map_id = 0; map_id < map_ids.Count;map_id++) {
                 if(!isValidOutpost(map_id))
-                    return;
+                    continue;
                 if (is_assigned(map_id, district_region))
-                    return;
+                    continue;
                 if(!is_map_unlocked(bot_client.unlocked_maps || [], map_id))
-                    return;
+                    continue;
                 assign_bot(bot_client, map_id, district_region);
             }
         });
