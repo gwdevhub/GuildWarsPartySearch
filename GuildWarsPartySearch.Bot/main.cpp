@@ -263,8 +263,12 @@ static bool connect_websocket(easywsclient::WebSocket::pointer* websocket_pt, co
 static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt);
 
 static std::string get_next_argument(int current_index) {
-    if (current_index <= GetArgc()) {
-        return GetArgv()[current_index + 1];
+
+    int argc = 0;
+    char** argv = GetCommandLineArgs(&argc);
+
+    if (current_index <= argc) {
+        return argv[current_index + 1];
     }
 
     return "";
@@ -615,23 +619,14 @@ static void wait_until_ingame() {
 static void load_configuration() {
     int i = 0;
     std::string arg;
+
+    int argc = 0;
+    char** argv = GetCommandLineArgs(&argc);
     try {
-        for (i = 0; i < GetArgc(); i++) {
-            arg = GetArgv()[i];
+        for (i = 0; i < argc; i++) {
+            arg = argv[i];
             if (arg == "-websocket-url") {
                 bot_configuration.web_socket_url = get_next_argument(i);
-                i++;
-            }
-            else if (arg == "-travel-mapid") {
-                bot_configuration.map_id = stoi(get_next_argument(i));
-                i++;
-            }
-            else if (arg == "-district") {
-                bot_configuration.district = static_cast<District>(stoi(get_next_argument(i)));
-                i++;
-            }
-            else if (arg == "-district-number") {
-                bot_configuration.district_number = stoi(get_next_argument(i));
                 i++;
             }
             else if (arg == "-connection-retries") {
@@ -898,7 +893,7 @@ static int main_bot(void* param)
 
     // Theres a HQ bug where it knows our map, but not district until you travel.
     // Fix this by deliberately travelling somewhere else.
-    uint32_t tmp_map_id = 0;
+    /*uint32_t tmp_map_id = 0;
     uint32_t current_map_id = GetMapId();
     for (size_t i = 1; i < 877; i++) {
         if (current_map_id == i)
@@ -913,7 +908,7 @@ static int main_bot(void* param)
     if (!tmp_map_id) {
         exit_with_status("Failed to find another map ID to travel to; make sure you have at least 2 outposts unlocked", 1);
     }
-    assert(travel_wait(tmp_map_id, District::DISTRICT_CURRENT, 0) == 0);
+    assert(travel_wait(tmp_map_id, District::DISTRICT_CURRENT, 0) == 0);*/
 
     while (running) {
         wait_until_ingame();
