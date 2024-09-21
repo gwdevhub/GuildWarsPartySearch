@@ -722,6 +722,9 @@ static void ensure_correct_outpost() {
         if (res == 38) {
             retries = 50; // District full, more retries
         }
+        if (res != ASYNC_RESULT_OK) {
+            LogInfo("Travel error %d", res);
+        }
     }
     collect_instance_info();
     if (!in_correct_outpost()) {
