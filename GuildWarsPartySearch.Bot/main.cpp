@@ -723,7 +723,7 @@ static void ensure_correct_outpost() {
             retries = 50; // District full, more retries
         }
         if (res != ASYNC_RESULT_OK) {
-            LogInfo("Travel error %d", res);
+            LogInfo("Travel error %d (%d)", get_message_from_gw_error_id(res), res);
         }
     }
     collect_instance_info();

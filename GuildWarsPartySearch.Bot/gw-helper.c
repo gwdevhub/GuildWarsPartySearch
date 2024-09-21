@@ -363,7 +363,7 @@ static int travel_wait(int map_id, District district, uint16_t district_number)
     else {
         // RedirectMap if we're NOT already in the same map; server will drop connection otherwise
         //Travel(map_id, district, district_number);
-        RedirectMap(map_id, district, 0);
+        RedirectMap(map_id,District::DISTRICT_CURRENT,0);
     }
     
     //Travel(map_id, district, district_number);
@@ -458,4 +458,41 @@ static int wait_map_loading(int map_id, msec_t timeout_ms)
     }
 
     return GetMapId() == map_id ? ASYNC_RESULT_OK : ASYNC_RESULT_WRONG_VALUE;
+}
+
+const char* get_message_from_gw_error_id(int err) {
+    /*
+                                 UINT_ARRAY_009e6278                             XREF[1]:     GetEncodedStringByLookupId:007d7
+        009e6278 f8  e9  00       uint[80]
+                 00  8d  f6 
+                 00  00  ca 
+           009e6278 [0]                   E9F8h,         F68Dh,        187CAh,          A16h,
+           009e6288 [4]                    A17h,          A18h,         F4CCh,         D732h,
+           009e6298 [8]                   D733h,          A19h,          A1Bh,          A1Ch,
+           009e62a8 [12]                   A1Dh,         F4CEh,          A1Eh,          A1Fh,
+           009e62b8 [16]                  E9BCh,         E9BDh,         F0ECh,         E9F9h,
+           009e62c8 [20]                  FA41h,         FA42h,         FA43h,         F0EDh,
+           009e62d8 [24]                  E9FAh,         E9BEh,         E9FBh,         F0EEh,
+           009e62e8 [28]                  E9FCh,         FD87h,        10BFFh,        13C3Eh,
+           009e62f8 [32]                   A20h,        187CAh,          A21h,          A22h,
+           009e6308 [36]                   A23h,          A24h,          A25h,          A26h,
+           009e6318 [40]                 187CAh,        187CAh,          A27h,          A28h,
+           009e6328 [44]                 1260Ah,        12F45h,          A29h,          A2Ah,
+           009e6338 [48]                   A2Bh,          A2Ch,          A2Dh,          A2Eh,
+           009e6348 [52]                   A2Fh,          A30h,          A31h,          A32h,
+           009e6358 [56]                   A33h,          A34h,          A35h,          A36h,
+           009e6368 [60]                   A37h,         E1CFh,         E1D0h,          A38h,
+           009e6378 [64]                  CA5Ah,          A39h,         CA5Bh,          A3Ah,
+           009e6388 [68]                  E1D1h,          A3Bh,        143BCh,        14677h,
+           009e6398 [72]                 14678h,        14FE3h,        15822h,        15823h,
+           009e63a8 [76]                 15C41h,        15C42h,        15C43h,        15C44h
+
+    */
+    switch (err) {
+    case ASYNC_RESULT_TIMEOUT:
+        return "Action timed out";
+    case 37: return "District is closed. Please try another.";
+    case 38: return "District is full. Please try another.";
+    }
+    return "Unknown err";
 }
