@@ -2679,15 +2679,15 @@ export function isValidOutpost(_map_id) {
 /**
  *
  * @param map_id {number}
- * @returns {null|string}
+ * @returns {string}
  */
 export function getMapName(map_id) {
   const info = getMapInfo(map_id);
   if(!info)
-    return null;
+    return '';
   if(!info.name_id)
-    return null;
-  return encoded_strings[info.name_id+''] || null;
+    return '';
+  return encoded_strings[info.name_id+''] || '';
 }
 
 /**

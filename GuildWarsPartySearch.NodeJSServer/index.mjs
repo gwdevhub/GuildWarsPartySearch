@@ -1,25 +1,26 @@
 import './src/libs/leaflet/1.9.4/leaflet.js';
 import './src/libs/moment/2.29.1/moment.min.js';
 import {
+    district_region_info,
+    getDistrictName,
     getMapInfo,
     getMapName,
+    getNearestOutpost,
+    isValidOutpost,
     party_search_types,
-    districts,
-    district_regions,
-    getDistrictName, district_region_info, region_from_district, isValidOutpost, getNearestOutpost, map_ids
+    region_from_district
 } from "./src/js/gw_constants.mjs";
 import {is_numeric, to_number} from "./src/js/string_functions.mjs";
 import {groupBy, unique} from "./src/js/array_functions.mjs";
 
-import map_data_0 from  './src/data/0.json';
-import map_data_1 from  './src/data/1.json';
-import map_data_2 from  './src/data/2.json';
-import map_data_3 from  './src/data/3.json';
-import map_data_4 from  './src/data/4.json';
-import map_data_5 from  './src/data/5.json';
+import map_data_0 from './src/data/0.json';
+import map_data_1 from './src/data/1.json';
+import map_data_2 from './src/data/2.json';
+import map_data_3 from './src/data/3.json';
+import map_data_4 from './src/data/4.json';
+import map_data_5 from './src/data/5.json';
 import {PartySearch} from "./src/js/PartySearch.class.mjs";
 import {get_websocket_client, is_websocket_ready, start_websocket_client} from "./src/js/websocket_client.mjs";
-import {sleep} from "./src/js/sleep.mjs";
 import LZString from "./src/js/lz-string.min.mjs";
 import {assert} from "./src/js/assert.mjs";
 import {GetZaishenBounty, GetZaishenCombat, GetZaishenMission, GetZaishenVanquish} from "./src/js/DailyQuest.class.mjs";
@@ -190,17 +191,19 @@ function redrawPartyList() {
     const by_map = groupBy(available_maps,(available_map) => {
         return available_map.map_id;
     });
-    const party_list_html = Object.keys(by_map).map((map_id) => {
-        // Across all districts for this map
-        const aggregate_party_count = by_map[map_id].reduce((currentValue, available_map) => {
-            return currentValue + available_map.party_count;
-        },0);
-        const map_info = getMapInfo(map_id);
-        //console.log(map_id,map_info);
-        if(!map_info) return '';
-        return `<div><div class="mapRow" data-map-id="${map_id}">${map_info.name} - ${aggregate_party_count}</div>`
-    }).join('');
-    partyList.innerHTML = party_list_html;
+    partyList.innerHTML = Object.keys(by_map).map(to_number)
+        .sort((a, b) => {
+            return getMapName(a).localeCompare(getMapName(b));
+        }).map((map_id) => {
+            // Across all districts for this map
+            const aggregate_party_count = by_map[map_id].reduce((currentValue, available_map) => {
+                return currentValue + available_map.party_count;
+            }, 0);
+            const map_name = getMapName(map_id);
+            //console.log(map_id,map_info);
+            if (!map_name) return '';
+            return `<div><div class="mapRow" data-map-id="${map_id}">${map_name} - ${aggregate_party_count}</div>`
+        }).join('');
     partyList.querySelectorAll(".mapRow").forEach((element) => {
         element.addEventListener('click',(event) => {
             selectMapId(to_number(event.currentTarget.getAttribute('data-map-id')));

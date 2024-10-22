@@ -698,8 +698,7 @@ static bool in_correct_outpost() {
         return false;
 
     uint32_t check_map_id = get_original_map_id(GetMapId());
-
-    return ((!wanted_map_id || check_map_id == wanted_map_id) &&
+    return ((!wanted_map_id || check_map_id == get_original_map_id(wanted_map_id)) &&
         (wanted_district == District::DISTRICT_CURRENT || GetDistrict() == wanted_district) &&
         (!bot_configuration.district_number || GetDistrictNumber() == bot_configuration.district_number));
 }
@@ -713,7 +712,7 @@ static void ensure_correct_outpost() {
         LogError("map %d not unlocked", wanted_map_id);
         exit_with_status("Map not unlocked",1);
     }
-    LogInfo("Zoning into outpost");
+    LogInfo("Zoning into outpost %d %d %d", wanted_map_id, wanted_district, bot_configuration.district_number);
     int res = 0;
     size_t retries = 4;
     for (size_t i = 0; i < retries && !in_correct_outpost(); i++) {
@@ -919,7 +918,7 @@ static int main_bot(void* param)
             collect_instance_info();
         
         if (!wanted_map_id)
-            wanted_map_id = map_id;
+            wanted_map_id = get_original_map_id(map_id);
         if (!is_websocket_ready(sending_websocket)) {
             // Websocket not currently active, reset vars ready to send bits on sucessful connect later
             party_advertisements_pending = true;
