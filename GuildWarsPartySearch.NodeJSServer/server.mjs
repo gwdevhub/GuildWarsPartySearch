@@ -361,6 +361,9 @@ function reassign_bot_clients(request) {
             return;
         assign_bot(available_bots_to_assign[0], map_id, district_region);
     }
+
+    check_and_assign(14, district_regions.International);
+
     if(isEuPrimeTime()) {
         check_and_assign(map_ids.Embark_Beach, district_regions.Europe);
         check_and_assign(map_ids.Domain_of_Anguish, district_regions.Europe);
@@ -500,16 +503,22 @@ function on_updated_parties(ws, data) {
 
     let map_count_changed = false;
 
-    data.parties.filter((party_json) => {
-        return !is_quarantine_hit(party_json.message || party_json[party_json_keys['message']] || '');
-    }).forEach((changed_party_info) => {
+    data.parties.forEach((changed_party_info) => {
         const party_id = to_number(changed_party_info.party_id || changed_party_info[party_json_keys['party_id']]);
+        const message = changed_party_info.message || changed_party_info[party_json_keys['message']] || '';
+        const remove = changed_party_info.r || is_quarantine_hit(message);
+        /**
+         *
+         * @type {PartySearch | null}
+         */
         let existing_party = existing_parties.find((party) => {
             return party.party_id === party_id;
         });
-        if(changed_party_info.r) {
-            remove_party(existing_party);
-            map_count_changed = true;
+        if(remove) {
+            if(existing_party) {
+                remove_party(existing_party);
+                map_count_changed = true;
+            }
             return;
         }
         if(!existing_party) {
@@ -521,6 +530,9 @@ function on_updated_parties(ws, data) {
             map_count_changed = true;
             return;
         }
+        // Create a copy to validate the update() before doing the same to the existing party
+        let party_copy = new PartySearch(existing_party.toJSON());
+        party_copy.update(changed_party_info);
         existing_party.update(changed_party_info);
     });
 

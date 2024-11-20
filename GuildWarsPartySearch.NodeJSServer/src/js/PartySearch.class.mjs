@@ -37,7 +37,7 @@ export class PartySearch {
         this.party_size = to_number(json.party_size || json[party_json_keys['party_size']] ||  1);
         this.hero_count = to_number(json.hero_count || json[party_json_keys['hero_count']] || 0);
         this.level = to_number(json.level || json[party_json_keys['level']] || 20);
-        this.search_type = to_number(json.search_type || json[party_json_keys['search_type']]);
+        this.search_type = to_number(json.search_type || json[party_json_keys['search_type']] || -1);
         this.primary = to_number(json.primary || json[party_json_keys['primary']] || 0);
         this.secondary = to_number(json.secondary || json[party_json_keys['secondary']] || 0);
         this.district_number = to_number(json.district_number || json[party_json_keys['district_number']] || 1);
@@ -45,9 +45,57 @@ export class PartySearch {
         this.district_language = to_number(json.district_language || json.language || json[party_json_keys['district_language']] || 0);
         this.map_id = to_number(json.map_id || json[party_json_keys['map_id']] || 0);
 
+        this.district = json.district || json[party_json_keys['district']] || district_from_region(this.district_region);
+
+        const hash = json.h || json.hash;
+        if(hash) {
+            this.from_party_hash(hash);
+        }
+
         this.validate();
 
-        this.district = json.district || json[party_json_keys['district']] || district_from_region(this.district_region);
+
+    }
+    to_party_hash() {
+        const a = 'A'.charCodeAt(0);
+        return [
+            String.fromCharCode(this.map_id + a),
+            String.fromCharCode(this.district_region + a),
+            String.fromCharCode(this.district_number + a),
+            String.fromCharCode(this.search_type + a),
+            String.fromCharCode(this.primary + a),
+            String.fromCharCode(this.party_size + a),
+            String.fromCharCode(this.hero_count + a),
+            String.fromCharCode(this.hardmode + a),
+            String.fromCharCode(this.language + a),
+            String.fromCharCode(this.secondary + a),
+            String.fromCharCode(this.level + a),
+            this.sender,
+            '|',
+            this.message
+        ].join('');
+    }
+    from_party_hash(str) {
+        assert(typeof str === 'string' && str.length >= 11);
+        const a = 'A'.charCodeAt(0);
+        this.map_id = str.charCodeAt(0) - a;
+        this.district_region = str.charCodeAt(1) - a;
+        this.district_number = str.charCodeAt(2) - a;
+        this.search_type = str.charCodeAt(3) - a;
+        this.primary = str.charCodeAt(4) - a;
+        this.party_size = str.charCodeAt(5) - a;
+        this.hero_count = str.charCodeAt(6) - a;
+        this.hardmode = str.charCodeAt(7) - a;
+        this.language = str.charCodeAt(8) - a;
+        this.secondary = str.charCodeAt(9) - a;
+        this.district_number = str.charCodeAt(10) - a;
+        this.level = str.charCodeAt(11) - a;
+
+        const sender_end = str.indexOf('|',12);
+        assert(sender_end > 12);
+        this.sender = str.substr(12,sender_end - 12);
+        this.message = str.substr(sender_end + 1);
+        this.validate();
     }
 
     update(json) {
@@ -65,6 +113,9 @@ export class PartySearch {
             if(json.hasOwnProperty(key))
                 this[key] = to_number(json[key]);
         },this);
+        if(json.h && typeof json.h === 'string') {
+            this.from_party_hash(json.h);
+        }
         this.validate();
     }
 
@@ -120,7 +171,7 @@ export class PartySearch {
     validate() {
         //assert(typeof this.client_id === 'string' && this.client_id.length);
         assert(typeof this.message === 'string');
-        assert(typeof this.sender === 'string' && this.sender.length);
+        assert(typeof this.sender === 'string' && this.sender.length && this.sender.length < 20);
         //assert(typeof this.party_id === 'number' && this.party_size > 0);
         assert(typeof this.party_size === 'number' && this.party_size > 0);
         assert(typeof this.hero_count === 'number' && this.hero_count < this.party_size);
