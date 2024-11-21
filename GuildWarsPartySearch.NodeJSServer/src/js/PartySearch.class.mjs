@@ -37,7 +37,10 @@ export class PartySearch {
         this.party_size = to_number(json.party_size || json[party_json_keys['party_size']] ||  1);
         this.hero_count = to_number(json.hero_count || json[party_json_keys['hero_count']] || 0);
         this.level = to_number(json.level || json[party_json_keys['level']] || 20);
-        this.search_type = to_number(json.search_type || json[party_json_keys['search_type']] || -1);
+        if(json.search_type !== undefined)
+            this.search_type = to_number(json.search_type);
+        if(json[party_json_keys['search_type']] !== undefined)
+            this.search_type = to_number(json[party_json_keys['search_type']]);
         this.primary = to_number(json.primary || json[party_json_keys['primary']] || 0);
         this.secondary = to_number(json.secondary || json[party_json_keys['secondary']] || 0);
         this.district_number = to_number(json.district_number || json[party_json_keys['district_number']] || 1);
