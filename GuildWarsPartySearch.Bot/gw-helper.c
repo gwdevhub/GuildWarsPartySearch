@@ -357,7 +357,7 @@ static int travel_wait(int map_id, District district, uint16_t district_number)
         return 0;
     }
     LogInfo("travel_wait %d(%d) %d(%d) %d(%d)", map_id, current_map_id, district, current_district, district_number, current_district_number);
-    if (map_id == current_map_id) {
+    if (map_id == current_map_id || true) {
         Travel(map_id, district, district_number);
     }
     else {
