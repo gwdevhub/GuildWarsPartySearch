@@ -92,10 +92,14 @@ body {
         color: #ffffff;
         text-decoration: none;
     }
-    &.hidden {
-        width:0;
-        opacity: 0;
-        pointer-events: none;
+}
+@media (max-width: 2000px) {
+    #menu {
+        &.hidden {
+            width: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
     }
 }
 

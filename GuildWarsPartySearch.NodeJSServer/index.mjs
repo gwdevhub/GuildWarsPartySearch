@@ -187,28 +187,51 @@ function toggleElement(element, show) {
 }
 
 function redrawPartyList() {
-    //console.log('redrawPartyList',all_parties);
-    const by_map = groupBy(available_maps,(available_map) => {
-        return available_map.map_id;
+    const by_map = groupBy(available_maps, (available_map) => available_map.map_id);
+    const sortedMaps = Object.keys(by_map)
+        .map(to_number)
+        .sort((a, b) => getMapName(a).localeCompare(getMapName(b)));
+
+    let currentElement = partyList.firstElementChild;
+
+    sortedMaps.forEach((map_id) => {
+        const aggregate_party_count = by_map[map_id].reduce((sum, available_map) => sum + available_map.party_count, 0);
+        const map_name = getMapName(map_id);
+        if (!map_name) return;
+
+        // Check if the current element is the correct row
+        while (currentElement && to_number(currentElement.getAttribute("data-map-id")) < map_id) {
+            currentElement = currentElement.nextElementSibling;
+        }
+
+        if (currentElement && to_number(currentElement.getAttribute("data-map-id")) === map_id) {
+            // Update the count if it changed
+            const newText = `${map_name} - ${aggregate_party_count}`;
+            if (currentElement.textContent !== newText) {
+                currentElement.textContent = newText;
+            }
+            currentElement = currentElement.nextElementSibling; // Move to the next row
+        } else {
+            // Create a new row and insert it at the correct position
+            const newRow = document.createElement("div");
+            newRow.classList.add("mapRow");
+            newRow.setAttribute("data-map-id", map_id);
+            newRow.textContent = `${map_name} - ${aggregate_party_count}`;
+            newRow.addEventListener("click", (event) => {
+                selectMapId(to_number(event.currentTarget.getAttribute("data-map-id")));
+            });
+
+            // Insert before the current element or at the end if null
+            partyList.insertBefore(newRow, currentElement);
+        }
     });
-    partyList.innerHTML = Object.keys(by_map).map(to_number)
-        .sort((a, b) => {
-            return getMapName(a).localeCompare(getMapName(b));
-        }).map((map_id) => {
-            // Across all districts for this map
-            const aggregate_party_count = by_map[map_id].reduce((currentValue, available_map) => {
-                return currentValue + available_map.party_count;
-            }, 0);
-            const map_name = getMapName(map_id);
-            //console.log(map_id,map_info);
-            if (!map_name) return '';
-            return `<div><div class="mapRow" data-map-id="${map_id}">${map_name} - ${aggregate_party_count}</div>`
-        }).join('');
-    partyList.querySelectorAll(".mapRow").forEach((element) => {
-        element.addEventListener('click',(event) => {
-            selectMapId(to_number(event.currentTarget.getAttribute('data-map-id')));
-        })
-    })
+
+    // Remove any extra elements that are no longer needed
+    while (currentElement) {
+        let nextElement = currentElement.nextElementSibling;
+        currentElement.remove();
+        currentElement = nextElement;
+    }
     redrawDailyQuests();
 }
 
