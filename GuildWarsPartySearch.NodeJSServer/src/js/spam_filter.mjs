@@ -30,6 +30,23 @@ try {
 export function is_quarantine_hit(str) {
     if(!str)
         return false;
+    let found = 0;
+    for(let i=0;i<str.length;i++) {
+        // Get the Unicode code point for the character
+        const codePoint = str.codePointAt(i);
+
+        // Skip basic ASCII characters (0-127) and common extended Latin characters
+        if(codePoint <= 0x7F || (codePoint >= 0xA0 && codePoint <= 0x24F)) continue;
+
+        // Adjust for surrogate pairs
+        if (codePoint > 0xFFFF) {
+            i++; // Skip the second part of the surrogate pair
+        }
+
+        found++;
+        if(found > 5)
+            return true;
+    }
     // True on match
     let msg_norm_manual = removeSpaces(removeUnderscores(removePunctuation(removeDiacritics(str))));
     for(let i in quarantine_regexes) {
