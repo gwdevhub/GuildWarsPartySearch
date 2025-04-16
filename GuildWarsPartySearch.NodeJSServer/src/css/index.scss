@@ -113,18 +113,19 @@ body {
     flex: 1 1 auto;
     overflow-y: auto;
     border-bottom: solid 1px #808080;
-    div {
-        .mapRow {
-            border-bottom: solid 1px #808080;
-            font-size: 12pt;
-            padding-left: 15px;
-            cursor: pointer;
-            height: 30px;
-            line-height: 30px;
-            &:hover {
-                background: #1d1d1d;
-            }
+    .mapRow {
+        border-bottom: solid 1px #808080;
+        font-size: 12pt;
+        padding-left: 15px;
+        cursor: pointer;
+        height: 30px;
+        line-height: 30px;
+        &:hover {
+            background: #1d1d1d;
         }
+    }
+    div {
+
         .district {
             border-bottom: solid 1px #808080;
             font-size: 9pt;

@@ -192,6 +192,8 @@ function redrawPartyList() {
         .map(to_number)
         .sort((a, b) => getMapName(a).localeCompare(getMapName(b)));
 
+    partyList.innerHTML = '';
+
     let currentElement = partyList.firstElementChild;
 
     sortedMaps.forEach((map_id) => {
