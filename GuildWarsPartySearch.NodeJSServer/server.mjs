@@ -7,7 +7,8 @@ import {start_websocket_server} from "./src/js/websocket_server.mjs";
 import {assert} from "./src/js/assert.mjs";
 import * as http from "http";
 import {is_whitelisted} from "./src/js/auth.mjs";
-
+import {WebSocket} from 'ws';
+import morgan from "morgan";
 import {
     get_ip_from_request,
     get_data_from_request,
@@ -35,7 +36,6 @@ import "./src/js/date_functions.js";
 import config from "./config.json" with {type: "json"};
 
 import {GetZaishenBounty, GetZaishenCombat, GetZaishenMission, GetZaishenVanquish} from "./src/js/DailyQuest.class.mjs";
-import * as msgpack from "@msgpack/msgpack/dist.esm/encode.js";
 
 console.logDefault = console.log;
 console.log = (...args) => {
@@ -834,18 +834,10 @@ function send_to_websockets(websockets, obj) {
     if (typeof obj !== 'string')
         obj = JSON.stringify(obj);
     const compressed = LZString.compressToUTF16(obj);
-    const message_packed = msgpack.encode(obj);
     websockets.forEach((ws) => {
-        switch(ws.compression) {
-            case 'lz':
-                ws.sendCompressed(compressed, obj);
-                break;
-            case 'msgpack':
-                ws.send(message_packed);
-                break;
-            default:
-                ws.send(obj);
-                break;
-        }
+        if (ws.compression === 'lz')
+            ws.sendCompressed(compressed, obj);
+        else
+            ws.send(obj);
     })
 }

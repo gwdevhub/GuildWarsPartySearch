@@ -10,7 +10,6 @@
     "serve": "vite build && node server.mjs"
   },
   "dependencies": {
-    "@msgpack/msgpack": "^3.1.1",
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",
     "express": "^4.19.2",
