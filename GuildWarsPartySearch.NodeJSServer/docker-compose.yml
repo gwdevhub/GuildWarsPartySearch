@@ -1,0 +1,9 @@
+services:
+  nodejs-server:
+    build:
+      context: .
+      dockerfile: Dockerfile-Local
+    container_name: partysearch-nodejs
+    ports:
+      - "9095:80"
+    restart: unless-stopped
