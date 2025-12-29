@@ -7,3 +7,9 @@ services:
     ports:
       - "9095:80"
     restart: unless-stopped
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
