@@ -802,7 +802,7 @@ wss.on('connection', function connection(ws, request) {
             }
         }
 
-        console.debug(ws,`[websocket]`, `${(compressed ? '!' : '')}-->`, data);
+        //console.debug(ws,`[websocket]`, `${(compressed ? '!' : '')}-->`, data);
         on_websocket_message(data, ws).catch((e) => {
             console.error(ws,e);
         });
