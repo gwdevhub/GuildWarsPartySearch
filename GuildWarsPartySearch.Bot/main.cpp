@@ -276,7 +276,7 @@ static std::string get_next_argument(int current_index) {
 
 static void exit_with_status(const char* state, int exit_code)
 {
-    LogCritical("%s (code=%d)", state, exit_code);
+    //LogCritical("%s (code=%d)", state, exit_code);
     exit(exit_code);
 }
 
@@ -488,6 +488,7 @@ static void send_changed_party_searches() {
     j["parties"] = to_send;
 
     queue_send(j.dump());
+    server_parties.clear();
     for (auto& party : to_send) {
         server_parties[party.party_id] = std::move(party);
     }
@@ -812,6 +813,7 @@ static bool disconnect_websocket(easywsclient::WebSocket::pointer* websocket_pt)
             break;
         time_sleep_ms(50);
     }
+    delete *websocket_pt;
     *websocket_pt = NULL;
     return true;
 }

@@ -29,7 +29,19 @@ if (MSVC)
   set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
 endif()
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Headquarter)
+
+# Add this BEFORE add_subdirectory, so the same prefix path is set
+if(WIN32)
+    set(HQ_DEPS_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Headquarter/deps/Windows")
+else()
+    set(HQ_DEPS_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Headquarter/deps/Linux")
+endif()
+list(APPEND CMAKE_PREFIX_PATH "${HQ_DEPS_INSTALL_DIR}")
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Headquarter Headquarter)
+
+# Now find mbedtls in parent scope too
+find_package(MbedTLS REQUIRED)
 
 # Look for required libraries
 add_library(
@@ -41,7 +53,13 @@ add_library(
   Dependencies/easywsclient/easywsclient.cpp
 )
 
-target_link_libraries(GuildWarsPartySearch.Bot PRIVATE common client mbedtls mbedx509 mbedcrypto)
+target_link_libraries(GuildWarsPartySearch.Bot PRIVATE
+    common
+    client
+    MbedTLS::mbedtls
+    MbedTLS::mbedx509
+    MbedTLS::mbedcrypto
+)
 
 set_target_properties(common
     PROPERTIES
@@ -80,6 +98,7 @@ target_include_directories(
 
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Headquarter/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Headquarter/deps-vendor/mbedtls/include
   ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/easywsclient
   ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/json
 )

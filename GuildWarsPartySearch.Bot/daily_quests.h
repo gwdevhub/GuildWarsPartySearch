@@ -14,9 +14,9 @@ namespace DailyQuests {
         DailyQuest(GW::Constants::MapID _map_id, GW::Constants::MapID _nearest_outpost_id = (GW::Constants::MapID)0) {
             map_id = (uint32_t)_map_id;
             nearest_outpost_id = (uint32_t)_nearest_outpost_id;
-            if (nearest_outpost_id == 0) {
-                nearest_outpost_id = get_nearest_outpost_id(map_id);
-            }
+            //if (nearest_outpost_id == 0) {
+            //    nearest_outpost_id = get_nearest_outpost_id(map_id);
+            //}
             if (nearest_outpost_id == 0) {
                 nearest_outpost_id = map_id;
             }

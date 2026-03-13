@@ -12,201 +12,7 @@
 
 #include "async.h"
 
-static int   irand(int min, int max);
-static float frand(float min, float max);
-static float dist2(Vec2f u, Vec2f v);
-static bool  equ2f(Vec2f v1, Vec2f v2);
-static Vec2f lerp2f(Vec2f a, Vec2f b, float t);
-
 #define sec_to_ms(sec) (sec * 1000)
-
-// Ensure uint16_t* is null terminated, adding one if needed. Returns length of uint16_t string excluding null terminator.
-size_t null_terminate_uint16(uint16_t* buffer, size_t buffer_len) {
-    for (size_t i = 0; i < buffer_len - 1; i++) {
-        if (buffer[i] == 0)
-            return i;
-    }
-    buffer[buffer_len - 1] = 0;
-    return buffer_len - 1;
-}
-// Ensure wchar_t* is null terminated, adding one if needed. Returns length of wchar_t string excluding null terminator.
-size_t null_terminate_wchar(wchar_t* buffer, size_t buffer_len) {
-    for (size_t i = 0; i < buffer_len - 1; i++) {
-        if (buffer[i] == 0)
-            return i;
-    }
-    buffer[buffer_len - 1] = 0;
-    return buffer_len - 1;
-}
-// Ensure char* is null terminated, adding one if needed. Returns length of char string excluding null terminator.
-size_t null_terminate_char(char* buffer, size_t buffer_len) {
-    LogDebug("null_terminate_char: %p, %d", buffer, buffer_len);
-    for (size_t i = 0; i < buffer_len - 1; i++) {
-        if (buffer[i] == 0)
-            return i;
-    }
-    buffer[buffer_len - 1] = 0;
-    return buffer_len - 1;
-}
-
-// Returns length of char string excluding null terminator.
-// from_buffer MUST be a null terminated string.
-static int wchar_to_char(const wchar_t* from_buffer, char* to_buffer, size_t to_buffer_length) {
-    setlocale(LC_ALL, "en_US.utf8");
-#pragma warning(suppress : 4996)
-#if 0
-    //wcstombs(pIdentifier->Description, desc.Description, MAX_DEVICE_IDENTIFIER_STRING);
-    int len = WideCharToMultiByte(CP_UTF8, 0, from, -1, NULL, 0, NULL, NULL);
-    if (len == 0 || len > (int)max_len)
-        return -1;
-    WideCharToMultiByte(CP_UTF8, 0, from, -1, to, len, NULL, NULL);
-    return (int)null_terminate_char(to, max_len);
-#else
-    int from_buffer_len = wcslen(from_buffer);
-    if (to_buffer_length < from_buffer_len * sizeof(wchar_t)) {
-        LogError("wchar_to_char: Out buffer length %d is not big enough; need %d", to_buffer_length, from_buffer_len * sizeof(wchar_t));
-        return -1; // char array should be twice the length of the from_buffer
-    }
-    LogDebug("wchar_to_char: wcstombs(%p, %p, %d)", to_buffer, from_buffer, to_buffer_length);
-    int len = (int)wcstombs(to_buffer, from_buffer, to_buffer_length);
-    if (len < 0) {
-        LogError("wchar_to_char: wcstombs failed %d", len);
-        return len;
-    }
-    return (int)null_terminate_char(to_buffer, to_buffer_length);
-#endif
-}
-// Returns length of wchar_t string excluding null terminator.
-static int uint16_to_wchar(const uint16_t* from_buffer, wchar_t* to_buffer, size_t to_buffer_length) {
-    size_t written = 0;
-    to_buffer[0] = 0;
-    for (written = 0; written < to_buffer_length - 1; written++) {
-        to_buffer[written] = from_buffer[written];
-        if (!from_buffer[written])
-            break;
-    }
-    return (int)null_terminate_wchar(to_buffer, to_buffer_length);
-}
-// Returns length of char string excluding null terminator.
-static int uint16_to_char(const uint16_t* from_buffer, char* to_buffer, const size_t to_buffer_length) {
-    int result = -1;
-    if (!to_buffer_length)
-        return result;
-    size_t tmp_to_buffer_bytes = to_buffer_length * sizeof(wchar_t);
-    wchar_t* tmp_to_buffer = (wchar_t*)malloc(tmp_to_buffer_bytes);
-    result = uint16_to_wchar(from_buffer, tmp_to_buffer, to_buffer_length);
-    if (result < 1)
-        goto cleanup;
-    // Result is null terminated now.
-    result = wchar_to_char(tmp_to_buffer, to_buffer, to_buffer_length);
-cleanup:
-    free(tmp_to_buffer);
-    return result;
-}
-static bool str_match_uint32_t(uint32_t* first, uint32_t* second) {
-    size_t len1 = 0;
-    while (first[len1]) len1++;
-    size_t len2 = 0;
-    while (first[len2]) len2++;
-    if (len1 != len2)
-        return false;
-    for (size_t i = 0; i < len1; i++) {
-        if (first[i] != second[i])
-            return false;
-    }
-    return true;
-}
-static bool str_match_uint16_t(uint16_t* first, uint16_t* second) {
-    size_t len1 = 0;
-    while (first[len1]) len1++;
-    size_t len2 = 0;
-    while (first[len2]) len2++;
-    if (len1 != len2)
-        return false;
-    for (size_t i = 0; i < len1; i++) {
-        if (first[i] != second[i])
-            return false;
-    }
-    return true;
-}
-static ApiAgent get_me() {
-    ApiAgent res;
-    res.agent_id = 0;
-    int my_id = GetMyAgentId();
-    if (my_id) 
-        GetAgent(&res, my_id);
-    return res;
-}
-static bool get_my_position(Vec2f* out) {
-    ApiAgent me = get_me();
-    if (!me.agent_id)
-        return false;
-    *out = me.position;
-    return true;
-}
-static float get_distance_to_agent(ApiAgent* agent) {
-    ApiAgent me = get_me();
-    if (!me.agent_id)
-        return 0.0f;
-    return dist2(agent->position, me.position);
-}
-
-static int irand(int min, int max)
-{
-    assert(0 < (max - min) && (max - min) < RAND_MAX);
-    int range = max - min;
-    return (rand() % range) + min;
-}
-
-static float frand(float min, float max)
-{
-    assert(0 < (max - min) && (max - min) < RAND_MAX);
-    float range = max - min;
-    float random = (float)rand() / RAND_MAX;
-    return (random * range) + min;
-}
-
-static float dist2(Vec2f u, Vec2f v)
-{
-    float dx = u.x - v.x;
-    float dy = u.y - v.y;
-    return sqrtf((dx * dx) + (dy * dy));
-}
-
-static bool equ2f(Vec2f v1, Vec2f v2)
-{
-    if (v1.x != v2.x)
-        return false;
-    if (v1.y != v2.y)
-        return false;
-    return true;
-}
-
-static Vec2f lerp2f(Vec2f a, Vec2f b, float t)
-{
-    Vec2f pos;
-    pos.x = ((1.f - t) * a.x) + (t * b.x);
-    pos.y = ((1.f - t) * a.y) + (t * b.y);
-    return pos;
-}
-
-#if 0
-static void buy_rare_material_item(Item *item)
-{
-    if (!item->quote_price) return;
-
-    TransactionInfo send_info = {0};
-    TransactionInfo recv_info = {0};
-
-    recv_info.item_count = 1;
-    recv_info.item_ids[0] = item->item_id;
-    recv_info.item_quants[0] = 1;
-
-    // @TODO
-    // BuyMaterials(TRANSACT_TYPE_TraderBuy, item->quote_price, &send_info, 0, &recv_info);
-}
-#endif
-
 
 struct area_info {
     uint32_t campaign;
@@ -262,179 +68,6 @@ bool is_valid_outpost(uint32_t map_id) {
     return true;
 }
 
-uint32_t get_nearest_outpost_id(uint32_t map_id) {
-    if (is_valid_outpost(map_id)) {
-        return map_id;
-    }
-    // TODO: calc!
-    return 0;
-}
-
-static int get_rare_material_trader_id(int map_id)
-{
-    switch(map_id) {
-    case 4:
-    case 5:
-    case 6:
-    case 52:
-    case 176:
-    case 177:
-    case 178:
-    case 179:
-        return 205;
-    case 275:
-    case 276:
-    case 359:
-    case 360:
-    case 529:
-    case 530:
-    case 537:
-    case 538:
-        return 192;
-    case 109:
-        return 1997;
-    case 193:
-        return 3621;
-    case 194:
-    case 250:
-    case 857:
-        return 3282;
-    case 242:
-        return 3281;
-    case 376:
-        return 5388;
-    case 398:
-    case 433:
-        return 5667;
-    case 414:
-        return 5668;
-    case 424:
-        return 5387;
-    case 438:
-        return 5613;
-    case 49:
-        return 2038;
-    case 491:
-    case 818:
-        return 4723;
-    case 449:
-        return 4729;
-    case 492:
-        return 4722;
-    case 638:
-        return 6760;
-    case 640:
-        return 6759;
-    case 641:
-        return 6060;
-    case 642:
-        return 6045;
-    case 643:
-        return 6386;
-    case 644:
-        return 6385;
-    case 652:
-        return 6228;
-    case 77:
-        return 3410;
-    case 81:
-        return 2083;
-    default:
-        return 0;
-    }
-}
-
-static int wait_map_loading(int map_id, msec_t timeout_ms);
-static int travel_wait(int map_id, District district, uint16_t district_number)
-{
-    int current_map_id = GetMapId();
-    District current_district = GetDistrict();
-    int current_district_number = GetDistrictNumber();
-
-    if ((current_map_id == map_id) 
-        && (district == District::DISTRICT_CURRENT || current_district == district)
-        && (!district_number || current_district_number == district_number)) {
-        return 0;
-    }
-    LogInfo("travel_wait %d(%d) %d(%d) %d(%d)", map_id, current_map_id, district, current_district, district_number, current_district_number);
-    if (map_id == current_map_id || true) {
-        Travel(map_id, district, district_number);
-    }
-    else {
-        // RedirectMap if we're NOT already in the same map; server will drop connection otherwise
-        //Travel(map_id, district, district_number);
-        RedirectMap(map_id,District::DISTRICT_CURRENT,0);
-    }
-    
-    //Travel(map_id, district, district_number);
-    return wait_map_loading(map_id, 20000);
-}
-
-static int random_travel(int map_id)
-{
-    District districts[] = {
-        DISTRICT_ASIA_KOREAN,
-        DISTRICT_ASIA_CHINESE,
-        DISTRICT_ASIA_JAPANESE
-    };
-
-    int r = irand(0, ARRAY_SIZE(districts));
-    District district = districts[r];
-    Travel(map_id, district, 0);
-    return wait_map_loading(map_id, 20000);
-}
-
-static int travel_gh_safe(void)
-{
-    // @Enhancement: Theoricly, they could add a gh, but yeah...
-    static int gh_map_ids[] = {
-        4, 5, 6, 52, 176, 177, 178, 179, 275, 276, 359, 360, 529, 530, 537, 538
-    };
-    int map_id = GetMapId();
-    for (int i = 0; i < ARRAY_SIZE(gh_map_ids); i++) {
-        if (map_id == gh_map_ids[i])
-            return true;
-    }
-    uint32_t guild_id = GetMyGuildId();
-    TravelHall(guild_id);
-    return wait_map_loading(0, 20000);
-}
-
-static ArrayApiPlayer get_all_players(void)
-{
-    ArrayApiPlayer players = {0};
-    size_t count = GetPlayers(NULL, 0);
-    if (!count) return players;
-    array_reserve(&players, count);
-    players.size = GetPlayers(players.data, players.capacity);
-    return players;
-}
-
-static bool get_player_with_name(const wchar_t *name, ApiPlayer *player)
-{
-    size_t length;
-    uint16_t buffer[20];
-    ArrayApiPlayer players = get_all_players();
-
-    ApiPlayer *it;
-    bool match = true;
-    array_foreach(it, &players) {
-        match = true;
-        length = GetPlayerName(it->player_id, buffer, ARRAY_SIZE(buffer));
-        for (size_t i = 0; name[i] && i < length && match; i++) {
-            match = name[i] == buffer[i];
-        }
-        if (match) {
-            if (player) *player = *it;
-            array_reset(&players);
-            return true;
-        }
-    }
-
-    array_reset(&players);
-    return false;
-}
-
 static int wait_map_loading(int map_id, msec_t timeout_ms)
 {
     AsyncState state;
@@ -460,34 +93,32 @@ static int wait_map_loading(int map_id, msec_t timeout_ms)
     return GetMapId() == map_id ? ASYNC_RESULT_OK : ASYNC_RESULT_WRONG_VALUE;
 }
 
-const char* get_message_from_gw_error_id(int err) {
-    /*
-                                 UINT_ARRAY_009e6278                             XREF[1]:     GetEncodedStringByLookupId:007d7
-        009e6278 f8  e9  00       uint[80]
-                 00  8d  f6 
-                 00  00  ca 
-           009e6278 [0]                   E9F8h,         F68Dh,        187CAh,          A16h,
-           009e6288 [4]                    A17h,          A18h,         F4CCh,         D732h,
-           009e6298 [8]                   D733h,          A19h,          A1Bh,          A1Ch,
-           009e62a8 [12]                   A1Dh,         F4CEh,          A1Eh,          A1Fh,
-           009e62b8 [16]                  E9BCh,         E9BDh,         F0ECh,         E9F9h,
-           009e62c8 [20]                  FA41h,         FA42h,         FA43h,         F0EDh,
-           009e62d8 [24]                  E9FAh,         E9BEh,         E9FBh,         F0EEh,
-           009e62e8 [28]                  E9FCh,         FD87h,        10BFFh,        13C3Eh,
-           009e62f8 [32]                   A20h,        187CAh,          A21h,          A22h,
-           009e6308 [36]                   A23h,          A24h,          A25h,          A26h,
-           009e6318 [40]                 187CAh,        187CAh,          A27h,          A28h,
-           009e6328 [44]                 1260Ah,        12F45h,          A29h,          A2Ah,
-           009e6338 [48]                   A2Bh,          A2Ch,          A2Dh,          A2Eh,
-           009e6348 [52]                   A2Fh,          A30h,          A31h,          A32h,
-           009e6358 [56]                   A33h,          A34h,          A35h,          A36h,
-           009e6368 [60]                   A37h,         E1CFh,         E1D0h,          A38h,
-           009e6378 [64]                  CA5Ah,          A39h,         CA5Bh,          A3Ah,
-           009e6388 [68]                  E1D1h,          A3Bh,        143BCh,        14677h,
-           009e6398 [72]                 14678h,        14FE3h,        15822h,        15823h,
-           009e63a8 [76]                 15C41h,        15C42h,        15C43h,        15C44h
+static int travel_wait(int map_id, District district, uint16_t district_number)
+{
+    int current_map_id = GetMapId();
+    District current_district = GetDistrict();
+    int current_district_number = GetDistrictNumber();
 
-    */
+    if ((current_map_id == map_id) 
+        && (district == District::DISTRICT_CURRENT || current_district == district)
+        && (!district_number || current_district_number == district_number)) {
+        return 0;
+    }
+    LogInfo("travel_wait %d(%d) %d(%d) %d(%d)", map_id, current_map_id, district, current_district, district_number, current_district_number);
+    if (map_id == current_map_id || true) {
+        Travel(map_id, district, district_number);
+    }
+    else {
+        // RedirectMap if we're NOT already in the same map; server will drop connection otherwise
+        //Travel(map_id, district, district_number);
+        RedirectMap(map_id,District::DISTRICT_CURRENT,0);
+    }
+    
+    //Travel(map_id, district, district_number);
+    return wait_map_loading(map_id, 20000);
+}
+
+const char* get_message_from_gw_error_id(int err) {
     switch (err) {
     case ASYNC_RESULT_TIMEOUT:
         return "Action timed out";
