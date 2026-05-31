@@ -1,1 +1,0 @@
-docker cp partysearch:partysearches.db partysearches.db

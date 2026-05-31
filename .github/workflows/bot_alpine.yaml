@@ -5,7 +5,7 @@ on:
     branches: [ master ]
     paths:
       - "GuildWarsPartySearch.Bot/**"
-      - ".github/workflows/bot-alpine.yaml"
+      - ".github/workflows/bot_alpine.yaml"
   pull_request:
 
 jobs:

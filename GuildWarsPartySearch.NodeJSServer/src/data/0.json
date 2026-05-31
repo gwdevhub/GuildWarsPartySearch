@@ -47,6 +47,12 @@
           "mapId": 166
         },
         {
+          "name": "Piken Square",
+          "type": "outpost",
+          "coordinates": [ 884, 426 ],
+          "mapId": 779
+        },
+        {
           "name": "Ashford Abbey",
           "type": "outpost",
           "coordinates": [ 830, 856 ],
