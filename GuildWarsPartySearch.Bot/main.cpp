@@ -13,6 +13,11 @@
 #include <csignal>
 #include <cstdio>
 #include <ctime>
+#ifndef _WIN32
+# include <execinfo.h>
+# include <fcntl.h>
+# include <unistd.h>
+#endif
 
 #define HEADQUARTER_RUNTIME_LINKING
 extern "C" {
@@ -980,9 +985,79 @@ extern "C" DllExport void PluginUnload(PluginObject * obj)
 {
     running = false;
 }
+
+#ifndef _WIN32
+// Crash handler: on a fatal signal (segfault, abort, etc.) dump a backtrace
+// before the process dies. Without this the bot dies silently and Docker just
+// restarts it, leaving no clue what went wrong. We write the trace to stderr
+// (captured by `docker logs` / the crash-notifier) and, if TRADE_CHAT_CRASH_LOG
+// is set, append it to that file so it survives the restart. Only
+// async-signal-safe-ish calls here.
+static const char* crash_signal_name(int sig)
+{
+    switch (sig) {
+        case SIGSEGV: return "SIGSEGV (segmentation fault)";
+        case SIGABRT: return "SIGABRT (abort)";
+        case SIGFPE:  return "SIGFPE (arithmetic error)";
+        case SIGILL:  return "SIGILL (illegal instruction)";
+        case SIGBUS:  return "SIGBUS (bus error)";
+        default:      return "fatal signal";
+    }
+}
+
+static void crash_signal_handler(int sig)
+{
+    void* frames[64];
+    int nframes = backtrace(frames, (int)(sizeof(frames) / sizeof(frames[0])));
+
+    int fds[2];
+    int nfds = 0;
+    fds[nfds++] = STDERR_FILENO;
+
+    int crash_fd = -1;
+    const char* crash_path = getenv("TRADE_CHAT_CRASH_LOG");
+    if (crash_path && *crash_path) {
+        crash_fd = open(crash_path, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        if (crash_fd >= 0)
+            fds[nfds++] = crash_fd;
+    }
+
+    char header[160];
+    int n = snprintf(header, sizeof(header),
+        "\n==== BOT CRASH: %s ==== (backtrace, %d frames)\n",
+        crash_signal_name(sig), nframes);
+    if (n < 0) n = 0;
+    if (n > (int)sizeof(header)) n = (int)sizeof(header);
+
+    for (int i = 0; i < nfds; i++) {
+        (void)!write(fds[i], header, (size_t)n);
+        backtrace_symbols_fd(frames, nframes, fds[i]);
+    }
+
+    if (crash_fd >= 0)
+        close(crash_fd);
+
+    // Restore the default handler and re-raise so the real exit code is
+    // preserved and Docker sees the crash for its restart policy.
+    signal(sig, SIG_DFL);
+    raise(sig);
+}
+
+static void install_crash_handler(void)
+{
+    int sigs[] = { SIGSEGV, SIGABRT, SIGFPE, SIGILL, SIGBUS };
+    for (size_t i = 0; i < sizeof(sigs) / sizeof(sigs[0]); i++) {
+        signal(sigs[i], crash_signal_handler);
+    }
+}
+#else
+static void install_crash_handler(void) {}
+#endif
+
 extern "C" DllExport bool PluginEntry(PluginObject * obj)
 {
     assert(obj);
+    install_crash_handler();
     running = true;
     thread_create(&bot_thread, main_bot, NULL);
     thread_detach(&bot_thread);
