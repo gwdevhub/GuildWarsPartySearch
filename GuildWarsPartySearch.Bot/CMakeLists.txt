@@ -61,6 +61,16 @@ target_link_libraries(GuildWarsPartySearch.Bot PRIVATE
     MbedTLS::mbedcrypto
 )
 
+# Make crash backtraces debuggable:
+# -rdynamic exports symbols so backtrace_symbols_fd names exported functions;
+# -g emits debug info so an address/offset resolves to file:line via addr2line
+# (needed because this project blanks CMAKE_CXX_FLAGS_DEBUG above, so the Debug
+#  build would otherwise carry no -g for C++).
+if(NOT MSVC)
+    target_link_options(GuildWarsPartySearch.Bot PRIVATE -rdynamic)
+    target_compile_options(GuildWarsPartySearch.Bot PRIVATE -g)
+endif()
+
 set_target_properties(common
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/"
