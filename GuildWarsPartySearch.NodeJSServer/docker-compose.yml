@@ -1,8 +1,7 @@
 services:
   nodejs-server:
-    build:
-      context: .
-      dockerfile: Dockerfile-Local
+    image: gwdevhub/partysearch-nodejs:latest
+    pull_policy: always
     container_name: partysearch-nodejs
     ports:
       - "9095:80"
