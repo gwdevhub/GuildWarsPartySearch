@@ -5,6 +5,8 @@ services:
     container_name: partysearch-nodejs
     ports:
       - "9095:80"
+    volumes:
+      - ./config.json:/app/config.json:ro
     restart: unless-stopped
     networks:
       - proxy
