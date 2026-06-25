@@ -1,8 +1,8 @@
 services:
   nodejs-server:
-    image: gwdevhub/partysearch-nodejs:latest
+    image: gwdevhub/partysearch-server:latest
     pull_policy: always
-    container_name: partysearch-nodejs
+    container_name: partysearch-server
     ports:
       - "9095:80"
     restart: unless-stopped
