@@ -20,6 +20,9 @@
 #endif
 
 #define HEADQUARTER_RUNTIME_LINKING
+// event.h declares a struct member named `friend`, which is a keyword in C++,
+// so rename it for the duration of the C headers - same layout either way.
+#define friend friend_info
 extern "C" {
     #include <client/constants.h>
     #include <client/Headquarter.h>
@@ -27,6 +30,10 @@ extern "C" {
     #include <common/thread.h>
     #include <common/paths.h>
 }
+#undef friend
+// Headquarter pulls in C's `noreturn` macro, which mangles the [[gnu::noreturn]]
+// attribute used by libstdc++ headers included further down.
+#undef noreturn
 
 #ifdef _WIN32
 # define DllExport __declspec(dllexport)
