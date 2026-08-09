@@ -1,0 +1,48 @@
+name: Build bot on linux
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - "GuildWarsPartySearch.Bot/**"
+      - ".github/workflows/bot_linux.yaml"
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Debian, not Alpine: Headquarter's linux/thread.c assumes pthread_t is an
+    # integer, which only holds on glibc, and this is the same toolchain the
+    # deployed partysearchbot image is built with.
+    container:
+      image: debian:bookworm-slim
+
+    steps:
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends \
+            ca-certificates \
+            clang \
+            cmake \
+            git \
+            libssl-dev \
+            ninja-build \
+            pkg-config \
+            python3
+
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Build Headquarter dependencies
+      working-directory: GuildWarsPartySearch.Bot/Dependencies/Headquarter
+      # mbedtls ends up inside the bot's shared library, so it needs -fPIC.
+      run: CFLAGS=-fPIC python3 bootstrap.py
+
+    - name: Build
+      working-directory: GuildWarsPartySearch.Bot
+      run: |
+        cmake -B linuxbuild -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+        ninja -C linuxbuild

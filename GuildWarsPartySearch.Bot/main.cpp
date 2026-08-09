@@ -20,6 +20,9 @@
 #endif
 
 #define HEADQUARTER_RUNTIME_LINKING
+// event.h declares a struct member named `friend`, which is a keyword in C++,
+// so rename it for the duration of the C headers - same layout either way.
+#define friend friend_info
 extern "C" {
     #include <client/constants.h>
     #include <client/Headquarter.h>
@@ -27,6 +30,10 @@ extern "C" {
     #include <common/thread.h>
     #include <common/paths.h>
 }
+#undef friend
+// Headquarter pulls in C's `noreturn` macro, which mangles the [[gnu::noreturn]]
+// attribute used by libstdc++ headers included further down.
+#undef noreturn
 
 #ifdef _WIN32
 # define DllExport __declspec(dllexport)
@@ -118,6 +125,11 @@ static std::atomic<bool> running;
 static std::string last_payload;
 static uint64_t last_websocket_message = 0;
 static uint64_t websocket_ping_interval = 30000; // Ping every 30s
+
+// The game disconnects clients that never send anything; a message on the team
+// channel resets that timer and is only visible to our own (empty) party.
+static uint64_t last_chat_keepalive = 0;
+static uint64_t chat_keepalive_interval = 5 * 60 * 1000; // Keepalive every 5m
 
 District district = District::DISTRICT_CURRENT;
 int district_number = -1;
@@ -939,6 +951,10 @@ static int main_bot(void* param)
         }
 
         ensure_correct_outpost();
+        if (time_get_ms() - last_chat_keepalive > chat_keepalive_interval) {
+            last_chat_keepalive = time_get_ms();
+            SendChat(Channel_Group, "ping");
+        }
         if (party_advertisements_pending) {
             party_advertisements_pending = false;
             send_changed_party_searches();
