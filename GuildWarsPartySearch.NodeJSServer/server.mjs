@@ -25,7 +25,7 @@ import {
     map_ids,
     region_from_district
 } from "./src/js/gw_constants.mjs";
-import {unique, groupBy, find_if, delete_if, find_key} from "./src/js/array_functions.mjs";
+import {unique, find_if, delete_if, find_key} from "./src/js/array_functions.mjs";
 
 import {dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -73,13 +73,103 @@ const started_at = new Date();
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 let parties_by_client = {};
-let all_parties = [];
+let all_parties = new Set();
 let last_party_change_timestamp_by_map = {};
 let last_party_change = 0;
 let last_available_maps_broadcasted = [];
 let bot_clients = {};
 
+// Indexes kept in step with all_parties by index_party()/unindex_party().
+// Deriving these by scanning every party on each incoming message costs
+// O(all_parties) per message, which dominates CPU once a few thousand party
+// searches are live.
+let parties_by_map = new Map();        // map_id -> Set<PartySearch>
+let unique_party_counts = new Map();   // `${map_id}-${district_region}-${sender}` -> refcount
+let district_party_counts = new Map(); // `${map_id}-${district}` -> distinct sender count
+
 const minimum_supported_bot_version = 1;
+
+// Party searches are deduplicated by sender within a map/region, and counted
+// per district, so both keys have to be tracked to keep the counts exact.
+function party_unique_key(party) {
+    return `${party.map_id}-${party.district_region}-${party.sender}`;
+}
+
+function party_district_key(party) {
+    return `${party.map_id}-${party.district}`;
+}
+
+/**
+ * Add a party to the lookup indexes. Must be paired with unindex_party().
+ * @param party {PartySearch}
+ */
+function index_party(party) {
+    index_party_map(party);
+    index_party_counts(party);
+}
+
+/**
+ * Remove a party from the lookup indexes, using its current key fields.
+ * @param party {PartySearch}
+ */
+function unindex_party(party) {
+    unindex_party_map(party, party.map_id);
+    unindex_party_counts(party_unique_key(party), party_district_key(party));
+}
+
+/**
+ * Per-map membership. Depends only on map_id, so it must not be touched when
+ * other fields change, or parties would lose their position in the map listing.
+ * @param party {PartySearch}
+ */
+function index_party_map(party) {
+    let for_map = parties_by_map.get(party.map_id);
+    if (!for_map) {
+        for_map = new Set();
+        parties_by_map.set(party.map_id, for_map);
+    }
+    for_map.add(party);
+}
+
+function unindex_party_map(party, map_id) {
+    const for_map = parties_by_map.get(map_id);
+    if (!for_map)
+        return;
+    for_map.delete(party);
+    if (!for_map.size)
+        parties_by_map.delete(map_id);
+}
+
+/**
+ * Party searches are deduplicated by sender within a map/region and counted per
+ * district, so both keys are refcounted to keep district counts exact.
+ * @param party {PartySearch}
+ */
+function index_party_counts(party) {
+    const unique_key = party_unique_key(party);
+    const seen = unique_party_counts.get(unique_key) || 0;
+    unique_party_counts.set(unique_key, seen + 1);
+    if (seen === 0) {
+        const district_key = party_district_key(party);
+        district_party_counts.set(district_key, (district_party_counts.get(district_key) || 0) + 1);
+    }
+}
+
+function unindex_party_counts(unique_key, district_key) {
+    const seen = unique_party_counts.get(unique_key) || 0;
+    if (!seen)
+        return;
+    if (seen > 1) {
+        unique_party_counts.set(unique_key, seen - 1);
+        return;
+    }
+    unique_party_counts.delete(unique_key);
+    const in_district = district_party_counts.get(district_key) || 0;
+    if (in_district > 1)
+        district_party_counts.set(district_key, in_district - 1);
+    else
+        district_party_counts.delete(district_key);
+}
 
 /**
  *
@@ -140,13 +230,18 @@ function add_bot_client(request) {
  * @param request_or_websocket {WebSocket|Request|null}
  */
 function send_map_parties(map_id, request_or_websocket = null) {
-    const parties_by_map = all_parties.filter((party) => {
-        return map_id === 0 || party.map_id === map_id;
+    const send_to = request_or_websocket ? [request_or_websocket] : get_user_websockets().filter((ws) => {
+        return ws.map_id === map_id;
     });
+    if (!send_to.length)
+        return; // Nobody is subscribed to this map; don't pay to serialise it
+    const matching_parties = map_id === 0
+        ? Array.from(all_parties)
+        : Array.from(parties_by_map.get(map_id) || []);
     const json = JSON.stringify({
         "type": "map_parties",
         "map_id": map_id,
-        "parties": unique(parties_by_map, (party) => {
+        "parties": unique(matching_parties, (party) => {
             return `${party.sender}`;
         }).map((party) => {
             let json = party.toJSON();
@@ -155,10 +250,43 @@ function send_map_parties(map_id, request_or_websocket = null) {
         })
     });
 
-    const send_to = request_or_websocket ? [request_or_websocket] : get_user_websockets().filter((ws) => {
-        return ws.map_id === map_id;
-    });
     send_to_websockets(send_to, json);
+}
+
+// Bots stream party updates continuously, so broadcasting on every message is
+// almost entirely wasted work. Coalesce them into one flush per interval.
+const broadcast_interval_ms = 250;
+let pending_map_broadcasts = new Set();
+let pending_available_maps = false;
+let broadcast_timeout = null;
+
+function schedule_broadcast() {
+    if (broadcast_timeout)
+        return;
+    broadcast_timeout = setTimeout(flush_broadcasts, broadcast_interval_ms);
+}
+
+function flush_broadcasts() {
+    broadcast_timeout = null;
+    const map_ids = Array.from(pending_map_broadcasts);
+    const send_maps = pending_available_maps;
+    pending_map_broadcasts.clear();
+    pending_available_maps = false;
+    if (send_maps)
+        send_available_maps();
+    map_ids.forEach((map_id) => {
+        send_map_parties(map_id);
+    });
+}
+
+function queue_send_map_parties(map_id) {
+    pending_map_broadcasts.add(map_id);
+    schedule_broadcast();
+}
+
+function queue_send_available_maps() {
+    pending_available_maps = true;
+    schedule_broadcast();
 }
 
 /**
@@ -169,14 +297,19 @@ function remove_party(party) {
     if(!party)
         return;
     const now = new Date();
-    let idx = all_parties.indexOf(party);
-    if (idx !== -1) {
-        all_parties.splice(idx, 1);
+    if (all_parties.delete(party)) {
+        unindex_party(party);
     }
     if (parties_by_client[party.client_id]) {
-        idx = parties_by_client[party.client_id].indexOf(party);
+        const for_client = parties_by_client[party.client_id];
+        const idx = for_client.indexOf(party);
         if (idx !== -1) {
-            parties_by_client[party.client_id].splice(idx, 1);
+            for_client.splice(idx, 1);
+        }
+        if (!for_client.length) {
+            // Every account that ever connects gets an entry here, so empty ones
+            // have to be dropped or the map grows without bound.
+            delete parties_by_client[party.client_id];
         }
     }
 
@@ -193,8 +326,9 @@ function add_party(party) {
     if (!parties_by_client[party.client_id])
         parties_by_client[party.client_id] = [];
     parties_by_client[party.client_id].push(party);
-    if (!all_parties.includes(party)) {
-        all_parties.push(party);
+    if (!all_parties.has(party)) {
+        all_parties.add(party);
+        index_party(party);
     }
     last_party_change_timestamp_by_map[party.map_id] = now;
     last_party_change = now;
@@ -213,19 +347,16 @@ function on_bot_disconnected(request) {
     if (!client_id)
         return; // Valid error; could be in response to a bad connection
     let maps_affected = {};
-    all_parties.filter((party) => {
-        return party.client_id === client_id;
+    Array.from(parties_by_client[client_id] || []).forEach((party) => {
+        maps_affected[party.map_id] = 1;
+        remove_party(party);
     })
-        .forEach((party) => {
-            maps_affected[party.map_id] = 1;
-            remove_party(party);
-        })
     maps_affected = Object.keys(maps_affected);
     maps_affected.forEach((map_id) => {
-        send_map_parties(to_number(map_id));
+        queue_send_map_parties(to_number(map_id));
     });
     if(maps_affected.length) {
-        send_available_maps();
+        queue_send_available_maps();
     }
     queue_reassign_bot_clients();
 }
@@ -465,9 +596,7 @@ function on_recv_parties(ws, data) {
     let maps_affected = {};
     maps_affected[map_id] = 1;
     // Remove any current parties for this client
-    all_parties.filter((party) => {
-        return party.client_id === client_id;
-    }).forEach((party) => {
+    Array.from(parties_by_client[client_id] || []).forEach((party) => {
         maps_affected[party.map_id] = 1;
         remove_party(party);
     })
@@ -477,9 +606,9 @@ function on_recv_parties(ws, data) {
     });
 
     // Broadcast to other connections
-    send_available_maps();
+    queue_send_available_maps();
     Object.keys(maps_affected).forEach((map_id) => {
-        send_map_parties(to_number(map_id));
+        queue_send_map_parties(to_number(map_id));
     });
     if (map_changed && bot_client.explored_maps_weighting)
         queue_reassign_bot_clients();
@@ -498,9 +627,7 @@ function on_updated_parties(ws, data) {
     assert(bot_client, "on_updated_parties: get_bot_client failed");
     assert(is_numeric(bot_client.map_id) && is_numeric(bot_client.district_region),"on_updated_parties: no bot district or region");
 
-    const existing_parties = all_parties.filter((party) => {
-        return party.client_id === client_id;
-    });
+    const existing_parties = Array.from(parties_by_client[client_id] || []);
 
     let map_count_changed = false;
 
@@ -534,13 +661,30 @@ function on_updated_parties(ws, data) {
         // Create a copy to validate the update() before doing the same to the existing party
         let party_copy = new PartySearch(existing_party.toJSON());
         party_copy.update(changed_party_info);
-        existing_party.update(changed_party_info);
+        // update() can rewrite map_id/district_region/sender via the party hash.
+        // Only the fields that actually changed are re-indexed, so parties keep
+        // their position in the per-map listing.
+        const prev_map_id = existing_party.map_id;
+        const prev_unique_key = party_unique_key(existing_party);
+        const prev_district_key = party_district_key(existing_party);
+        try {
+            existing_party.update(changed_party_info);
+        } finally {
+            if (existing_party.map_id !== prev_map_id) {
+                unindex_party_map(existing_party, prev_map_id);
+                index_party_map(existing_party);
+            }
+            if (party_unique_key(existing_party) !== prev_unique_key) {
+                unindex_party_counts(prev_unique_key, prev_district_key);
+                index_party_counts(existing_party);
+            }
+        }
     });
 
     // Broadcast to other connections
     if(map_count_changed)
-        send_available_maps();
-    send_map_parties(to_number(bot_client.map_id));
+        queue_send_available_maps();
+    queue_send_map_parties(to_number(bot_client.map_id));
 }
 
 /**
@@ -550,12 +694,6 @@ function on_updated_parties(ws, data) {
  */
 function send_available_maps(request_or_websocket = null, force = false) {
 
-    const unique_parties = unique(all_parties, (party) => {
-        return `${party.map_id}-${party.district_region}-${party.sender}`;
-    })
-    const parties_by_district = groupBy(unique_parties, (party) => {
-        return `${party.map_id}-${party.district}`;
-    })
     const available_maps = unique(Object.values(bot_clients).filter((bot_client) => {
         // Exclude bots without a map_id
         return bot_client.map_id;
@@ -567,7 +705,7 @@ function send_available_maps(request_or_websocket = null, force = false) {
         return {
             map_id: bot_client.map_id,
             district: bot_client.district,
-            party_count: (parties_by_district[key] || []).length
+            party_count: district_party_counts.get(key) || 0
         };
     });
     const json = JSON.stringify({
@@ -594,7 +732,7 @@ function send_available_maps(request_or_websocket = null, force = false) {
 function send_all_parties(request_or_websocket = null) {
     const json = JSON.stringify({
         "type": "all_parties",
-        "parties": all_parties
+        "parties": Array.from(all_parties)
     });
     if (is_http(request_or_websocket)) {
         send_json(request_or_websocket, json);
